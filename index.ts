@@ -1,21 +1,19 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express } from 'express';
 import mongoose from 'mongoose';
-import { StockListModel, IStockList } from './model/stockList';
-import config from './utility/config';
 
-const port = 8000;
+import config from './utility/config';
+import middleware from './utility/middleware';
+import router from './route';
 
 const app: Express = express();
 
-app.get('/', async (req: Request, res: Response) => {
-  const list: IStockList[] = await StockListModel.find();
+app.use(middleware);
+app.use(router);
 
-  res.json(list);
-});
-
-app.listen(port, async () => {
-  console.log('config.MONGODB_URI', config.MONGODB_URI);
-
-  await mongoose.connect(config.MONGODB_URI);
-  console.log(`now listening on port ${port}`);
+let server: any;
+mongoose.connect(config.MONGODB_URI).then(() => {
+  console.log('MongoDB Connected!');
+  server = app.listen(config.SERVER_PORT, () => {
+    console.log('Server up on port:', config.SERVER_PORT);
+  });
 });
