@@ -1,23 +1,7 @@
-// const mongoose = require('mongoose');
-
-// // Schema
-// const Schema = mongoose.Schema;
-
-// const Model = mongoose.model(
-//   'StockList', // all stock no and name
-//   new Schema({
-//     stockNo: String,
-//     stockName: String,
-//     updateDate: String,
-//   })
-// );
-
-// module.exports = Model;
-
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Model, Schema } from 'mongoose';
 
 // Interface
-interface IStockList extends Document {
+interface IStockList {
   stockNo: string;
   stockName: string;
   updateDate: string;
@@ -30,9 +14,7 @@ const StockListSchema: Schema = new Schema({
   updateDate: String,
 });
 
-const StockListModel: Model<IStockList> = mongoose.model<IStockList>(
-  'StockList', // all stock no and name
-  StockListSchema
-);
+// All stock no and name
+const StockListModel: Model<IStockList> = mongoose.model<IStockList>('StockList', StockListSchema);
 
 export { StockListModel, IStockList };

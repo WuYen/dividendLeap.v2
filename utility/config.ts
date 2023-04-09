@@ -12,7 +12,7 @@ const FINMIND_TOKEN: string | undefined = process.env.FINMIND_TOKEN;
 const FUGLE_TOKEN: string | undefined = process.env.FUGLE_TOKEN;
 const FUGLE_URI: string | undefined = process.env.FUGLE_URI;
 
-export = {
+export default {
   NODE_ENV,
   MONGODB_URI,
   SERVER_PORT,
