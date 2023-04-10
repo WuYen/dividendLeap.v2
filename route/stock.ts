@@ -17,23 +17,25 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   for (let index = 0; index < schedule.length; index++) {
     const stockSchedule = schedule[index];
     const stockPriceInfo = dayInfoList.find((x) => x.stockNo == stockSchedule.stockNo);
-    if (!Boolean(stockSchedule?.cashDividen) || !stockPriceInfo) {
+    if (!Boolean(stockSchedule?.cashDividen)) {
       continue;
     }
 
-    const yieldRatio = (((stockSchedule?.cashDividen || 0) / (stockPriceInfo?.price || 0)) * 100).toFixed(2);
+    const yieldRatio = stockPriceInfo?.price
+      ? ((stockSchedule.cashDividen / stockPriceInfo.price) * 100).toFixed(2)
+      : '-';
     const dividendDate = stockSchedule.date;
     const formattedDate = `${dividendDate.slice(0, 4)}-${dividendDate.slice(4, 6)}-${dividendDate.slice(6)}`;
     const data: IListResult = {
-      stockNo: stockSchedule?.stockNo || '',
-      stockName: stockSchedule?.stockName || '',
-      year: stockSchedule?.year || '',
-      month: stockSchedule?.month || '',
+      stockNo: stockSchedule.stockNo || '',
+      stockName: stockSchedule.stockName || '',
+      year: stockSchedule.year || '',
+      month: stockSchedule.month || '',
       date: formattedDate,
-      cashDividen: stockSchedule?.cashDividen.toFixed(2) || '',
-      price: stockPriceInfo?.price.toFixed(2) || '',
-      priceDate: stockPriceInfo?.date || '',
-      yieldRatio: yieldRatio || '',
+      cashDividen: stockSchedule.cashDividen.toFixed(2) || '-',
+      price: stockPriceInfo?.price.toFixed(2) || '-',
+      priceDate: stockPriceInfo?.date || '-',
+      yieldRatio: yieldRatio || '-',
     };
 
     result.push(data);

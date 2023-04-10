@@ -1,11 +1,12 @@
-import mongoose from 'mongoose';
-import { ScheduleModel, ISchedule } from './model/schedule';
-import { DayInfoModel, IDayInfo } from './model/dayInfo';
-import config from './utility/config';
-import { getPureDate, latestTradeDate, today } from './utility/dateTime';
-import { getStockPrice } from './service/finMindService';
+import express, { Router, NextFunction, Request, Response } from 'express';
+import { today, latestTradeDate, getPureDate } from '../utility/dateTime';
+import { ScheduleModel, ISchedule } from '../model/schedule';
+import { DayInfoModel, IDayInfo } from '../model/dayInfo';
+import { getStockPrice } from '../service/finMindService';
 
-mongoose.connect(config.MONGODB_URI).then(async () => {
+const router: Router = express.Router();
+
+router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   const schedule: ISchedule[] = await ScheduleModel.find({ sourceType: '除權息預告', date: { $gte: today() } })
     .sort({ date: 1 })
     .lean()
@@ -43,10 +44,9 @@ mongoose.connect(config.MONGODB_URI).then(async () => {
     })
     .catch((error: any) => {
       console.error('Batch insert failed', error);
-    })
-    .finally(() => {
-      mongoose.disconnect();
     });
+
+  res.json({ msg: 'success' });
 });
 
 function getRandomIntInclusive(min: number, max: number) {
@@ -62,3 +62,5 @@ function delay(time: number) {
     }, time);
   });
 }
+
+export default router;
