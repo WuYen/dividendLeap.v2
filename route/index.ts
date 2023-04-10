@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import stockRoute from './stock';
+import jobRoute from './job';
 
 const router = express.Router();
 
@@ -12,6 +13,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/stock',
     route: stockRoute,
+  },
+  {
+    path: '/job',
+    route: jobRoute,
   },
 ];
 

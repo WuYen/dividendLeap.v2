@@ -6,7 +6,7 @@ import { getStockPrice } from '../service/finMindService';
 
 const router: Router = express.Router();
 
-router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/dayinfo', async (req: Request, res: Response, next: NextFunction) => {
   const schedule: ISchedule[] = await ScheduleModel.find({ sourceType: '除權息預告', date: { $gte: today() } })
     .sort({ date: 1 })
     .lean()
@@ -37,7 +37,7 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   }
 
   console.log('Save: ', dayInfoList.length);
-  await DayInfoModel.deleteMany({ updateDate: '20230409' });
+  await DayInfoModel.deleteMany({ updateDate: '20230410' });
   DayInfoModel.insertMany(dayInfoList)
     .then(() => {
       console.log('Batch insert successful');
