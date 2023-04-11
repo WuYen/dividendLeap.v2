@@ -1,6 +1,4 @@
-import mongoose from 'mongoose';
-import { ScheduleModel, ISchedule } from './model/schedule';
-import config from './utility/config';
+import { ScheduleModel, ISchedule } from '../model/schedule';
 
 const rawData = [
   {
@@ -346,6 +344,7 @@ const rawData = [
     cashDividen: '1.8',
   },
 ];
+
 //https://goodinfo.tw/tw/StockDividendScheduleList.asp?MARKET_CAT=%E5%85%A8%E9%83%A8&INDUSTRY_CAT=%E5%85%A8%E9%83%A8&YEAR=%E5%8D%B3%E5%B0%87%E9%99%A4%E6%AC%8A%E6%81%AF
 // var result =[];
 // document.querySelector("#tblDetail").querySelectorAll('tr[align="center"]').forEach(elem=>{
@@ -359,35 +358,27 @@ const rawData = [
 //         cashDividen: td[15].innerText,
 //     })
 // })
-const schedules: ISchedule[] = rawData.map((source: any) => {
-  const newSchedule: ISchedule = {
-    stockNo: source.stockNo,
-    stockName: source.stockName,
-    year: '2023',
-    month: source.date.substring(4, 6),
-    date: source.date, //dividend date '20210601'
-    cashDividen: parseFloat(source.cashDividen),
-    others: [],
-    updateDate: '20230410',
-    sourceType: '除權息預告',
-  };
-  return newSchedule;
-});
 
-console.log('sample data', schedules[0]);
-
-// Connect to MongoDB
-mongoose.connect(config.MONGODB_URI).then(async () => {
-  await ScheduleModel.deleteMany({ sourceType: '除權息預告' });
-
-  ScheduleModel.insertMany(schedules)
-    .then(() => {
-      console.log('Batch insert successful');
-    })
-    .catch((error: any) => {
-      console.error('Batch insert failed', error);
-    })
-    .finally(() => {
-      mongoose.disconnect();
-    });
-});
+export default async function process(rawData: any[]) {
+  const schedules: ISchedule[] = rawData.map((source: any) => {
+    const newSchedule: ISchedule = {
+      stockNo: source.stockNo,
+      stockName: source.stockName,
+      year: '2023',
+      month: source.date.substring(4, 6),
+      date: source.date,
+      cashDividen: parseFloat(source.cashDividen),
+      others: [],
+      updateDate: '20230410',
+      sourceType: '除權息預告',
+    };
+    return newSchedule;
+  });
+  console.log('sample data', schedules[0]);
+  try {
+    await ScheduleModel.deleteMany({ sourceType: '除權息預告' });
+    await ScheduleModel.insertMany(schedules);
+  } catch (error) {
+    console.error('Update Schedule failed', error);
+  }
+}

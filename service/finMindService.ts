@@ -14,7 +14,6 @@ export async function getStockPrice(stockNo: string, date: string) {
     const response = await axios.get(
       `https://api.finmindtrade.com/api/v4/data?dataset=TaiwanStockPrice&data_id=${stockNo}&start_date=${dt}&end_date=${dt}&token=${config.FINMIND_TOKEN}`
     );
-    const rawData = response.data.data;
     // {
     //     date: '2023-04-07',
     //     stock_id: '1314',
@@ -27,6 +26,7 @@ export async function getStockPrice(stockNo: string, date: string) {
     //     spread: 0,
     //     Trading_turnover: 1455
     // }
+    const rawData = response.data.data;
     return rawData;
   } catch (error) {
     console.log('finMind dayInfo error', error);
@@ -34,4 +34,4 @@ export async function getStockPrice(stockNo: string, date: string) {
   }
 }
 
-getStockPrice('1314', '20230407');
+// getStockPrice('1314', '20230407');

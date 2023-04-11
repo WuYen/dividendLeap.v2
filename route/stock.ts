@@ -6,8 +6,6 @@ import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 const router: Router = express.Router();
 
 router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
-  //const list: IStockList[] = await StockListModel.find();
-  //const scheduleNoList: string[] = await ScheduleModel.distinct('stockNo');
   const dayInfoList: IDayInfo[] = await DayInfoModel.find().lean();
   const schedule: ISchedule[] = await ScheduleModel.find({ sourceType: '除權息預告', date: { $gte: today() } })
     .sort({ date: 1 })
