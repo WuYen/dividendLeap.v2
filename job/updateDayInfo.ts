@@ -19,9 +19,9 @@ async function process() {
     const stockNo = schedule[index].stockNo;
     console.log('Process:', index + 1, stockNo);
     const stockPriceInfo = (await getStockPrice(stockNo, latestTradeDateStr))[0];
-    const pureDate = getPureDate(stockPriceInfo.date);
-    const dateTimeFragment = getDateFragment(pureDate);
     if (stockPriceInfo != undefined) {
+      const pureDate = getPureDate(stockPriceInfo.date);
+      const dateTimeFragment = getDateFragment(pureDate);
       const data: IDayInfo = {
         stockNo: stockNo,
         date: pureDate,

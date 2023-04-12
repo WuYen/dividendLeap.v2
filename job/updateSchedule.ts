@@ -346,18 +346,21 @@ const rawData = [
 ];
 
 //https://goodinfo.tw/tw/StockDividendScheduleList.asp?MARKET_CAT=%E5%85%A8%E9%83%A8&INDUSTRY_CAT=%E5%85%A8%E9%83%A8&YEAR=%E5%8D%B3%E5%B0%87%E9%99%A4%E6%AC%8A%E6%81%AF
-// var result =[];
-// document.querySelector("#tblDetail").querySelectorAll('tr[align="center"]').forEach(elem=>{
-//     var td = elem.querySelectorAll("td");
+// var result = [];
+// document
+//   .querySelector('#tblDetail')
+//   .querySelectorAll('tr[align="center"]')
+//   .forEach((elem) => {
+//     var td = elem.querySelectorAll('td');
 //     const [year, month, day] = td[4].innerText.split('\n')[0].split(/['/]/); // split the input string by single quote and forward slash
-// const fullYear = `20${year}`; // prepend '20' to the year
+//     const fullYear = `20${year}`; // prepend '20' to the year
 //     result.push({
-//        stockNo: td[1].innerText,
-//         stockName: td[2].innerText,
-//         date: `${year}${month}${day}`,
-//         cashDividen: td[15].innerText,
-//     })
-// })
+//       stockNo: td[1].innerText,
+//       stockName: td[2].innerText,
+//       date: `${fullYear}${month}${day}`,
+//       cashDividen: td[15].innerText,
+//     });
+//   });
 
 export default async function process(rawData: any[]) {
   const schedules: ISchedule[] = rawData.map((source: any) => {
