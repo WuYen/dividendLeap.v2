@@ -69,7 +69,7 @@ export function parseChineseDate(str: string) {
   return `${+getPureDate(str) + 19110000}`;
 }
 
-export function getDateFragment(date: string | Date) {
+export function getDateFragment(date: string | Date): IDateFragement {
   if (typeof date == 'string') {
     return {
       year: date.substr(0, 4),
@@ -83,6 +83,12 @@ export function getDateFragment(date: string | Date) {
       day: `${('0' + date.getDate()).slice(-2)}`,
     };
   }
+}
+
+interface IDateFragement {
+  year: string;
+  month: string;
+  day: string;
 }
 
 export function getPureDate(str: string) {

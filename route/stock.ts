@@ -5,9 +5,18 @@ import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 
 const router: Router = express.Router();
 
+let cache: IListResult[] = [];
+let cacheTimestamp: number = 0;
+
 router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
-  //const list: IStockList[] = await StockListModel.find();
-  //const scheduleNoList: string[] = await ScheduleModel.distinct('stockNo');
+  if (cache.length > 0) {
+    if (+new Date() < cacheTimestamp + 600000) {
+      res.json({ schedule: cache });
+      return;
+    } else {
+      console.log('cache expire');
+    }
+  }
   const dayInfoList: IDayInfo[] = await DayInfoModel.find().lean();
   const schedule: ISchedule[] = await ScheduleModel.find({ sourceType: '除權息預告', date: { $gte: today() } })
     .sort({ date: 1 })
@@ -40,7 +49,15 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
 
     result.push(data);
   }
-
+  result.sort((x, y) => {
+    if (x.date !== y.date) {
+      return x.date.localeCompare(y.date); // sort by field "a"
+    } else {
+      return y.yieldRatio.localeCompare(x.yieldRatio); // sort by field "b"
+    }
+  });
+  cache = result;
+  cacheTimestamp = +new Date();
   res.json({ schedule: result });
 });
 
