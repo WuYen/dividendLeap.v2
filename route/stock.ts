@@ -5,6 +5,18 @@ import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 
 const router: Router = express.Router();
 
+interface IListResult {
+  stockNo: string;
+  stockName: string;
+  year: string;
+  month: string;
+  date: string;
+  cashDividen: string;
+  price: string;
+  priceDate: string;
+  yieldRatio: string;
+}
+
 let cache: IListResult[] = [];
 let cacheTimestamp: number = 0;
 
@@ -60,17 +72,5 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   cacheTimestamp = +new Date();
   res.json({ schedule: result });
 });
-
-interface IListResult {
-  stockNo: string;
-  stockName: string;
-  year: string;
-  month: string;
-  date: string;
-  cashDividen: string;
-  price: string;
-  priceDate: string;
-  yieldRatio: string;
-}
 
 export default router;
