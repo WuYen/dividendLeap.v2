@@ -1,4 +1,5 @@
 import { ScheduleModel, ISchedule } from '../model/schedule';
+import { getPureDate, latestTradeDate, today, getDateFragment } from '../utility/dateTime';
 
 //https://goodinfo.tw/tw/StockDividendScheduleList.asp?MARKET_CAT=%E5%85%A8%E9%83%A8&INDUSTRY_CAT=%E5%85%A8%E9%83%A8&YEAR=%E5%8D%B3%E5%B0%87%E9%99%A4%E6%AC%8A%E6%81%AF
 // var result = [];
@@ -18,6 +19,7 @@ import { ScheduleModel, ISchedule } from '../model/schedule';
 //   });
 
 export default async function process(rawData: any[]) {
+  const todayStr = today();
   const schedules: ISchedule[] = rawData.map((source: any) => {
     const newSchedule: ISchedule = {
       stockNo: source.stockNo,
@@ -27,7 +29,7 @@ export default async function process(rawData: any[]) {
       date: source.date,
       cashDividen: parseFloat(source.cashDividen),
       others: [],
-      updateDate: '20230410',
+      updateDate: todayStr,
       sourceType: '除權息預告',
     };
     return newSchedule;

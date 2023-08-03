@@ -1,6 +1,8 @@
 import express, { Router } from 'express';
 import stockRoute from './stock';
 import jobRoute from './job';
+import lineRoute from './line';
+import yahooRoute from './yahoo';
 
 const router = express.Router();
 
@@ -17,6 +19,14 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/job',
     route: jobRoute,
+  },
+  {
+    path: '/line',
+    route: lineRoute,
+  },
+  {
+    path: '/yahoo',
+    route: yahooRoute,
   },
 ];
 
