@@ -40,8 +40,8 @@ export function latestTradeDate(): string {
 
   let result = toDateString(today);
 
-  if (result === '20210614') {
-    result = '20210611';
+  if (result === '20230803') {
+    result = '20230802';
   }
   return result;
 }

@@ -12,6 +12,17 @@ const FINMIND_TOKEN: string | undefined = process.env.FINMIND_TOKEN;
 const FUGLE_TOKEN: string | undefined = process.env.FUGLE_TOKEN;
 const FUGLE_URI: string | undefined = process.env.FUGLE_URI;
 
+const LINE_NOTIFY_AUTH_URL: string | undefined =
+  process.env.LINE_NOTIFY_AUTH_URL || 'https://notify-bot.line.me/oauth/authorize';
+const LINE_NOTIFY_TOKEN_URL: string | undefined =
+  process.env.LINE_NOTIFY_TOKEN_URL || 'https://notify-bot.line.me/oauth/token';
+const LINE_NOTIFY_CLIENT_ID: string | undefined = process.env.LINE_NOTIFY_CLIENT_ID || 'bznJfBLs5gNEtwCpLC8EEa';
+const LINE_NOTIFY_CLIENT_SECRET: string | undefined =
+  process.env.LINE_NOTIFY_CLIENT_SECRET || 'ZdUToxuTlKWcVkx3UE1pVg9Nm6wVJXvqbNEJWNXHURH';
+const LINE_NOTIFY_CALL_BACK_URL: string | undefined =
+  process.env.LINE_NOTIFY_CALL_BACK_URL || 'http://localhost:8000/line/callback';
+const LINE_NOTIFY_URL: string | undefined = process.env.LINE_NOTIFY_URL || 'https://notify-api.line.me/api/notify';
+
 export default {
   NODE_ENV,
   MONGODB_URI,
@@ -23,4 +34,10 @@ export default {
   FINMIND_TOKEN,
   FUGLE_TOKEN,
   FUGLE_URI,
+  LINE_NOTIFY_AUTH_URL,
+  LINE_NOTIFY_TOKEN_URL,
+  LINE_NOTIFY_CLIENT_ID,
+  LINE_NOTIFY_CLIENT_SECRET,
+  LINE_NOTIFY_CALL_BACK_URL,
+  LINE_NOTIFY_URL,
 };
