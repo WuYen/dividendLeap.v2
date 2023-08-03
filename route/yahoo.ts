@@ -29,14 +29,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const result = await getHistoricalPrices('^' + indexMapping[index].key);
     responseList.push(result);
   }
-  const messageBuilder: string[] = ['美股大盤當日趨勢:', '台灣時間'];
+  const messageBuilder: string[] = ['美股大盤當日趨勢:', ''];
   responseList.forEach((result, index: number) => {
     const data = result.response;
     const message = data.length > 0 ? processMessage(indexMapping[index].key, result.response) : '';
     messageBuilder.push(index + 1 + '. ' + message);
   });
   const date = formatDateToYYYYMMDD(responseList[0].response[0].date);
-  messageBuilder[1] = ':' + date;
+  messageBuilder[1] = '美股時間:' + date;
 
   const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
   res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
