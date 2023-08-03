@@ -1,7 +1,6 @@
 import express, { Router, NextFunction, Request, Response, urlencoded } from 'express';
 import { getTodayWithTZ } from '../utility/dateTime';
-import yahooStockAPI, { APIresponse, SuccessResponse, ErrorResponse } from 'yahoo-stock-api';
-import type { HistoricalPricesResponse } from 'yahoo-stock-api/dist/types/historicalPrices';
+import yahooStockAPI from 'yahoo-stock-api';
 
 const router: Router = express.Router();
 
@@ -31,13 +30,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     responseList.push(result);
   }
   const messageBuilder: string[] = ['美股大盤當日趨勢:', '台灣時間'];
-  responseList.forEach((result: SuccessResponse, index: number) => {
-    const data = result.response as HistoricalPricesResponse[];
-    const message =
-      data.length > 0 ? processMessage(indexMapping[index].key, result.response as HistoricalPricesResponse[]) : '';
+  responseList.forEach((result, index: number) => {
+    const data = result.response;
+    const message = data.length > 0 ? processMessage(indexMapping[index].key, result.response) : '';
     messageBuilder.push(index + 1 + '. ' + message);
   });
-  const date = formatDateToYYYYMMDD((responseList[0].response as HistoricalPricesResponse[])[0].date);
+  const date = formatDateToYYYYMMDD(responseList[0].response[0].date);
   messageBuilder[1] = ':' + date;
 
   const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
@@ -48,8 +46,9 @@ router.get('/:symbol', async (req: Request, res: Response, next: NextFunction) =
   const symbol = req.params.symbol;
   const channel = req.query.channel;
   const result = await getHistoricalPrices(symbol);
-  const data = result.response as HistoricalPricesResponse[];
-  let message = data.length > 0 ? processMessage(symbol, result.response as HistoricalPricesResponse[]) : '';
+  // const data = result.response as HistoricalPricesResponse[];
+  const data = result.response;
+  let message = data.length > 0 ? processMessage(symbol, result.response) : '';
   const date = formatDateToYYYYMMDD(data[0].date);
   message += '\n收盤時間: ' + date;
   const encodeMsg = encodeURIComponent(message);
@@ -71,7 +70,7 @@ router.get('/raw/:symbol', async (req: Request, res: Response, next: NextFunctio
 // 預測明日台股趨勢為 "上升"
 // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
 
-const getHistoricalPrices = async (stockNo: string): Promise<SuccessResponse> => {
+const getHistoricalPrices = async (stockNo: string): Promise<any> => {
   const yahoo = new yahooStockAPI();
   const endDate = getTodayWithTZ(-4);
   const startDate = getTodayWithTZ(-4);
@@ -86,7 +85,7 @@ const getHistoricalPrices = async (stockNo: string): Promise<SuccessResponse> =>
         symbol: Boolean(stockNo) ? stockNo : 'AAPL',
         frequency: '1d',
       })
-      .then((response: APIresponse) => {
+      .then((response) => {
         if (response.error) {
           reject(response.message);
         } else {
@@ -97,7 +96,7 @@ const getHistoricalPrices = async (stockNo: string): Promise<SuccessResponse> =>
   });
 };
 
-const processMessage = (symbol: string, data: HistoricalPricesResponse[]): string => {
+const processMessage = (symbol: string, data: any[]): string => {
   // 取出最近的兩個 date 的資料
   const latestTwoDates = data.slice(0, 2);
   const [d0, d1] = latestTwoDates;
