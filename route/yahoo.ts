@@ -35,25 +35,29 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const symbol = indexMapping[index].key;
     if (data.length > 0) {
       var diffResult = processDataDiff(symbol, data);
-      var message = processMessage(symbol, diffResult)
+      var message = processMessage(symbol, diffResult);
       messageBuilder.push(index + 1 + '. ' + message);
       accuDiff += diffResult.diffRatio;
     }
   });
-  const date = formatDateToYYYYMMDD(responseList[0].response[0].date);
-  messageBuilder[1] = '美股時間:' + date;
+
+  messageBuilder[1] = '美股時間:' + formatDateToYYYYMMDD(responseList[0].response[0].date);
 
   // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
   var avgDiff = accuDiff / 3;
   if (Math.abs(avgDiff) > 0.5) {
-    messageBuilder.push('預測明日台股趨勢為 ' + avgDiff > 0 ? '上升' : '下降')
+    messageBuilder.push('預測明日台股趨勢為 ' + (avgDiff > 0 ? '上升' : '下降'));
   } else {
-    messageBuilder.push('預測明日台股趨勢為 ' + '平平')
+    messageBuilder.push('預測明日台股趨勢為 ' + '平平');
   }
 
-  const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
-  const channel = req.query.channel;
-  res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
+  const channel = req.query.channel || '';
+  if (channel?.length) {
+    const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
+    res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
+  } else {
+    res.json({ msg: messageBuilder.join('\n') });
+  }
 });
 
 router.get('/:symbol', async (req: Request, res: Response, next: NextFunction) => {
@@ -130,21 +134,7 @@ const processDataDiff = (symbol: string, data: any[]): IDiff => {
   return { symbol, diff: difference, diffRatio, close: d0.adjClose };
 };
 
-const processMessage = (symbol: string, data: any[]): string => {
-  // 取出最近的兩個 date 的資料
-  const latestTwoDates = data.slice(0, 2);
-  const [d0, d1] = latestTwoDates;
-
-  const difference = d0.adjClose - d1.adjClose;
-  const diff = Math.abs(difference).toFixed(2);
-  const diffRatio = ((d0.adjClose - d1.adjClose) / d1.adjClose) * 100;
-  const title = getValueByKey(symbol) || symbol;
-
-  //道瓊工業指數 34,509 ↑113(0.33%)
-  return `${title} ${d0.adjClose} ${difference > 0 ? '↑' : '↓'}${diff}(${diffRatio.toFixed(2)}%)`;
-};
-
-const processMessageV2 = (symbol: string, data: IDiff): string => {
+const processMessage = (symbol: string, data: IDiff): string => {
   // 取出最近的兩個 date 的資料
   const title = getValueByKey(symbol) || symbol;
   const arrow = data.diff > 0 ? '↑' : '↓';
