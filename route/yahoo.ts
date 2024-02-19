@@ -46,9 +46,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
   var avgDiff = accuDiff / 3;
   if (Math.abs(avgDiff) > 0.5) {
-    messageBuilder.push('預測明日台股趨勢為 ' + (avgDiff > 0 ? '上升' : '下降'));
+    messageBuilder.push('預測今日台股趨勢為 ' + (avgDiff > 0 ? '上升' : '下降'));
   } else {
-    messageBuilder.push('預測明日台股趨勢為 ' + '平平');
+    messageBuilder.push('預測今日台股趨勢為 ' + '平平');
   }
 
   const channel = req.query.channel || '';
