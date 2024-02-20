@@ -10,22 +10,40 @@ interface PostInfo {
 const domain = 'https://www.ptt.cc';
 
 async function handler() {
-  //TODO: figure out what is last process record then stop
   var page = '';
   var continueFlag = true;
   var posts: PostInfo[] = [];
   var stopCount = 3;
   var currentCount = 0;
+  //TODO: figure out what is last process record
+  //TODO: store data to mongo db
+  var lastProcessedRecord: PostInfo | null = null;
   while (continueFlag && currentCount < stopCount) {
     currentCount++;
-    var url = `${domain}/bbs/Stock/index${page || ''}.html`;
+    let url = `${domain}/bbs/Stock/index${page || ''}.html`;
     console.log(`process url ${url}`);
-    var $ = await getHTML(url);
-    var posts = parsePosts($);
-    posts.concat(posts);
-    page = getPreviousPageIndex($);
-    if (page == '6933') {
+    let $ = await getHTML(url);
+    let newPosts = parsePosts($);
+    let foundLastProcessedRecord = false;
+    for (let i = newPosts.length - 1; i >= 0; i--) {
+      const newPost = newPosts[i];
+      // Check if the new post matches the last processed record
+      if (
+        lastProcessedRecord &&
+        newPost.date === lastProcessedRecord.date &&
+        newPost.title === lastProcessedRecord.title
+      ) {
+        foundLastProcessedRecord = true;
+        break; // Stop the loop if match found
+      } else {
+        posts.push(newPost);
+      }
+    }
+
+    if (foundLastProcessedRecord) {
       continueFlag = false;
+    } else {
+      page = getPreviousPageIndex($);
     }
   }
 
