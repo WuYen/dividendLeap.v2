@@ -1,23 +1,24 @@
 import { getHTML } from '../utility/requestCore';
+import * as PostInfo from '../model/PostInfo';
 
-interface PostInfo {
-  tag: string | null;
-  title: string;
-  href: string | null;
-  author: string | null;
-  date: string | null;
-}
+import mongoose from 'mongoose';
+import config from '../utility/config';
+
+mongoose.connect(config.MONGODB_URI).then(async () => {
+  await handler();
+  mongoose.disconnect();
+});
+
 const domain = 'https://www.ptt.cc';
 
 async function handler() {
   var page = '';
   var continueFlag = true;
-  var posts: PostInfo[] = [];
+  var posts: PostInfo.IPostInfo[] = [];
   var stopCount = 3;
   var currentCount = 0;
-  //TODO: figure out what is last process record
-  //TODO: store data to mongo db
-  var lastProcessedRecord: PostInfo | null = null;
+  let lastRecord = await PostInfo.LastRecordModel.findOne({}).populate('lastProcessedRecord');
+  //TODO: ignore 最新一頁的資料 在 r-list-sep 之後的不要
   while (continueFlag && currentCount < stopCount) {
     currentCount++;
     let url = `${domain}/bbs/Stock/index${page || ''}.html`;
@@ -27,16 +28,17 @@ async function handler() {
     let foundLastProcessedRecord = false;
     for (let i = newPosts.length - 1; i >= 0; i--) {
       const newPost = newPosts[i];
-      // Check if the new post matches the last processed record
       if (
-        lastProcessedRecord &&
-        newPost.date === lastProcessedRecord.date &&
-        newPost.title === lastProcessedRecord.title
+        lastRecord &&
+        newPost.date === lastRecord.lastProcessedRecord.date &&
+        newPost.title === lastRecord.lastProcessedRecord.title
       ) {
         foundLastProcessedRecord = true;
         break; // Stop the loop if match found
       } else {
-        posts.push(newPost);
+        if (newPost.title !== null && newPost.title.trim() !== '') {
+          posts.push(newPost);
+        }
       }
     }
 
@@ -47,23 +49,21 @@ async function handler() {
     }
   }
 
-  // Filter posts where tag is equal to '標的'
-  const filteredPosts = posts.filter((post) => post.tag === '標的');
+  const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
+  console.log('Posts saved size:', savedPosts.length);
+  if (savedPosts.length > 0) {
+    const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
+    const lastRecordDataResult = await PostInfo.LastRecordModel.findOneAndUpdate({}, lastRecordData, {
+      upsert: true,
+      new: true,
+    });
 
-  // Iterate through filteredPosts and log each post to the console
-  filteredPosts.forEach((post, index) => {
-    console.log(`Post ${index + 1}:`);
-    console.log(`Date: ${post.date}`);
-    console.log(`Tag: ${post.tag}`);
-    console.log(`Title: ${post.title}`);
-    console.log(`Href: ${domain}/${post.href}`);
-    console.log(`Author: ${post.author}`);
-    console.log('------------------');
-  });
+    console.log('Last record saved/updated', lastRecordDataResult);
+  }
 }
 
-function parsePosts($: cheerio.Root): PostInfo[] {
-  const posts: PostInfo[] = [];
+function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
+  const posts: PostInfo.IPostInfo[] = [];
 
   $('div.r-ent').each((index, element) => {
     const titleElement = $(element).find('div.title a');
@@ -76,7 +76,7 @@ function parsePosts($: cheerio.Root): PostInfo[] {
     const author = $(element).find('div.author').text() || null;
     const date = $(element).find('div.date').text().trim() || null;
 
-    const postInfo: PostInfo = {
+    const postInfo: PostInfo.IPostInfo = {
       tag,
       title,
       href,
@@ -102,4 +102,5 @@ function getPreviousPageIndex($: cheerio.Root): string {
   return index as string;
 }
 
-handler();
+// // Filter posts where tag is equal to '標的'
+// const filteredPosts = posts.filter((post) => post.tag === '標的');
