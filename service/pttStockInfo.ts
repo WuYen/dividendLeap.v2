@@ -4,21 +4,20 @@ import * as PostInfo from '../model/PostInfo';
 import mongoose from 'mongoose';
 import config from '../utility/config';
 
-mongoose.connect(config.MONGODB_URI).then(async () => {
-  await handler();
-  mongoose.disconnect();
-});
+// mongoose.connect(config.MONGODB_URI).then(async () => {
+//   await handler();
+//   mongoose.disconnect();
+// });
 
 const domain = 'https://www.ptt.cc';
 
-async function handler() {
+async function handler(): Promise<PostInfo.IPostInfo[] | null> {
   var page = '';
   var continueFlag = true;
   var posts: PostInfo.IPostInfo[] = [];
   var stopCount = 3;
   var currentCount = 0;
   let lastRecord = await PostInfo.LastRecordModel.findOne({}).populate('lastProcessedRecord');
-  //TODO: ignore 最新一頁的資料 在 r-list-sep 之後的不要
   while (continueFlag && currentCount < stopCount) {
     currentCount++;
     let url = `${domain}/bbs/Stock/index${page || ''}.html`;
@@ -26,6 +25,7 @@ async function handler() {
     let $ = await getHTML(url);
     let newPosts = parsePosts($);
     let foundLastProcessedRecord = false;
+
     for (let i = newPosts.length - 1; i >= 0; i--) {
       const newPost = newPosts[i];
       if (
@@ -48,24 +48,38 @@ async function handler() {
       page = getPreviousPageIndex($);
     }
   }
+  try {
+    const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
+    console.log('Posts saved size:', savedPosts.length);
+    if (savedPosts.length > 0) {
+      const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
+      const lastRecordDataResult = await PostInfo.LastRecordModel.findOneAndUpdate({}, lastRecordData, {
+        upsert: true,
+        new: true,
+      });
 
-  const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
-  console.log('Posts saved size:', savedPosts.length);
-  if (savedPosts.length > 0) {
-    const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
-    const lastRecordDataResult = await PostInfo.LastRecordModel.findOneAndUpdate({}, lastRecordData, {
-      upsert: true,
-      new: true,
-    });
+      console.log('Last record saved/updated', lastRecordDataResult);
 
-    console.log('Last record saved/updated', lastRecordDataResult);
+      return savedPosts;
+    }
+    return null;
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 }
 
 function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
   const posts: PostInfo.IPostInfo[] = [];
 
-  $('div.r-ent').each((index, element) => {
+  var postElements = $('div.r-ent');
+  var separator = $('.r-list-sep');
+  if (separator && separator.length > 0) {
+    const elementAbovoSeparator = separator.prev('div.r-ent').first();
+    postElements = postElements.slice(0, $('div.r-ent').index(elementAbovoSeparator) + 1);
+  }
+
+  postElements.each((index, element) => {
     const titleElement = $(element).find('div.title a');
     const tag = titleElement.text().match(/\[(.*?)\]/)?.[1] || null;
     const title = titleElement
@@ -101,6 +115,8 @@ function getPreviousPageIndex($: cheerio.Root): string {
 
   return index as string;
 }
+
+export default { handler };
 
 // // Filter posts where tag is equal to '標的'
 // const filteredPosts = posts.filter((post) => post.tag === '標的');

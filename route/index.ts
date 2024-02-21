@@ -3,6 +3,7 @@ import stockRoute from './stock';
 import jobRoute from './job';
 import lineRoute from './line';
 import yahooRoute from './yahoo';
+import pttStockInfo from './pttStockInfo';
 
 const router = express.Router();
 
@@ -27,6 +28,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/yahoo',
     route: yahooRoute,
+  },
+  {
+    path: '/ptt',
+    route: pttStockInfo,
   },
 ];
 
