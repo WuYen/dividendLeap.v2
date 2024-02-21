@@ -41,9 +41,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
       res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
     }
-  } else {
-    res.json({ msg: messageBuilder.join('\n') });
   }
+  res.json({ msg: messageBuilder.join('\n') });
 });
 
 export default router;
