@@ -1,17 +1,10 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-
-import mongoose from 'mongoose';
-import config from '../utility/config';
-
-// mongoose.connect(config.MONGODB_URI).then(async () => {
-//   await handler();
-//   mongoose.disconnect();
-// });
+import { IPostInfo } from '../model/PostInfo';
 
 const domain = 'https://www.ptt.cc';
 
-async function handler(): Promise<PostInfo.IPostInfo[] | null> {
+async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
   var page = '';
   var continueFlag = true;
   var posts: PostInfo.IPostInfo[] = [];
@@ -116,7 +109,61 @@ function getPreviousPageIndex($: cheerio.Root): string {
   return index as string;
 }
 
-export default { handler };
+export default { getNewPosts, processMessage, isHighlightAuthor, isSubscribedAuthor };
+
+function processMessage(savedPosts: IPostInfo[] | null) {
+  const messageBuilder: string[] = ['PTT Alert:', ''];
+  if (savedPosts && savedPosts.length > 0) {
+    savedPosts.forEach((post) => {
+      if (post.tag == '標的' || isSubscribedAuthor(post.author)) {
+        if (isHighlightAuthor(post.author)) {
+          messageBuilder.push(`【✨大神來囉✨】`);
+        }
+        messageBuilder.push(`[${post.tag}] ${post.title}`);
+        messageBuilder.push(`作者: ${post.author}`);
+        messageBuilder.push(`${domain}/${post.href}`);
+        messageBuilder.push('');
+      }
+    });
+  }
+  return messageBuilder;
+}
+function isHighlightAuthor(author: string | null): boolean {
+  var gods = ['agogo1202', 'nuwai57', 'WADE0616', 'kobekid', 'DwyaneAndy'];
+
+  return author !== null && gods.includes(author);
+}
+function isSubscribedAuthor(author: string | null): boolean {
+  var subscribeAuthor = [
+    'dearhau',
+    'macross2',
+    'bonbonwo2018',
+    'm4vu0',
+    'tacovirus',
+    'MOMO0478',
+    'ikariamman',
+    'agogo1202',
+    'pubg1106',
+    'ninia178178',
+    'nuwai57',
+    'xuane',
+    'Tadnone',
+    'uzgo',
+    'WADE0616',
+    'wenfang2012',
+    'cl3bp6',
+    'kobekid',
+    'a0933954587',
+    'Crypto',
+    'kone1869',
+    'DwyaneAndy',
+    'wayne6250',
+    'Esandman',
+    'adidas81923',
+    'peter5479',
+  ];
+  return author !== null && subscribeAuthor.includes(author);
+}
 
 // // Filter posts where tag is equal to '標的'
 // const filteredPosts = posts.filter((post) => post.tag === '標的');
