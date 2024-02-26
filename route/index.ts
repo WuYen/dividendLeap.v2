@@ -4,6 +4,7 @@ import jobRoute from './job';
 import lineRoute from './line';
 import yahooRoute from './yahoo';
 import pttStockInfo from './pttStockInfo';
+import tool from './tool';
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const defaultIRoute: IRoute[] = [
   {
     path: '/ptt',
     route: pttStockInfo,
+  },
+  {
+    path: '/tool',
+    route: tool,
   },
 ];
 
