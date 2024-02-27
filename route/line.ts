@@ -4,6 +4,7 @@ import qs from 'qs';
 import { LineTokenModel, ILineToken } from '../model/lineToken';
 import config from '../utility/config';
 import { today } from '../utility/dateTime';
+import lineService from '../service/lineService';
 
 const router: Router = express.Router();
 const {
@@ -12,10 +13,10 @@ const {
   LINE_NOTIFY_CLIENT_ID,
   LINE_NOTIFY_CLIENT_SECRET,
   LINE_NOTIFY_CALL_BACK_URL,
-  LINE_NOTIFY_URL,
 } = config;
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  //導去註冊line token
   const channel = req.query.channel;
   if (channel == undefined || channel?.length == 0) {
     res.json({ error: 'need channel as query parameter' });
@@ -26,6 +27,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 router.get('/callback', async (req: Request, res: Response, next: NextFunction) => {
+  //把line token 存起來
   const code = req.query.code;
   const channel: string = req.query.state as string;
   console.log('callback ', `code:${code}, channel:${channel}`);
@@ -52,7 +54,6 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       token: access_token,
       updateDate: today(),
     };
-    //TODO: check if channel already exist in db
     await new LineTokenModel(tokenInfo).save();
     return res.json({ tokenInfo });
   } catch (error) {
@@ -62,33 +63,25 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
 });
 
 router.get('/send', async (req: Request, res: Response, next: NextFunction) => {
-  const message = req.query.msg;
-  const channel = req.query.channel;
+  const message = req.query.msg as string;
+  const channel = req.query.channel as string;
   if (!message) {
     return res.send('message is empty');
   }
   if (!channel) {
     return res.send('channel is empty');
   }
-  const tokenInfo = await LineTokenModel.findOne({ channel: channel }).lean();
-  if (tokenInfo == null || !tokenInfo.token.length) {
-    return res.json({ message: 'no match token for ' + channel });
-  }
-  const token = tokenInfo.token;
-  const options = {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded', Authorization: `Bearer ${token}` },
-    data: qs.stringify({
-      message: message,
-    }),
-    url: LINE_NOTIFY_URL,
-  };
-  const response = await axios(options);
+
   try {
-    console.log('response result', response);
+    const token = await lineService.getTokenByChannel(channel as string);
+    if (token == null) {
+      return res.json({ message: 'no match token for ' + channel });
+    }
+    const response = await lineService.sendMessage(token, message);
+    console.log('send notify result', response);
     return res.send(response.data);
   } catch (error) {
-    console.log('send message fail', error);
+    console.log('send notify fail', error);
     return res.send({ error: 'send message fail' });
   }
 });
