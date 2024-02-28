@@ -28,6 +28,8 @@ describe('processMessage', () => {
         href: 'sample-href',
         author: 'agogo1202',
         date: '2022-01-01',
+        Id: 123,
+        batchNo: 4444,
       },
       {
         tag: '標的',
@@ -35,6 +37,8 @@ describe('processMessage', () => {
         href: 'sample-href',
         author: 'noman',
         date: '2022-01-01',
+        Id: 234,
+        batchNo: 4444,
       },
       {
         tag: '閒聊',
@@ -42,6 +46,8 @@ describe('processMessage', () => {
         href: '/bbs/Stock/M.1708408802.A.B9B.html',
         author: 'vendan5566',
         date: '2/20',
+        Id: 3321,
+        batchNo: 4444,
       },
       {
         tag: '新聞',
@@ -49,6 +55,8 @@ describe('processMessage', () => {
         href: '/bbs/Stock/M.1708443435.A.7D5.html',
         author: 'Cartier',
         date: '2/20',
+        Id: 5315,
+        batchNo: 4444,
       },
     ];
 

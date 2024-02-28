@@ -1,5 +1,6 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
+import { parseId } from './newPttStockInfo';
 
 const domain = 'https://www.ptt.cc';
 
@@ -90,6 +91,8 @@ function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
       href,
       author,
       date,
+      Id: 100001,
+      batchNo: 100001,
     };
 
     posts.push(postInfo);
