@@ -91,7 +91,7 @@ function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
       href,
       author,
       date,
-      Id: 100001,
+      id: 100001,
       batchNo: 100001,
     };
 

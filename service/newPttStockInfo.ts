@@ -1,28 +1,36 @@
 import { getHTML } from '../utility/requestCore';
-import { IPostInfo } from '../model/PostInfo';
+import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
+import lineService from './lineService';
+import pttStockInfo from './pttStockInfo';
 
 const domain = 'https://www.ptt.cc';
 
 export async function getNewPosts(): Promise<IPostInfo[] | null> {
-  // model add two new field, batch number and Id
-  // id 就是 href 裡面 的某段網址
-  const batchNo = +new Date();
+  let batchNo = +new Date(); //timestamp in ms
+
+  //process latest page
   let url = `${domain}/bbs/Stock/index.html`;
-  console.log(`process url ${url}`);
-  let $ = await getHTML(url);
-  let onlinePosts = parsePosts($);
-  var newPosts = fastFindNewArticles(onlinePosts, []);
-  // TODO-1: generate batch number according to current time stamp
-  // TODO-2: add batch number to model
-  // TODO-3: get last batch number and get index page html
-  // TODO-4: parse html
-  // TODO-5: get new article
-  // TODO-6: save new article and save new batch
-  // TODO-7: trigger send line notify
-  return null;
+  let [lastBatchPosts, $] = await Promise.all([retrieveLastBatchPosts(), getHTML(url)]);
+  let onlinePosts = parsePosts($, batchNo);
+  let newPosts = fastFindNewPosts(onlinePosts, lastBatchPosts);
+
+  // process previous page depends on foundLastProcessedRecord or not
+  while (onlinePosts.length == newPosts.length) {
+    //這一頁的資料都是新的, 可能要往上一頁看
+    let page = getPreviousPageIndex($);
+    url = `${domain}/bbs/Stock/index${page}.html`;
+    $ = await getHTML(url);
+    onlinePosts.concat(parsePosts($, batchNo));
+    newPosts.concat(fastFindNewPosts(onlinePosts, lastBatchPosts));
+  }
+
+  let savedPosts = await savePostsAndUpdateLastRecord(newPosts);
+  await sendNotify('token', savedPosts as IPostInfo[]);
+
+  return savedPosts;
 }
 
-function parsePosts($: cheerio.Root): IPostInfo[] {
+function parsePosts($: cheerio.Root, batchNo: number): IPostInfo[] {
   const posts: IPostInfo[] = [];
 
   var postElements = $('div.r-ent');
@@ -42,17 +50,16 @@ function parsePosts($: cheerio.Root): IPostInfo[] {
     const href = titleElement.attr('href') || null;
     const author = $(element).find('div.author').text() || null;
     const date = $(element).find('div.date').text().trim() || null;
-
+    const id = parseId(href as string);
     const postInfo: IPostInfo = {
       tag,
       title,
       href,
       author,
       date,
-      Id: 100001,
-      batchNo: 100001,
+      id,
+      batchNo,
     };
-
     posts.push(postInfo);
   });
 
@@ -72,40 +79,117 @@ export function parseId(link: string): number {
   return id;
 }
 
-function findNewArticles(onlineArticles: IPostInfo[], savedArticles: IPostInfo[]): IPostInfo[] {
+function findNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo[]): IPostInfo[] {
   const newArticles: IPostInfo[] = [];
 
-  for (const onlineArticle of onlineArticles) {
+  for (const onlinePost of onlinePosts) {
     let isNew = true;
 
-    for (const savedArticle of savedArticles) {
-      if (onlineArticle.Id == savedArticle.Id) {
+    for (const savedArticle of savedPosts) {
+      if (onlinePost.id == savedArticle.id) {
         isNew = false;
         break;
       }
     }
 
     if (isNew) {
-      newArticles.push(onlineArticle);
+      newArticles.push(onlinePost);
     }
   }
 
   return newArticles;
 }
 
-export function fastFindNewArticles(onlineArticles: IPostInfo[], savedArticles: IPostInfo[]): IPostInfo[] {
-  const newArticles: IPostInfo[] = [];
+export function fastFindNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo[]): IPostInfo[] {
+  const newPosts: IPostInfo[] = [];
 
   // Create a Set to store the IDs of the saved articles
-  const savedArticleIds: Set<number> = new Set(savedArticles.map((article) => article.Id));
+  const savedPostsIds: Set<number> = new Set(savedPosts.map((article) => article.id));
 
-  for (const onlineArticle of onlineArticles) {
-    if (!savedArticleIds.has(onlineArticle.Id)) {
-      newArticles.push(onlineArticle);
+  for (const onlinePost of onlinePosts) {
+    if (!savedPostsIds.has(onlinePost.id)) {
+      newPosts.push(onlinePost);
     }
   }
 
-  return newArticles;
+  return newPosts;
 }
 
-export default { getNewPosts, parseId };
+export default { getNewPosts, parseId, processMessage, sendNotify };
+
+async function retrieveLastBatchPosts(): Promise<IPostInfo[]> {
+  try {
+    // Retrieve the last record from LastRecordModel
+    const lastRecord = await LastRecordModel.findOne().populate('lastProcessedRecord').exec();
+
+    if (!lastRecord) {
+      console.log('No last record found');
+      return [];
+    }
+
+    // Retrieve posts using the batchNo from the last record
+    const batchNo = lastRecord.lastProcessedRecord.batchNo;
+    const posts = await PostInfoModel.find({ batchNo }).exec();
+
+    return posts;
+  } catch (error) {
+    console.error('Error retrieving last batch posts:', error);
+    throw error;
+  }
+}
+
+async function savePostsAndUpdateLastRecord(posts: IPostInfo[]) {
+  try {
+    if (posts.length > 0) {
+      const savedPosts = await PostInfoModel.insertMany(posts);
+      console.log('Posts saved size:', savedPosts.length);
+
+      const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
+      const lastRecordDataResult = await LastRecordModel.findOneAndUpdate({}, lastRecordData, {
+        upsert: true,
+        new: true,
+      });
+      console.log('Last record saved/updated', lastRecordDataResult);
+
+      return savedPosts;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    return null;
+  }
+}
+
+async function sendNotify(token: string, posts: IPostInfo[]) {
+  for (const post of posts) {
+    if (post.tag == '標的' || pttStockInfo.isSubscribedAuthor(post.author)) {
+      const messageBuilder = processMessage(post);
+      const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
+      const response = await lineService.sendMessage('token', encodeMsg);
+      console.log(`notify sent `, response);
+    }
+  }
+}
+
+export function processMessage(post: IPostInfo): string[] {
+  const messageBuilder: string[] = ['', 'PTT'];
+  const isHighlightAuthor = pttStockInfo.isHighlightAuthor(post.author);
+  isHighlightAuthor && messageBuilder.push(`【✨大神來囉✨】`);
+  messageBuilder.push(`[${post.tag}] ${post.title}`);
+  isHighlightAuthor && messageBuilder.push(`作者: ${post.author}`);
+  messageBuilder.push(`${domain}/${post.href}`);
+  messageBuilder.push('');
+  return messageBuilder;
+}
+
+function getPreviousPageIndex($: cheerio.Root): string {
+  //const link = $('a.btn.wide').attr('href');
+  const link = $('a.btn.wide')
+    .filter((_, element) => $(element).text().includes('上頁'))
+    .attr('href');
+  // Extract page number from the link using regular expression
+  const match = link && link.match(/index(\d+)\.html/);
+  const index = match ? match[1] : null;
+
+  return index as string;
+}

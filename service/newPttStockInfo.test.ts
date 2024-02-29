@@ -1,5 +1,5 @@
 // Import the modules
-import { getNewPosts, parseId, fastFindNewArticles } from './newPttStockInfo'; // Update with the correct path to your module
+import { getNewPosts, parseId, fastFindNewPosts } from './newPttStockInfo'; // Update with the correct path to your module
 import * as requestCore from '../utility/requestCore'; // Adjust the path as needed
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo } from '../model/PostInfo';
@@ -58,7 +58,7 @@ describe('fastFindNewArticles', () => {
         author: 'John Doe',
         date: '2022-01-01',
         batchNo: 2,
-        Id: 1,
+        id: 1,
       },
       {
         tag: 'Technology',
@@ -67,7 +67,7 @@ describe('fastFindNewArticles', () => {
         author: 'Jane Smith',
         date: '2022-01-02',
         batchNo: 2,
-        Id: 2,
+        id: 2,
       },
       {
         tag: 'Sports',
@@ -76,7 +76,7 @@ describe('fastFindNewArticles', () => {
         author: 'Bob Johnson',
         date: '2022-01-03',
         batchNo: 2,
-        Id: 3,
+        id: 3,
       },
     ];
 
@@ -89,7 +89,7 @@ describe('fastFindNewArticles', () => {
         author: 'John Doe',
         date: '2022-01-01',
         batchNo: 1,
-        Id: 1,
+        id: 1,
       },
       {
         tag: 'Technology',
@@ -98,12 +98,12 @@ describe('fastFindNewArticles', () => {
         author: 'Jane Smith',
         date: '2022-01-02',
         batchNo: 1,
-        Id: 2,
+        id: 2,
       },
     ];
 
     // Call the function with sample input
-    const newArticles = fastFindNewArticles(onlineArticles, savedArticles);
+    const newArticles = fastFindNewPosts(onlineArticles, savedArticles);
 
     // Assert the result
     expect(newArticles).toEqual([
@@ -114,7 +114,7 @@ describe('fastFindNewArticles', () => {
         author: 'Bob Johnson',
         date: '2022-01-03',
         batchNo: 2,
-        Id: 3,
+        id: 3,
       },
     ]);
   });
@@ -129,7 +129,7 @@ describe('fastFindNewArticles', () => {
         author: 'John Doe',
         date: '2022-01-01',
         batchNo: 2,
-        Id: 1,
+        id: 1,
       },
       {
         tag: 'Sports',
@@ -138,7 +138,7 @@ describe('fastFindNewArticles', () => {
         author: 'Bob Johnson',
         date: '2022-01-03',
         batchNo: 2,
-        Id: 3,
+        id: 3,
       },
     ];
 
@@ -151,7 +151,7 @@ describe('fastFindNewArticles', () => {
         author: 'John Doe',
         date: '2022-01-01',
         batchNo: 1,
-        Id: 1,
+        id: 1,
       },
       {
         tag: 'Technology',
@@ -160,12 +160,12 @@ describe('fastFindNewArticles', () => {
         author: 'Jane Smith',
         date: '2022-01-02',
         batchNo: 1,
-        Id: 2,
+        id: 2,
       },
     ];
 
     // Call the function with sample input
-    const newArticles = fastFindNewArticles(onlineArticles, savedArticles);
+    const newArticles = fastFindNewPosts(onlineArticles, savedArticles);
 
     // Assert the result
     expect(newArticles).toEqual([
@@ -176,7 +176,7 @@ describe('fastFindNewArticles', () => {
         author: 'Bob Johnson',
         date: '2022-01-03',
         batchNo: 2,
-        Id: 3,
+        id: 3,
       },
     ]);
   });

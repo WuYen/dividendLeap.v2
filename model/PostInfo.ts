@@ -7,7 +7,7 @@ interface IPostInfo {
   author: string | null;
   date: string | null;
   batchNo: number;
-  Id: number;
+  id: number;
 }
 
 const PostInfoSchema: Schema = new Schema({
@@ -17,7 +17,7 @@ const PostInfoSchema: Schema = new Schema({
   author: { type: String, default: null },
   date: { type: String, default: null },
   batchNo: { type: Number, required: true },
-  Id: { type: Number, required: true },
+  id: { type: Number, required: true },
 });
 
 const PostInfoModel: Model<IPostInfo> = model<IPostInfo>('PostInfo', PostInfoSchema);
