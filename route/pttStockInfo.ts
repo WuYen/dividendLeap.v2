@@ -1,8 +1,8 @@
 import express, { Router, NextFunction, Request, Response, urlencoded } from 'express';
-import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import service from '../service/pttStockInfo';
 import newService from '../service/newPttStockInfo';
 import lineService from '../service/lineService';
+import { delay } from '../utility/delay';
 
 const router: Router = express.Router();
 
@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   const savedPosts = await service.getNewPosts();
-  const message: string[] = [];
+  const messages: string[] = [];
   const channel = req.query.channel as string;
   if (channel && savedPosts && savedPosts.length) {
     try {
@@ -34,10 +34,11 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
 
       for (const post of savedPosts) {
         if (post.tag == '標的' || service.isSubscribedAuthor(post.author)) {
-          const messageBuilder = newService.processMessage(post);
-          const response = await lineService.sendMessage(token, encodeURIComponent(messageBuilder.join('\n')));
+          const message = newService.processMessage(post).join('\n');
+          const response = await lineService.sendMessage(token, message);
           console.log('send notify result', response);
-          message.concat(messageBuilder);
+          messages.push(message);
+          await delay(30);
         }
       }
     } catch (error) {
@@ -45,7 +46,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  res.json({ msg: message.join('\n') });
+  res.json({ msg: messages });
 });
 
 export default router;

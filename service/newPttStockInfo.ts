@@ -115,20 +115,24 @@ export function fastFindNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo
   return newPosts;
 }
 
-export default { getNewPosts, parseId, processMessage, sendNotify };
+export default { getNewPosts, parseId, processMessage, sendNotify, retrieveLastBatchPosts };
 
-async function retrieveLastBatchPosts(): Promise<IPostInfo[]> {
+export async function retrieveLastBatchPosts(): Promise<IPostInfo[]> {
   try {
     // Retrieve the last record from LastRecordModel
     const lastRecord = await LastRecordModel.findOne().populate('lastProcessedRecord').exec();
 
-    if (!lastRecord) {
+    if (!lastRecord || !lastRecord.lastProcessedRecord) {
       console.log('No last record found');
       return [];
     }
 
     // Retrieve posts using the batchNo from the last record
     const batchNo = lastRecord.lastProcessedRecord.batchNo;
+    if (!batchNo) {
+      console.log('No last batch No');
+      return [];
+    }
     const posts = await PostInfoModel.find({ batchNo }).exec();
 
     return posts;
