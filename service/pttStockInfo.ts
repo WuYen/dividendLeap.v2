@@ -1,38 +1,35 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-import { parseId } from './newPttStockInfo';
+import { parseId, retrieveLastBatchPosts } from './newPttStockInfo';
+import exp from 'constants';
 
 const domain = 'https://www.ptt.cc';
 
 async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
-  var page = '';
-  var continueFlag = true;
-  var posts: PostInfo.IPostInfo[] = [];
-  var stopCount = 3;
-  var currentCount = 0;
-  let lastRecord = await PostInfo.LastRecordModel.findOne({}).populate('lastProcessedRecord');
-
+  const lastBatchPosts = await retrieveLastBatchPosts();
+  const lastBatchPostIds: Set<number> = new Set(lastBatchPosts.map((article) => article.id));
+  const batchNo = +new Date(); //timestamp in ms
+  let page = '';
+  let continueFlag = true;
+  let posts: PostInfo.IPostInfo[] = [];
+  let stopCount = 3;
+  let currentCount = 0;
   while (continueFlag && currentCount < stopCount) {
     currentCount++;
     let url = `${domain}/bbs/Stock/index${page || ''}.html`;
     console.log(`process url ${url}`);
     let $ = await getHTML(url);
-    let newPosts = parsePosts($);
+    let newPosts = parsePosts($, batchNo);
     let foundLastProcessedRecord = false;
 
-    for (let i = newPosts.length - 1; i >= 0; i--) {
-      const newPost = newPosts[i];
-      if (
-        lastRecord &&
-        newPost.date === lastRecord.lastProcessedRecord.date &&
-        newPost.title === lastRecord.lastProcessedRecord.title
-      ) {
+    for (const newPost of newPosts.reverse()) {
+      if (lastBatchPostIds.has(newPost.id)) {
         foundLastProcessedRecord = true;
         break; // Stop the loop if match found
-      } else {
-        if (newPost.title !== null && newPost.title.trim() !== '') {
-          posts.push(newPost);
-        }
+      }
+
+      if (newPost.title?.trim()) {
+        posts.push(newPost);
       }
     }
 
@@ -59,12 +56,19 @@ async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
     }
   } catch (error) {
     console.error(error);
-  } finally {
-    return null;
   }
+  return null;
 }
 
-function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
+export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
+  let url = `${domain}/bbs/Stock/index.html`;
+  console.log(`process url ${url}`);
+  let $ = await getHTML(url);
+  let res = parsePosts($, 123);
+  return res;
+}
+
+function parsePosts($: cheerio.Root, batchNo: number): PostInfo.IPostInfo[] {
   const posts: PostInfo.IPostInfo[] = [];
 
   var postElements = $('div.r-ent');
@@ -84,15 +88,15 @@ function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
     const href = titleElement.attr('href') || null;
     const author = $(element).find('div.author').text() || null;
     const date = $(element).find('div.date').text().trim() || null;
-
+    const id = href !== null ? parseId(href) : 0;
     const postInfo: PostInfo.IPostInfo = {
       tag,
       title,
       href,
       author,
       date,
-      id: 100001,
-      batchNo: 100001,
+      id,
+      batchNo,
     };
 
     posts.push(postInfo);
