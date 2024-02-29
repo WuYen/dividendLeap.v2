@@ -1,6 +1,6 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-import { IPostInfo } from '../model/PostInfo';
+import { parseId } from './newPttStockInfo';
 
 const domain = 'https://www.ptt.cc';
 
@@ -11,6 +11,7 @@ async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
   var stopCount = 3;
   var currentCount = 0;
   let lastRecord = await PostInfo.LastRecordModel.findOne({}).populate('lastProcessedRecord');
+
   while (continueFlag && currentCount < stopCount) {
     currentCount++;
     let url = `${domain}/bbs/Stock/index${page || ''}.html`;
@@ -41,23 +42,24 @@ async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
       page = getPreviousPageIndex($);
     }
   }
+
   try {
-    const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
-    console.log('Posts saved size:', savedPosts.length);
-    if (savedPosts.length > 0) {
+    if (posts.length > 0) {
+      const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
+      console.log('Posts saved size:', savedPosts.length);
+
       const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
       const lastRecordDataResult = await PostInfo.LastRecordModel.findOneAndUpdate({}, lastRecordData, {
         upsert: true,
         new: true,
       });
-
       console.log('Last record saved/updated', lastRecordDataResult);
 
       return savedPosts;
     }
-    return null;
   } catch (error) {
     console.error(error);
+  } finally {
     return null;
   }
 }
@@ -89,6 +91,8 @@ function parsePosts($: cheerio.Root): PostInfo.IPostInfo[] {
       href,
       author,
       date,
+      id: 100001,
+      batchNo: 100001,
     };
 
     posts.push(postInfo);
@@ -111,7 +115,7 @@ function getPreviousPageIndex($: cheerio.Root): string {
 
 export default { getNewPosts, processMessage, isHighlightAuthor, isSubscribedAuthor };
 
-function processMessage(savedPosts: IPostInfo[] | null) {
+function processMessage(savedPosts: PostInfo.IPostInfo[] | null) {
   const messageBuilder: string[] = ['PTT Alert:', ''];
   if (savedPosts && savedPosts.length > 0) {
     savedPosts.forEach((post) => {
@@ -164,6 +168,3 @@ function isSubscribedAuthor(author: string | null): boolean {
   ];
   return author !== null && subscribeAuthor.includes(author);
 }
-
-// // Filter posts where tag is equal to '標的'
-// const filteredPosts = posts.filter((post) => post.tag === '標的');
