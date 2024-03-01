@@ -176,7 +176,7 @@ async function sendNotify(token: string, posts: IPostInfo[]) {
 }
 
 export function processMessage(post: IPostInfo): string[] {
-  const messageBuilder: string[] = ['', 'PTT'];
+  const messageBuilder: string[] = ['', ''];
   const isHighlightAuthor = pttStockInfo.isHighlightAuthor(post.author);
   isHighlightAuthor && messageBuilder.push(`【✨大神來囉✨】`);
   messageBuilder.push(`[${post.tag}] ${post.title}`);
