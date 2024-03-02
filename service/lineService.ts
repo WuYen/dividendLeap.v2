@@ -8,6 +8,15 @@ async function getTokenByChannel(channel: string): Promise<string | null> {
   return tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
 }
 
+async function getTokensBychannels(channels: string[]): Promise<string[] | null> {
+  const tokenInfo = await LineTokenModel.find({ channel: { $in: channels } }).lean();
+  if (!tokenInfo || tokenInfo.length === 0) {
+    return null;
+  }
+  const tokens: string[] = tokenInfo.map((record) => record.token);
+  return tokens;
+}
+
 async function sendMessage(token: string, message: string): Promise<AxiosResponse<any, any>> {
   const options = {
     method: 'POST',
@@ -21,4 +30,4 @@ async function sendMessage(token: string, message: string): Promise<AxiosRespons
   return response;
 }
 
-export default { sendMessage, getTokenByChannel };
+export default { sendMessage, getTokenByChannel, getTokensBychannels };

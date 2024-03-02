@@ -15,25 +15,40 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
 //TODO: move subscribe user to mongoDB
 //TODO: move process message to a function argument that can input base on user profile
 //TODO: trigger send line notify to multiple user
-
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   const newPosts = await service.getNewPosts();
   const messages: string[] = [];
   const channel = req.query.channel as string;
-  if (channel && newPosts && newPosts.length) {
+  const channels = req.query.channels as string;
+  if ((channel || channels) && newPosts && newPosts.length) {
     try {
-      const token = await lineService.getTokenByChannel(channel as string);
-      if (token == null) {
-        throw new Error('no match token for ' + channel);
+      let tokens: string[] | null = [];
+
+      if (channel) {
+        const token = await lineService.getTokenByChannel(channel);
+        if (token == null) {
+          throw new Error('No match token for ' + channel);
+        }
+        tokens.push(token);
+      } else if (channels) {
+        const splitedChannel = channels.split(',');
+        const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
+        if (retrivedTokens == null || retrivedTokens.length < 1) {
+          throw new Error('No match tokens for ' + channels);
+        }
+        tokens = retrivedTokens;
       }
 
       for (const post of newPosts) {
         if (post.tag == '標的' || service.isSubscribedAuthor(post.author)) {
           const notifyContent = processSinglePostToMessage(post).join('\n');
-          const response = await lineService.sendMessage(token, notifyContent);
-          console.log('send notify result', response);
+
+          for (const token of tokens) {
+            const response = await lineService.sendMessage(token, notifyContent);
+            await delay(30);
+          }
+
           messages.push(notifyContent);
-          await delay(30);
         }
       }
     } catch (error) {

@@ -5,6 +5,7 @@ import { LineTokenModel, ILineToken } from '../model/lineToken';
 import config from '../utility/config';
 import { today } from '../utility/dateTime';
 import lineService from '../service/lineService';
+import { delay } from '../utility/delay';
 
 const router: Router = express.Router();
 const {
@@ -80,6 +81,47 @@ router.get('/send', async (req: Request, res: Response, next: NextFunction) => {
     const response = await lineService.sendMessage(token, message);
     console.log('send notify result', response);
     return res.send(response.data);
+  } catch (error) {
+    console.log('send notify fail', error);
+    return res.send({ error: 'send message fail' });
+  }
+});
+
+router.get('/test/send', async (req: Request, res: Response, next: NextFunction) => {
+  const message = req.query.msg as string;
+  const channel = req.query.channel as string;
+  const channels = req.query.channels as string;
+  if (!message) {
+    return res.send('message is empty');
+  }
+  if (!channel && !channels) {
+    return res.send('channel is empty');
+  }
+
+  let tokens: string[] | null = [];
+
+  if (channel) {
+    const token = await lineService.getTokenByChannel(channel);
+    if (token == null) {
+      throw new Error('No match token for ' + channel);
+    }
+    tokens.push(token);
+  } else if (channels) {
+    const splitedChannel = channels.split(',');
+    const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
+    if (retrivedTokens == null || retrivedTokens.length < 1) {
+      throw new Error('No match tokens for ' + channels);
+    }
+    tokens = retrivedTokens;
+  }
+
+  try {
+    for (const token of tokens) {
+      const response = await lineService.sendMessage(token, message);
+      await delay(30);
+    }
+
+    return res.send({ success: 'send message success' });
   } catch (error) {
     console.log('send notify fail', error);
     return res.send({ error: 'send message fail' });
