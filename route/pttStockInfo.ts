@@ -1,43 +1,38 @@
-import express, { Router, NextFunction, Request, Response, urlencoded } from 'express';
-import service from '../service/pttStockInfo';
-import newService from '../service/newPttStockInfo';
+import express, { Router, NextFunction, Request, Response } from 'express';
+import service, { processSinglePostToMessage } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
 
 const router: Router = express.Router();
 
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-  var savedPosts = await service.getNewPosts();
+router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
+  var savedPosts = await service.getLast50Posts();
 
-  const messageBuilder: string[] = service.processMessage(savedPosts);
-
-  const channel = req.query.channel || '';
-  if (channel?.length) {
-    if (messageBuilder.length > 3) {
-      const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
-      res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
-    }
-  }
-  res.json({ msg: messageBuilder.join('\n') });
+  res.json({ posts: savedPosts });
 });
 
+//TODO: test send processed message to line
+//TODO: move subscribe user to mongoDB
+//TODO: move process message to a function argument that can input base on user profile
+//TODO: trigger send line notify to multiple user
+
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
-  const savedPosts = await service.getNewPosts();
+  const newPosts = await service.getNewPosts();
   const messages: string[] = [];
   const channel = req.query.channel as string;
-  if (channel && savedPosts && savedPosts.length) {
+  if (channel && newPosts && newPosts.length) {
     try {
       const token = await lineService.getTokenByChannel(channel as string);
       if (token == null) {
         throw new Error('no match token for ' + channel);
       }
 
-      for (const post of savedPosts) {
+      for (const post of newPosts) {
         if (post.tag == '標的' || service.isSubscribedAuthor(post.author)) {
-          const message = newService.processMessage(post).join('\n');
-          const response = await lineService.sendMessage(token, message);
+          const notifyContent = processSinglePostToMessage(post).join('\n');
+          const response = await lineService.sendMessage(token, notifyContent);
           console.log('send notify result', response);
-          messages.push(message);
+          messages.push(notifyContent);
           await delay(30);
         }
       }
