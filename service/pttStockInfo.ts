@@ -43,36 +43,11 @@ export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
   const lastBatchPosts = await retrieveLastBatchPosts();
   const lastBatchPostIds: Set<number> = new Set(lastBatchPosts.map((article) => article.id));
   const batchNo = +new Date(); //timestamp in ms
-  let page = '';
-  let posts: PostInfo.IPostInfo[] = [];
-  let stopCount = 3;
-  let currentCount = 0;
-  let continueFlag = true;
-  while (continueFlag && currentCount < stopCount) {
-    currentCount++;
-    let url = `${domain}/bbs/Stock/index${page}.html`;
-    console.log(`process url ${url}`);
-    let $ = await getHTML(url);
-    let newPosts = parsePosts($, batchNo);
-
-    for (const newPost of newPosts.reverse()) {
-      if (lastBatchPostIds.has(newPost.id)) {
-        continueFlag = false;
-      } else {
-        if (newPost.title?.trim()) {
-          posts.push(newPost);
-        }
-      }
-    }
-
-    if (continueFlag) {
-      page = getPreviousPageIndex($);
-    }
-  }
+  const newPosts = await fetchNewPosts(domain, batchNo, lastBatchPostIds);
 
   try {
-    if (posts.length > 0) {
-      const savedPosts = await PostInfo.PostInfoModel.insertMany(posts);
+    if (newPosts.length > 0) {
+      const savedPosts = await PostInfo.PostInfoModel.insertMany(newPosts);
       console.log('Posts saved size:', savedPosts.length);
 
       const lastRecordData = { lastProcessedRecord: savedPosts[0]._id };
@@ -88,6 +63,43 @@ export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
     console.error(error);
   }
   return null;
+}
+
+export async function fetchNewPosts(
+  domain: string,
+  batchNo: number,
+  lastBatchPostIds: Set<number>
+): Promise<PostInfo.IPostInfo[]> {
+  let page = '';
+  let posts: PostInfo.IPostInfo[] = [];
+  let currentCount = 0;
+  let continueFlag = true;
+  let stopCount = 3;
+
+  while (continueFlag && currentCount < stopCount) {
+    currentCount++;
+    let url = `${domain}/bbs/Stock/index${page}.html`;
+    console.log(`process url ${url}`);
+    let $ = await getHTML(url);
+    let onlinePosts = parsePosts($, batchNo);
+
+    for (const post of onlinePosts.reverse()) {
+      if (lastBatchPostIds.has(post.id)) {
+        continueFlag = false;
+        break;
+      } else {
+        if (post.title?.trim()) {
+          posts.push(post);
+        }
+      }
+    }
+
+    if (continueFlag) {
+      page = getPreviousPageIndex($);
+    }
+  }
+
+  return posts;
 }
 
 export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
