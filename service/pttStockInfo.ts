@@ -40,7 +40,8 @@ export async function getLast50Posts(): Promise<PostInfo.IPostInfo[] | null> {
 }
 
 export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
-  const lastBatchPosts = await retrieveLastBatchPosts();
+  //const lastBatchPosts = await retrieveLastBatchPosts();
+  const lastBatchPosts = await PostInfoModel.find({}).sort({ id: -1 }).limit(25).lean();
   const lastBatchPostIds: Set<number> = new Set(lastBatchPosts.map((article) => article.id));
   const batchNo = +new Date(); //timestamp in ms
   const newPosts = await fetchNewPosts(domain, batchNo, lastBatchPostIds);
@@ -99,7 +100,7 @@ export async function fetchNewPosts(
     }
   }
 
-  return posts;
+  return posts.sort((a, b) => b.id - a.id);
 }
 
 export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
