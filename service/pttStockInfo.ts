@@ -41,10 +41,10 @@ export async function getLast50Posts(): Promise<PostInfo.IPostInfo[] | null> {
 
 export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
   //const lastBatchPosts = await retrieveLastBatchPosts();
-  const lastBatchPosts = await PostInfoModel.find({}).sort({ id: -1 }).limit(25).lean();
-  const lastBatchPostIds: Set<number> = new Set(lastBatchPosts.map((article) => article.id));
+  const previousSavedPosts = await PostInfoModel.find({}).sort({ id: -1 }).limit(25).lean();
+  const previousSavedPostIds: Set<number> = new Set(previousSavedPosts.map((article) => article.id));
   const batchNo = +new Date(); //timestamp in ms
-  const newPosts = await fetchNewPosts(domain, batchNo, lastBatchPostIds);
+  const newPosts = await fetchNewPosts(domain, batchNo, previousSavedPostIds);
 
   try {
     if (newPosts.length > 0) {
@@ -69,7 +69,7 @@ export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
 export async function fetchNewPosts(
   domain: string,
   batchNo: number,
-  lastBatchPostIds: Set<number>
+  previousSavedPostIds: Set<number>
 ): Promise<PostInfo.IPostInfo[]> {
   let page = '';
   let posts: PostInfo.IPostInfo[] = [];
@@ -85,7 +85,7 @@ export async function fetchNewPosts(
     let onlinePosts = parsePosts($, batchNo);
 
     for (const post of onlinePosts.reverse()) {
-      if (lastBatchPostIds.has(post.id)) {
+      if (previousSavedPostIds.has(post.id)) {
         continueFlag = false;
         break;
       } else {
@@ -277,15 +277,22 @@ export function processSinglePostToMessage(post: IPostInfo): string[] {
   return messageBuilder;
 }
 
-function myProcessMessage(post: IPostInfo): string[] {
+function ProcessSinglePostToMessageToMyline(post: IPostInfo): string[] {
   const messageBuilder: string[] = ['', ''];
   const isHighlightAuthorFlag = isHighlightAuthor(post.author);
   isHighlightAuthorFlag && messageBuilder.push(`【✨大神來囉✨】`);
   messageBuilder.push(`[${post.tag}] ${post.title}`);
-  isHighlightAuthorFlag && messageBuilder.push(`作者: ${post.author}`);
+  messageBuilder.push(`作者: ${post.author}`);
   messageBuilder.push(`${domain}/${post.href}`);
   messageBuilder.push('');
   return messageBuilder;
 }
 
-export default { getNewPosts, processMessage, isHighlightAuthor, isSubscribedAuthor, getLast50Posts };
+export default {
+  getNewPosts,
+  processMessage,
+  isHighlightAuthor,
+  isSubscribedAuthor,
+  getLast50Posts,
+  ProcessSinglePostToMessageToMyline,
+};

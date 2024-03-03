@@ -2,6 +2,7 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 import service, { processSinglePostToMessage } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
+import { ILineToken } from '../model/lineToken';
 
 const router: Router = express.Router();
 
@@ -22,29 +23,34 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   const channels = req.query.channels as string;
   if ((channel || channels) && newPosts && newPosts.length) {
     try {
-      let tokens: string[] | null = [];
+      let tokenInfos: ILineToken[] | null = [];
 
       if (channel) {
         const token = await lineService.getTokenByChannel(channel);
         if (token == null) {
           throw new Error('No match token for ' + channel);
         }
-        tokens.push(token);
+        tokenInfos.push(token);
       } else if (channels) {
         const splitedChannel = channels.split(',');
         const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
         if (retrivedTokens == null || retrivedTokens.length < 1) {
           throw new Error('No match tokens for ' + channels);
         }
-        tokens = retrivedTokens;
+        tokenInfos = retrivedTokens;
       }
 
       for (const post of newPosts) {
         if (post.tag == '標的' || service.isSubscribedAuthor(post.author)) {
           const notifyContent = processSinglePostToMessage(post).join('\n');
 
-          for (const token of tokens) {
-            const response = await lineService.sendMessage(token, notifyContent);
+          for (const tokenInfo of tokenInfos) {
+            if (tokenInfo.channel == 'myline') {
+              var customizContent = service.ProcessSinglePostToMessageToMyline(post).join('\n');
+              const response = await lineService.sendMessage(tokenInfo.token, customizContent);
+            } else {
+              const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
+            }
             await delay(30);
           }
 
