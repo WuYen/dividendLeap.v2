@@ -17,6 +17,11 @@ async function getTokensBychannels(channels: string[]): Promise<ILineToken[] | n
   return tokenInfo;
 }
 
+async function getAllEnabledChannel(): Promise<ILineToken[] | null> {
+  const tokenInfo = await LineTokenModel.find({ notifyEnabled: true }).lean();
+  return tokenInfo; //tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
+}
+
 async function sendMessage(token: string, message: string): Promise<AxiosResponse<any, any>> {
   const options = {
     method: 'POST',
@@ -30,4 +35,4 @@ async function sendMessage(token: string, message: string): Promise<AxiosRespons
   return response;
 }
 
-export default { sendMessage, getTokenByChannel, getTokensBychannels };
+export default { sendMessage, getTokenByChannel, getTokensBychannels, getAllEnabledChannel };

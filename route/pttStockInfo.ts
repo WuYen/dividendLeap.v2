@@ -12,16 +12,14 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   res.json({ posts: savedPosts });
 });
 
-//TODO: test send processed message to line
 //TODO: move subscribe user to mongoDB
 //TODO: move process message to a function argument that can input base on user profile
-//TODO: trigger send line notify to multiple user
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   const newPosts = await service.getNewPosts();
   const messages: string[] = [];
   const channel = req.query.channel as string;
   const channels = req.query.channels as string;
-  if ((channel || channels) && newPosts && newPosts.length) {
+  if (newPosts && newPosts.length) {
     try {
       let tokenInfos: ILineToken[] | null = [];
 
@@ -38,22 +36,29 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
           throw new Error('No match tokens for ' + channels);
         }
         tokenInfos = retrivedTokens;
+      } else {
+        const retrivedTokens = await lineService.getAllEnabledChannel();
+        if (retrivedTokens == null || retrivedTokens.length < 1) {
+          throw new Error('No match tokens for ' + channels);
+        }
+        tokenInfos = retrivedTokens;
       }
 
       for (const post of newPosts) {
         if (post.tag == '標的' || service.isSubscribedAuthor(post.author)) {
           const notifyContent = processSinglePostToMessage(post).join('\n');
 
-          for (const tokenInfo of tokenInfos) {
-            if (tokenInfo.channel == 'myline') {
-              var customizContent = service.ProcessSinglePostToMessageToMyline(post).join('\n');
-              const response = await lineService.sendMessage(tokenInfo.token, customizContent);
-            } else {
-              const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
+          if (tokenInfos != null && tokenInfos.length > 0) {
+            for (const tokenInfo of tokenInfos) {
+              if (tokenInfo.channel == 'myline') {
+                var customizContent = service.ProcessSinglePostToMessageToMyline(post).join('\n');
+                const response = await lineService.sendMessage(tokenInfo.token, customizContent);
+              } else {
+                const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
+              }
+              await delay(30);
             }
-            await delay(30);
           }
-
           messages.push(notifyContent);
         }
       }
