@@ -14,17 +14,31 @@ const {
   LINE_NOTIFY_CLIENT_ID,
   LINE_NOTIFY_CLIENT_SECRET,
   LINE_NOTIFY_CALL_BACK_URL,
+  LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
 } = config;
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   //導去註冊line token
   const channel = req.query.channel;
   if (channel == undefined || channel?.length == 0) {
-    res.json({ error: 'need channel as query parameter' });
+    return res.json({ error: 'need channel as query parameter' });
+  } else {
+    return res.redirect(
+      `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`
+    );
   }
-  res.redirect(
-    `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`
-  );
+});
+
+router.get('/regis', async (req: Request, res: Response, next: NextFunction) => {
+  //回傳註冊line token的 url
+  const channel = req.query.channel;
+  if (channel == undefined || channel?.length == 0) {
+    return res.json({ error: 'need channel as query parameter' });
+  } else {
+    return res.json({
+      redirectUrl: `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`,
+    });
+  }
 });
 
 router.get('/callback', async (req: Request, res: Response, next: NextFunction) => {
@@ -53,10 +67,15 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
     const tokenInfo: ILineToken = {
       channel: channel,
       token: access_token,
+      notifyEnabled: true,
       updateDate: today(),
     };
-    await new LineTokenModel(tokenInfo).save();
-    return res.json({ tokenInfo });
+    const savedTokenInfo = await new LineTokenModel(tokenInfo).save();
+    if (LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL == '') {
+      return res.json({ tokenInfo });
+    } else {
+      return res.redirect(LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL + '?tokenInfo=' + JSON.stringify(savedTokenInfo));
+    }
   } catch (error) {
     console.log('conver error', error);
     return res.send({ error: 'connect error' });
@@ -78,13 +97,19 @@ router.get('/send', async (req: Request, res: Response, next: NextFunction) => {
     if (token == null) {
       return res.json({ message: 'no match token for ' + channel });
     }
-    const response = await lineService.sendMessage(token, message);
+    const response = await lineService.sendMessage(token.token, message);
     console.log('send notify result', response);
     return res.send(response.data);
   } catch (error) {
     console.log('send notify fail', error);
     return res.send({ error: 'send message fail' });
   }
+});
+
+router.get('/test/callback', async (req: Request, res: Response, next: NextFunction) => {
+  return res.redirect(
+    LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL + '?tokenInfo=' + JSON.stringify({ channel: '123', b: 456, c: 'adf$%bb' })
+  );
 });
 
 router.get('/test/send', async (req: Request, res: Response, next: NextFunction) => {
@@ -98,7 +123,7 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
     return res.send('channel is empty');
   }
 
-  let tokens: string[] | null = [];
+  let tokens: ILineToken[] | null = [];
 
   if (channel) {
     const token = await lineService.getTokenByChannel(channel);
@@ -117,7 +142,7 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
 
   try {
     for (const token of tokens) {
-      const response = await lineService.sendMessage(token, message);
+      const response = await lineService.sendMessage(token.token, message);
       await delay(30);
     }
 

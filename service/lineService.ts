@@ -1,20 +1,25 @@
 import axios, { AxiosResponse } from 'axios';
 import qs from 'qs';
-import { LineTokenModel } from '../model/lineToken';
+import { LineTokenModel, ILineToken } from '../model/lineToken';
 import config from '../utility/config';
 
-async function getTokenByChannel(channel: string): Promise<string | null> {
+async function getTokenByChannel(channel: string): Promise<ILineToken | null> {
   const tokenInfo = await LineTokenModel.findOne({ channel: channel }).lean();
-  return tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
+  return tokenInfo; //tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
 }
 
-async function getTokensBychannels(channels: string[]): Promise<string[] | null> {
+async function getTokensBychannels(channels: string[]): Promise<ILineToken[] | null> {
   const tokenInfo = await LineTokenModel.find({ channel: { $in: channels } }).lean();
   if (!tokenInfo || tokenInfo.length === 0) {
     return null;
   }
-  const tokens: string[] = tokenInfo.map((record) => record.token);
-  return tokens;
+  //const tokens: string[] = tokenInfo.map((record) => record.token);
+  return tokenInfo;
+}
+
+async function getAllEnabledChannel(): Promise<ILineToken[] | null> {
+  const tokenInfo = await LineTokenModel.find({ notifyEnabled: true }).lean();
+  return tokenInfo; //tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
 }
 
 async function sendMessage(token: string, message: string): Promise<AxiosResponse<any, any>> {
@@ -30,4 +35,4 @@ async function sendMessage(token: string, message: string): Promise<AxiosRespons
   return response;
 }
 
-export default { sendMessage, getTokenByChannel, getTokensBychannels };
+export default { sendMessage, getTokenByChannel, getTokensBychannels, getAllEnabledChannel };
