@@ -267,7 +267,7 @@ export function parseId(link: string): number {
 
 export function processSinglePostToMessage(post: IPostInfo): string[] {
   const messageBuilder: string[] = ['', ''];
-  if (isSubscribedAuthor(post.author)) {
+  if (isSubscribedAuthor(post.author) && post.tag == '標的') {
     messageBuilder.push(`【✨✨大神來囉✨✨】`);
   }
   messageBuilder.push(`[${post.tag}] ${post.title}`);
@@ -280,7 +280,7 @@ export function processSinglePostToMessage(post: IPostInfo): string[] {
 function ProcessSinglePostToMessageToMyline(post: IPostInfo): string[] {
   const messageBuilder: string[] = ['', ''];
   const isHighlightAuthorFlag = isHighlightAuthor(post.author);
-  isHighlightAuthorFlag && messageBuilder.push(`【✨大神來囉✨】`);
+  isHighlightAuthorFlag && post.tag == '標的' && messageBuilder.push(`【✨大神來囉✨】`);
   messageBuilder.push(`[${post.tag}] ${post.title}`);
   messageBuilder.push(`作者: ${post.author}`);
   messageBuilder.push(`${domain}/${post.href}`);
