@@ -53,6 +53,7 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
     const tokenInfo: ILineToken = {
       channel: channel,
       token: access_token,
+      notifyEnabled: true,
       updateDate: today(),
     };
     await new LineTokenModel(tokenInfo).save();
@@ -78,7 +79,7 @@ router.get('/send', async (req: Request, res: Response, next: NextFunction) => {
     if (token == null) {
       return res.json({ message: 'no match token for ' + channel });
     }
-    const response = await lineService.sendMessage(token, message);
+    const response = await lineService.sendMessage(token.token, message);
     console.log('send notify result', response);
     return res.send(response.data);
   } catch (error) {
@@ -98,7 +99,7 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
     return res.send('channel is empty');
   }
 
-  let tokens: string[] | null = [];
+  let tokens: ILineToken[] | null = [];
 
   if (channel) {
     const token = await lineService.getTokenByChannel(channel);
@@ -117,7 +118,7 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
 
   try {
     for (const token of tokens) {
-      const response = await lineService.sendMessage(token, message);
+      const response = await lineService.sendMessage(token.token, message);
       await delay(30);
     }
 
