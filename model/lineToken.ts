@@ -10,7 +10,11 @@ interface ILineToken {
 
 // Schema
 const LineTokenSchema: Schema = new Schema({
-  channel: String,
+  channel: {
+    type: String,
+    required: true,
+    unique: true, // Add the unique constraint here
+  },
   token: String,
   updateDate: String,
   notifyEnabled: {
