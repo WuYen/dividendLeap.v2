@@ -17,28 +17,33 @@ const {
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
 } = config;
 
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-  //導去註冊line token
-  const channel = req.query.channel;
-  if (channel == undefined || channel?.length == 0) {
-    return res.json({ error: 'need channel as query parameter' });
-  } else {
-    return res.redirect(
-      `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`
-    );
-  }
-});
+// router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+//   //導去註冊line token
+//   const channel = req.query.channel;
+//   if (channel == undefined || channel?.length == 0) {
+//     return res.json({ error: 'need channel as query parameter' });
+//   } else {
+//     return res.redirect(
+//       `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`
+//     );
+//   }
+// });
 
 router.get('/regis', async (req: Request, res: Response, next: NextFunction) => {
   //回傳註冊line token的 url
-  const channel = req.query.channel;
-  if (channel == undefined || channel?.length == 0) {
-    return res.json({ error: 'need channel as query parameter' });
-  } else {
-    return res.json({
-      redirectUrl: `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`,
-    });
+  const channel = req.query.channel as string;
+  if (channel == undefined || channel?.length == 0 || channel?.trim()?.length == 0) {
+    return res.json({ error: '不可以是空的' });
   }
+
+  const existingCount = await LineTokenModel.countDocuments({ channel });
+  if (existingCount > 0) {
+    return res.json({ error: '名稱重複了' });
+  }
+
+  return res.json({
+    redirectUrl: `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`,
+  });
 });
 
 router.get('/callback', async (req: Request, res: Response, next: NextFunction) => {
@@ -71,6 +76,9 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       updateDate: today(),
     };
     const savedTokenInfo = await new LineTokenModel(tokenInfo).save();
+    //TODO: move to env, admin token
+    await lineService.sendMessage('orGOxFXfyeuOeVKhIasWO1gi5gemSDXfY26zVFzOWg3', '有新註冊的人: ' + channel);
+
     if (LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL == '') {
       return res.json({ tokenInfo });
     } else {
