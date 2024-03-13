@@ -6,8 +6,8 @@ interface ILineToken {
   token: string;
   updateDate: string;
   notifyEnabled: boolean;
-  subscribedAuthors: Schema.Types.ObjectId[];
-  highlightAuthors: Schema.Types.ObjectId[];
+  // subscribedAuthors: Schema.Types.ObjectId[];
+  // highlightAuthors: Schema.Types.ObjectId[];
 }
 
 // Schema
@@ -23,8 +23,8 @@ const LineTokenSchema: Schema = new Schema({
     type: Boolean,
     default: true,
   },
-  subscribedAuthors: [{ type: Schema.Types.ObjectId, ref: 'Author' }],
-  highlightAuthors: [{ type: Schema.Types.ObjectId, ref: 'Author' }],
+  // subscribedAuthors: [{ type: Schema.Types.ObjectId, ref: 'Author' }],
+  // highlightAuthors: [{ type: Schema.Types.ObjectId, ref: 'Author' }],
 });
 // All stock no and name
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);

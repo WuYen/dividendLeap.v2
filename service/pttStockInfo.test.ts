@@ -1,24 +1,6 @@
 import service from './pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
-import { fastFindNewPosts, parseId } from './pttStockInfo';
-
-describe('isHighlightAuthor', () => {
-  // Test cases
-  test('Highlight author is recognized', () => {
-    const highlightAuthor: string = 'agogo1202';
-    expect(service.isHighlightAuthor(highlightAuthor)).toBe(true);
-  });
-
-  test('Non-highlight author is not recognized', () => {
-    const nonHighlightAuthor: string = 'JohnDoe';
-    expect(service.isHighlightAuthor(nonHighlightAuthor)).toBe(false);
-  });
-
-  test('Null author is not recognized', () => {
-    const nullAuthor: string | null = null;
-    expect(service.isHighlightAuthor(nullAuthor)).toBe(false);
-  });
-});
+import { fastFindNewPosts, parseId, processSinglePostToMessage } from './pttStockInfo';
 
 describe('test utility', () => {
   it('shouild get id', async () => {
@@ -73,23 +55,18 @@ describe('processMessage', () => {
       },
     ];
 
-    const result = service.processMessage(savedPosts);
+    var result = [];
+    for (let index = 0; index < savedPosts.length; index++) {
+      const post = savedPosts[index];
+      var message = processSinglePostToMessage(post, false);
+      result.push(message);
+    }
 
-    expect(result.includes('[閒聊] Sample Title')).toBeTruthy();
-    expect(result.includes('[標的] gogoggo')).toBeTruthy();
-    expect(result.includes('[閒聊] 2024/02/20 盤後閒聊')).toBeFalsy();
-    expect(result.includes('[新聞] 美股「融漲」紅燈亮了？這指標逼近達康泡')).toBeFalsy();
+    expect(result[0].includes('[閒聊] Sample Title')).toBeTruthy();
+    expect(result[1].includes('[標的] gogoggo')).toBeTruthy();
+    expect(result[2].includes('[閒聊] 2024/02/20 盤後閒聊')).toBeTruthy();
+    expect(result[3].includes('[新聞] 美股「融漲」紅燈亮了？這指標逼近達康泡')).toBeTruthy();
   });
-
-  test('should return an empty array when savedPosts is null', () => {
-    const savedPosts: IPostInfo[] | null = null;
-
-    const result = service.processMessage(savedPosts);
-
-    expect(result.length).toEqual(2);
-  });
-
-  // Add more tests as needed
 });
 
 const deletedPost = `<div class="r-ent">
