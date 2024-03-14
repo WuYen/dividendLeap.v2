@@ -1,5 +1,5 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import service, { processSinglePostToMessage } from '../service/pttStockInfo';
+import service, { isRePosts, processSinglePostToMessage } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
 import { ILineToken } from '../model/lineToken';
@@ -56,7 +56,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
               } else if (tokenInfo.channel == 'linegroup1') {
                 const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
               } else {
-                if (post.tag == '標的') {
+                if (post.tag == '標的' && !isRePosts(post)) {
                   const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
                 }
               }

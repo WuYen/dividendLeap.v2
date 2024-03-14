@@ -1,4 +1,4 @@
-import service from './pttStockInfo'; // Replace with the correct path to your file
+import service, { isRePosts } from './pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
 import { fastFindNewPosts, parseId } from './pttStockInfo';
 
@@ -29,6 +29,32 @@ describe('test utility', () => {
     result = parseId('/bbs/Stock/M.1709040700.A.47E.html');
     expect(typeof result).toBe('number');
     expect(result).toEqual(1709040700);
+  });
+
+  it('should return true if post title contains "re:" as a separate word', () => {
+    const post: IPostInfo = {
+      title: 'Some re: post',
+      tag: '標的',
+      href: null,
+      author: null,
+      date: null,
+      batchNo: 0,
+      id: 0,
+    };
+    expect(isRePosts(post)).toBe(true);
+  });
+
+  it('should return false if post title not contains Re: ', () => {
+    const post: IPostInfo = {
+      title: 'Some : post',
+      tag: '標的',
+      href: null,
+      author: null,
+      date: null,
+      batchNo: 0,
+      id: 0,
+    };
+    expect(isRePosts(post)).toBe(false);
   });
 });
 
