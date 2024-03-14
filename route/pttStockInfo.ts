@@ -53,7 +53,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
               if (tokenInfo.channel == 'myline') {
                 var customizContent = service.ProcessSinglePostToMessageToMyline(post).join('\n');
                 const response = await lineService.sendMessage(tokenInfo.token, customizContent);
-              } else if (tokenInfo.channel == 'linegroup1') {
+              } else if (tokenInfo.channel == 'linegroup1' && !isRePosts(post)) {
                 const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
               } else {
                 if (post.tag == '標的' && !isRePosts(post)) {
