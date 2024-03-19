@@ -1,5 +1,5 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import service, { processSinglePostToMessage } from '../service/pttStockInfo';
+import service, { isRePosts, processSinglePostToMessage } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
 import { ILineToken } from '../model/lineToken';

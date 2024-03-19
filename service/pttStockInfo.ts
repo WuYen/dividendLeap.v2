@@ -200,6 +200,14 @@ export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolea
   return messageBuilder;
 }
 
+export function isRePosts(post: IPostInfo): boolean {
+  const title = post.title.toLowerCase(); // 将标题转换为小写以进行不区分大小写的比较
+  return Boolean(
+    post.title && // 确保标题存在
+      title.includes('re:')
+  );
+}
+
 export default {
   getNewPosts,
   getLast50Posts,
