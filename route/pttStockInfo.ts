@@ -14,22 +14,23 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   const newPosts = await service.getNewPosts();
-  const messages: string[] = [];
-  const channel = req.query.channel as string;
-  const channels = req.query.channels as string;
+
   if (newPosts && newPosts.length) {
     try {
-      let tokenInfos: ILineToken[] | null = await retrieveTokenInfo(channel, channels);
+      let tokenInfos: ILineToken[] | null = await retrieveTokenInfo(
+        req.query.channel as string,
+        req.query.channels as string
+      );
+      //先統一拿所有的author, 之後會改成by user 訂閱方式
       let subscribeAuthor: string[] = (await AuthorModel.find({}, 'name').lean()).map((author) => author.name);
       if (tokenInfos != null && tokenInfos.length > 0) {
         for (const tokenInfo of tokenInfos) {
           for (const post of newPosts) {
-            var isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
-            if (post.tag == '標的' || isSubscribed) {
+            let isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
+            if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
               const notifyContent = processSinglePostToMessage(post, isSubscribed).join('\n');
               const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
               await delay(25);
-              messages.push(notifyContent);
             }
           }
         }
@@ -39,7 +40,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  res.json({ msg: messages });
+  res.json({ msg: `send notify success` });
 });
 
 export default router;
