@@ -2,9 +2,14 @@ import * as service from './pttStockAuthor';
 import * as StockBoardService from './pttStockInfo';
 import cheerio from 'cheerio';
 import { IPostInfo } from '../model/PostInfo';
+import fugleService from './fugleService';
 
 jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
+}));
+
+jest.mock('./fugleService', () => ({
+  getStockPriceByDates: jest.fn(),
 }));
 
 const mockIndexHtml = `
@@ -739,7 +744,7 @@ describe('test get author unit', () => {
     });
   });
 
-  it('Given a stock no and date range then get target stock price', async () => {
+  describe('測試 getPriceInfo', () => {
     // {
     //   tag: '標的',
     //   title: '3163 波若威 被刪文多',
@@ -749,11 +754,98 @@ describe('test get author unit', () => {
     //   id: 1688452709,
     //   batchNo: 0,
     // },
-    const today: string = '20231010';
-    const stockNo: string = '3163';
-    const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
-    //TODO 1: mock fugle or finmind api service
-    //TODO 2: create interface of this result
-    service.getPriceInfo(stockNo, today, dateRange);
+    //TODO: create interface of this result
+    afterEach(() => {
+      jest.resetAllMocks();
+    });
+    it('測試呼叫fugle api所有時間點都在今天之前', async () => {
+      const today: string = '20231010';
+      const stockNo: string = '3163';
+      const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
+      await service.getPriceInfo(stockNo, today, dateRange);
+      expect(fugleService.getStockPriceByDates).toHaveBeenCalledWith(stockNo, '20230704', '20230829');
+    });
+
+    it('測試呼叫發文時間只過了兩周', async () => {
+      const today: string = '20230720';
+      const stockNo: string = '3163';
+      const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
+      await service.getPriceInfo(stockNo, today, dateRange);
+      expect(fugleService.getStockPriceByDates).toHaveBeenCalledWith(stockNo, '20230704', '20230720');
+    });
+
+    it('測試選出資料&漲幅百分比', async () => {
+      const getStockPriceByDatesMock = jest.requireMock('./fugleService').getStockPriceByDates;
+      getStockPriceByDatesMock.mockResolvedValue({
+        symbol: '3163',
+        type: 'EQUITY',
+        exchange: 'TPEx',
+        market: 'OTC',
+        timeframe: 'D',
+        data: [
+          {
+            date: '2023-08-29',
+            open: 94.2,
+            high: 96.8,
+            low: 93.8,
+            close: 94,
+            volume: 13563045,
+          },
+          {
+            date: '2023-08-28',
+            open: 96.6,
+            high: 97.5,
+            low: 93,
+            close: 93.2,
+            volume: 14013633,
+          },
+          {
+            date: '2023-08-15',
+            open: 88.9,
+            high: 93.7,
+            low: 87.2,
+            close: 92.4,
+            volume: 27913219,
+          },
+          {
+            date: '2023-08-01',
+            open: 100.5,
+            high: 108,
+            low: 89.6,
+            close: 92.4,
+            volume: 55049400,
+          },
+          {
+            date: '2023-07-18',
+            open: 82.7,
+            high: 86.5,
+            low: 74,
+            close: 74.5,
+            volume: 31469421,
+          },
+          {
+            date: '2023-07-05',
+            open: 68.7,
+            high: 74,
+            low: 68.4,
+            close: 72.6,
+            volume: 30398613,
+          },
+          {
+            date: '2023-07-04',
+            open: 61.7,
+            high: 67.7,
+            low: 61.6,
+            close: 67.7,
+            volume: 16286475,
+          },
+        ],
+      });
+      const today: string = '20230831';
+      const stockNo: string = '3163';
+      const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
+      var result = await service.getPriceInfo(stockNo, today, dateRange);
+      // expect(result?.length).toEqual(6);
+    });
   });
 });

@@ -72,9 +72,9 @@ export function parseChineseDate(str: string) {
 export function getDateFragment(date: string | Date): IDateFragement {
   if (typeof date == 'string') {
     return {
-      year: date.substr(0, 4),
-      month: date.substr(4, 2),
-      day: date.substr(6, 2),
+      year: date.slice(0, 4),
+      month: date.slice(4, 6),
+      day: date.slice(6, 8),
     };
   } else {
     return {

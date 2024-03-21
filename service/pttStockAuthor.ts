@@ -3,6 +3,7 @@ import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { isRePosts } from './pttStockInfo';
 import fugleService from './fugleService';
+import { getDateFragment } from '../utility/dateTime';
 
 const domain = 'https://www.ptt.cc';
 
@@ -76,20 +77,44 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
-export function getPriceInfo(stockNo: string, today: string, dateRange: string[]) {
-  //TODO: find real dateRange
+export async function getPriceInfo(stockNo: string, today: string, dateRange: string[]) {
   const dateRangeWithinToday: string[] = [];
 
   for (const date of dateRange) {
     if (date > today) {
+      dateRangeWithinToday.push(today);
       break;
     }
     dateRangeWithinToday.push(date);
   }
 
-  fugleService.getStockPriceByDates(
+  var result = await fugleService.getStockPriceByDates(
     stockNo,
     dateRangeWithinToday[0],
     dateRangeWithinToday[dateRangeWithinToday.length - 1]
   );
+
+  const filteredData = result?.data.filter((dataObj) => {
+    const dateStr = dataObj.date.replace(/-/g, '');
+    return dateRange.includes(dateStr);
+  });
+
+  const firstDateStr = dateRange[0]; // '20230704'
+  const baseData = result?.data.find((obj) => obj.date.replace(/-/g, '') === firstDateStr);
+  const baseClose = baseData?.close || 0; // 67.7
+
+  const percentageDiffs = Boolean(baseClose)
+    ? dateRangeWithinToday.slice(1).map((dateStr) => {
+        const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr);
+        if (dataObj != null) {
+          const closeValue = dataObj?.close || 0;
+          const diffPercent = ((closeValue - baseClose) / baseClose) * 100;
+          return { date: dataObj.date, diffPercent, price: closeValue };
+        } else {
+          return null;
+        }
+      })
+    : null;
+
+  return { stockNo, filteredData, percentageDiffs, rawData: result?.data };
 }
