@@ -69,6 +69,11 @@ async function fugleCaller(stockNo: string, query: string) {
     },
   });
 }
+
+export default {
+  getStockPriceByDates,
+  getStockPrice,
+};
 // {
 //    "date":"2024-03-19",
 //    "open":153.4,

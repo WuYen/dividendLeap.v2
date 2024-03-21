@@ -2,6 +2,7 @@ import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { isRePosts } from './pttStockInfo';
+import fugleService from './fugleService';
 
 const domain = 'https://www.ptt.cc';
 
@@ -75,6 +76,20 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
-export function getPriceInfo(stockNo: String, dateRange: String[]) {
-  throw new Error('Function not implemented.');
+export function getPriceInfo(stockNo: string, today: string, dateRange: string[]) {
+  //TODO: find real dateRange
+  const dateRangeWithinToday: string[] = [];
+
+  for (const date of dateRange) {
+    if (date > today) {
+      break;
+    }
+    dateRangeWithinToday.push(date);
+  }
+
+  fugleService.getStockPriceByDates(
+    stockNo,
+    dateRangeWithinToday[0],
+    dateRangeWithinToday[dateRangeWithinToday.length - 1]
+  );
 }

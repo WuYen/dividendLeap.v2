@@ -740,10 +740,20 @@ describe('test get author unit', () => {
   });
 
   it('Given a stock no and date range then get target stock price', async () => {
-    const stockNo: String = '';
-    const dateRange: String[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
+    // {
+    //   tag: '標的',
+    //   title: '3163 波若威 被刪文多',
+    //   href: '/bbs/Stock/M.1688452709.A.7B4.html',
+    //   author: 'WADE0616',
+    //   date: '7/04',
+    //   id: 1688452709,
+    //   batchNo: 0,
+    // },
+    const today: string = '20231010';
+    const stockNo: string = '3163';
+    const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
     //TODO 1: mock fugle or finmind api service
     //TODO 2: create interface of this result
-    service.getPriceInfo(stockNo, dateRange);
+    service.getPriceInfo(stockNo, today, dateRange);
   });
 });
