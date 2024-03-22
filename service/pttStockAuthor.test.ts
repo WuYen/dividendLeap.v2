@@ -774,7 +774,7 @@ describe('test get author unit', () => {
       expect(fugleService.getStockPriceByDates).toHaveBeenCalledWith(stockNo, '20230704', '20230720');
     });
 
-    it('測試選出資料&漲幅百分比', async () => {
+    it('測試選出資料&漲幅百分比+所有時間點都在今天之前', async () => {
       const getStockPriceByDatesMock = jest.requireMock('./fugleService').getStockPriceByDates;
       getStockPriceByDatesMock.mockResolvedValue({
         symbol: '3163',
@@ -841,11 +841,64 @@ describe('test get author unit', () => {
           },
         ],
       });
-      const today: string = '20230831';
+      const today: string = '20231010';
       const stockNo: string = '3163';
       const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
-      var result = await service.getPriceInfo(stockNo, today, dateRange);
-      // expect(result?.length).toEqual(6);
+      const result = await service.getPriceInfo(stockNo, today, dateRange);
+      expect(result?.filteredData.length).toEqual(6);
+      expect(result?.percentageDiffs.length).toEqual(5);
+    });
+
+    it('測試選出資料&漲幅百分比+發文時間只過了兩周', async () => {
+      const getStockPriceByDatesMock = jest.requireMock('./fugleService').getStockPriceByDates;
+      getStockPriceByDatesMock.mockResolvedValue({
+        symbol: '3163',
+        type: 'EQUITY',
+        exchange: 'TPEx',
+        market: 'OTC',
+        timeframe: 'D',
+        data: [
+          {
+            date: '2023-07-20',
+            open: 100.5,
+            high: 108,
+            low: 89.6,
+            close: 92.4,
+            volume: 55049400,
+          },
+          {
+            date: '2023-07-18',
+            open: 82.7,
+            high: 86.5,
+            low: 74,
+            close: 74.5,
+            volume: 31469421,
+          },
+          {
+            date: '2023-07-05',
+            open: 68.7,
+            high: 74,
+            low: 68.4,
+            close: 72.6,
+            volume: 30398613,
+          },
+          {
+            date: '2023-07-04',
+            open: 61.7,
+            high: 67.7,
+            low: 61.6,
+            close: 67.7,
+            volume: 16286475,
+          },
+        ],
+      });
+      //預期會把最後一個時間點用 today 的資料取代
+      const today: string = '20230720';
+      const stockNo: string = '3163';
+      const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
+      const result = await service.getPriceInfo(stockNo, today, dateRange);
+      expect(result?.filteredData.length).toEqual(4);
+      expect(result?.percentageDiffs.length).toEqual(3);
     });
   });
 });

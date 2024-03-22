@@ -93,28 +93,35 @@ export async function getPriceInfo(stockNo: string, today: string, dateRange: st
     dateRangeWithinToday[0],
     dateRangeWithinToday[dateRangeWithinToday.length - 1]
   );
+  if (!result || result.data.length == 0) {
+    return null;
+  }
 
   const filteredData = result?.data.filter((dataObj) => {
     const dateStr = dataObj.date.replace(/-/g, '');
-    return dateRange.includes(dateStr);
+    return dateRangeWithinToday.includes(dateStr);
   });
 
-  const firstDateStr = dateRange[0]; // '20230704'
-  const baseData = result?.data.find((obj) => obj.date.replace(/-/g, '') === firstDateStr);
-  const baseClose = baseData?.close || 0; // 67.7
+  const baseClose = filteredData[0].close;
+  const percentageDiffs: PercentageDiff[] = dateRangeWithinToday
+    .slice(1)
+    .filter((dateStr) => {
+      const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr);
+      return dataObj !== undefined; // 过滤掉没有找到对应数据对象的日期字符串
+    })
+    .map((dateStr) => {
+      const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr)!; // 由于经过了过滤,这里可以确定 dataObj 不为 null 或 undefined
+      const closeValue = dataObj.close;
+      const diffPercent = ((closeValue - baseClose) / baseClose) * 100;
+      const diffPercentFixed = parseFloat(diffPercent.toFixed(2));
+      return { date: dataObj.date, diffPercentFixed, price: closeValue };
+    });
 
-  const percentageDiffs = Boolean(baseClose)
-    ? dateRangeWithinToday.slice(1).map((dateStr) => {
-        const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr);
-        if (dataObj != null) {
-          const closeValue = dataObj?.close || 0;
-          const diffPercent = ((closeValue - baseClose) / baseClose) * 100;
-          return { date: dataObj.date, diffPercent, price: closeValue };
-        } else {
-          return null;
-        }
-      })
-    : null;
+  return { stockNo, filteredData, percentageDiffs, rawData: result.data };
+}
 
-  return { stockNo, filteredData, percentageDiffs, rawData: result?.data };
+interface PercentageDiff {
+  date: string;
+  diffPercentFixed: number;
+  price: number;
 }
