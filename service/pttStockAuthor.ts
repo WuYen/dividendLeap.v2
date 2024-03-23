@@ -1,9 +1,7 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { isRePosts } from './pttStockInfo';
-import fugleService from './fugleService';
-import { getDateFragment } from '../utility/dateTime';
+import fugleService, { HistoricalDataInfo } from './fugleService';
 
 const domain = 'https://www.ptt.cc';
 
@@ -77,7 +75,11 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
-export async function getPriceInfo(stockNo: string, today: string, dateRange: string[]) {
+export async function getPriceInfo(
+  stockNo: string,
+  today: string,
+  dateRange: string[]
+): Promise<PriceInfoResponse | null> {
   const dateRangeWithinToday: string[] = [];
 
   for (const date of dateRange) {
@@ -93,35 +95,41 @@ export async function getPriceInfo(stockNo: string, today: string, dateRange: st
     dateRangeWithinToday[0],
     dateRangeWithinToday[dateRangeWithinToday.length - 1]
   );
+
   if (!result || result.data.length == 0) {
     return null;
   }
 
-  const filteredData = result?.data.filter((dataObj) => {
-    const dateStr = dataObj.date.replace(/-/g, '');
-    return dateRangeWithinToday.includes(dateStr);
+  const rawData = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
+  const baseClose = rawData[0].close;
+  const processedDates: DiffInfo[] = dateRangeWithinToday.map((dateStr) => {
+    const target: DiffInfo = { date: dateStr, diff: 0, diffPercent: 0, price: 0 };
+    const targetDayInfo = rawData.find((x) => x.date === dateStr);
+    if (targetDayInfo) {
+      target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
+      target.price = targetDayInfo.close;
+      target.diffPercent = parseFloat(((target.diff / baseClose) * 100).toFixed(2));
+    }
+    return target;
   });
 
-  const baseClose = filteredData[0].close;
-  const percentageDiffs: PercentageDiff[] = dateRangeWithinToday
-    .slice(1)
-    .filter((dateStr) => {
-      const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr);
-      return dataObj !== undefined; // 过滤掉没有找到对应数据对象的日期字符串
-    })
-    .map((dateStr) => {
-      const dataObj = result?.data.find((obj) => obj.date.replace(/-/g, '') === dateStr)!; // 由于经过了过滤,这里可以确定 dataObj 不为 null 或 undefined
-      const closeValue = dataObj.close;
-      const diffPercent = ((closeValue - baseClose) / baseClose) * 100;
-      const diffPercentFixed = parseFloat(diffPercent.toFixed(2));
-      return { date: dataObj.date, diffPercentFixed, price: closeValue };
-    });
-
-  return { stockNo, filteredData, percentageDiffs, rawData: result.data };
+  return { stockNo, processedDates, rawData };
 }
 
-interface PercentageDiff {
+function roundToDecimal(value: number, decimalPlaces: number): number {
+  const factor = Math.pow(10, decimalPlaces);
+  return Math.round(value * factor) / factor;
+}
+
+export interface DiffInfo {
   date: string;
-  diffPercentFixed: number;
+  diff: number;
+  diffPercent: number;
   price: number;
+}
+
+export interface PriceInfoResponse {
+  stockNo: string;
+  processedDates: DiffInfo[];
+  rawData: HistoricalDataInfo[];
 }

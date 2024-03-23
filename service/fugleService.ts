@@ -44,22 +44,24 @@ export async function getStockPriceByDates(
   }
 }
 
-interface FugleStockHistoricalResponse {
+export interface FugleStockHistoricalResponse {
   symbol: string;
   type: string;
   exchange: string;
   market: string;
   timeframe: string;
-  data: Array<{
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-    turnover: number;
-    change: number;
-  }>;
+  data: HistoricalDataInfo[];
+}
+
+export interface HistoricalDataInfo {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  turnover: number;
+  change: number;
 }
 
 async function fugleCaller(stockNo: string, query: string) {

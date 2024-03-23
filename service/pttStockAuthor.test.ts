@@ -845,8 +845,7 @@ describe('test get author unit', () => {
       const stockNo: string = '3163';
       const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
       const result = await service.getPriceInfo(stockNo, today, dateRange);
-      expect(result?.filteredData.length).toEqual(6);
-      expect(result?.percentageDiffs.length).toEqual(5);
+      expect(result?.processedDates.length).toEqual(6);
     });
 
     it('測試選出資料&漲幅百分比+發文時間只過了兩周', async () => {
@@ -897,8 +896,17 @@ describe('test get author unit', () => {
       const stockNo: string = '3163';
       const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
       const result = await service.getPriceInfo(stockNo, today, dateRange);
-      expect(result?.filteredData.length).toEqual(4);
-      expect(result?.percentageDiffs.length).toEqual(3);
+      expect(result?.processedDates.length).toEqual(4);
+
+      expect(result?.processedDates[0].diff).toEqual(0);
+      expect(result?.processedDates[1].diff).toEqual(4.9);
+      expect(result?.processedDates[2].diff).toEqual(6.8);
+      expect(result?.processedDates[3].diff).toEqual(24.7);
+
+      expect(result?.processedDates[0].diffPercent).toEqual(0);
+      expect(result?.processedDates[1].diffPercent).toEqual(7.24);
+      expect(result?.processedDates[2].diffPercent).toEqual(10.04);
+      expect(result?.processedDates[3].diffPercent).toEqual(36.48);
     });
   });
 });
