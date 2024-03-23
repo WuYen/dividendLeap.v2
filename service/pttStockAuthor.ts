@@ -80,6 +80,7 @@ export async function getPriceInfo(
   today: string,
   dateRange: string[]
 ): Promise<PriceInfoResponse | null> {
+  console.log(`start getPriceInfo for ${stockNo} at ${today}`);
   const dateRangeWithinToday: string[] = [];
 
   for (const date of dateRange) {
@@ -102,8 +103,9 @@ export async function getPriceInfo(
 
   const rawData = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
   const baseClose = rawData[0].close;
-  const processedDates: DiffInfo[] = dateRangeWithinToday.map((dateStr) => {
+  const processedDates: DiffInfo[] = dateRange.map((dateStr) => {
     const target: DiffInfo = { date: dateStr, diff: 0, diffPercent: 0, price: 0 };
+    //TODO: if targetDayInfo, get closest day
     const targetDayInfo = rawData.find((x) => x.date === dateStr);
     if (targetDayInfo) {
       target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);

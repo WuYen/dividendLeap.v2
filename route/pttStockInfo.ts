@@ -1,9 +1,12 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import service, { isRePosts, processSinglePostToMessage } from '../service/pttStockInfo';
+import service, { isRePosts, processSinglePostToMessage, parsePosts } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
 import { ILineToken } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
+import * as AuthorService from '../service/pttStockAuthor';
+import { IPostInfo } from '../model/PostInfo';
+import { today } from '../utility/dateTime';
 
 const router: Router = express.Router();
 
@@ -41,6 +44,26 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   }
 
   res.json({ msg: `send notify success` });
+});
+
+router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
+  const result = [];
+  const authorId = req.params.id;
+  const $ = await AuthorService.getHtmlSource(authorId);
+  const posts = parsePosts($, +new Date());
+  const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
+  for (let i = 0; i < Math.min(targetPosts.length, 4); i++) {
+    const info = targetPosts[i];
+    const stockNo = AuthorService.getStockNoFromTitle(info);
+    if (stockNo) {
+      const targetDates = AuthorService.getTargetDates(info.id, []);
+      const resultInfo = await AuthorService.getPriceInfo(stockNo, today(), targetDates);
+      if (resultInfo) {
+        result.push({ ...resultInfo, post: info });
+      }
+    }
+  }
+  res.json(result);
 });
 
 export default router;

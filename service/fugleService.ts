@@ -15,7 +15,6 @@ export async function getStockPrice(stockNo: string, date: string): Promise<Fugl
     const query = `fields=open,high,low,close,volume&from=${dt}&to=${dt}`;
     const response = await fugleCaller(stockNo, query);
     const rawData = response.data as FugleStockHistoricalResponse;
-    console.log(rawData);
     return rawData;
   } catch (error) {
     console.log('fugle dayInfo error', error);
@@ -36,7 +35,6 @@ export async function getStockPriceByDates(
     const query = `fields=open,high,low,close,volume&from=${start}&to=${end}`;
     const response = await fugleCaller(stockNo, query);
     const rawData = response.data as FugleStockHistoricalResponse;
-    console.log(rawData);
     return rawData;
   } catch (error) {
     console.log('fugle dayInfo error', error);
@@ -65,6 +63,7 @@ export interface HistoricalDataInfo {
 }
 
 async function fugleCaller(stockNo: string, query: string) {
+  console.log(`call fugle historical/candles/${stockNo}?${query}`);
   return await axios.get(`https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/${stockNo}?${query}`, {
     headers: {
       'X-API-KEY': config.FUGLE_API_KEY,
