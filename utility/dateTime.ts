@@ -16,6 +16,11 @@ export function today() {
   return todayStr;
 }
 
+export function todayDate() {
+  var today = getTodayWithTZ();
+  return today;
+}
+
 export function latestTradeDate(): string {
   const today = getTodayWithTZ();
   const day = today.getDay();

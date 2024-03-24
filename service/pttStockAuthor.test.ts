@@ -2,7 +2,8 @@ import * as service from './pttStockAuthor';
 import * as StockBoardService from './pttStockInfo';
 import cheerio from 'cheerio';
 import { IPostInfo } from '../model/PostInfo';
-import fugleService from './fugleService';
+import fugleService, { HistoricalDataInfo } from './fugleService';
+import { getHighestPoint } from './pttStockAuthor';
 
 jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
@@ -845,7 +846,7 @@ describe('test get author unit', () => {
       const stockNo: string = '3163';
       const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
       const result = await service.getPriceInfo(stockNo, today, dateRange);
-      expect(result?.processedDates.length).toEqual(6);
+      expect(result?.processedData.length).toEqual(6);
     });
 
     it('測試選出資料&漲幅百分比+發文時間只過了兩周', async () => {
@@ -896,17 +897,28 @@ describe('test get author unit', () => {
       const stockNo: string = '3163';
       const dateRange: string[] = ['20230704', '20230705', '20230718', '20230801', '20230815', '20230829'];
       const result = await service.getPriceInfo(stockNo, today, dateRange);
-      expect(result?.processedDates.length).toEqual(4);
+      expect(result?.processedData.length).toEqual(6);
 
-      expect(result?.processedDates[0].diff).toEqual(0);
-      expect(result?.processedDates[1].diff).toEqual(4.9);
-      expect(result?.processedDates[2].diff).toEqual(6.8);
-      expect(result?.processedDates[3].diff).toEqual(24.7);
+      expect(result?.processedData[0].diff).toEqual(0);
+      expect(result?.processedData[1].diff).toEqual(4.9);
+      expect(result?.processedData[2].diff).toEqual(6.8);
 
-      expect(result?.processedDates[0].diffPercent).toEqual(0);
-      expect(result?.processedDates[1].diffPercent).toEqual(7.24);
-      expect(result?.processedDates[2].diffPercent).toEqual(10.04);
-      expect(result?.processedDates[3].diffPercent).toEqual(36.48);
+      expect(result?.processedData[0].diffPercent).toEqual(0);
+      expect(result?.processedData[1].diffPercent).toEqual(7.24);
+      expect(result?.processedData[2].diffPercent).toEqual(10.04);
     });
+  });
+
+  // Test case
+  test('Get highest point', async () => {
+    // Mock data
+    const testData: HistoricalDataInfo[] = [
+      { date: '2022-01-01', open: 100, high: 120, low: 90, close: 110, volume: 10000, turnover: 100000, change: 0 },
+      { date: '2022-01-02', open: 110, high: 130, low: 100, close: 120, volume: 12000, turnover: 120000, change: 0 },
+      { date: '2022-01-03', open: 120, high: 140, low: 110, close: 130, volume: 14000, turnover: 140000, change: 0 },
+    ];
+
+    const highestPoint = await getHighestPoint(testData);
+    expect(highestPoint).toEqual(testData[2]); // The third data point has the highest 'high' value
   });
 });

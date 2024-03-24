@@ -2,6 +2,7 @@ import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { isRePosts } from './pttStockInfo';
 import fugleService, { HistoricalDataInfo } from './fugleService';
+import { toDateString } from '../utility/dateTime';
 
 const domain = 'https://www.ptt.cc';
 
@@ -75,6 +76,14 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
+export function getMonthRangeFrom(timestamp: number, today: Date): string[] {
+  const baseDate = new Date(timestamp * 1000);
+  const targetDate = new Date(baseDate);
+  targetDate.setMonth(targetDate.getMonth() + 4);
+  const finalDate = targetDate > today ? today : targetDate;
+  return [toDateString(baseDate), toDateString(finalDate)];
+}
+
 export async function getPriceInfo(
   stockNo: string,
   today: string,
@@ -115,7 +124,45 @@ export async function getPriceInfo(
     return target;
   });
 
-  return { stockNo, processedDates, rawData };
+  return { stockNo, processedData: processedDates, historicalInfo: rawData };
+}
+
+export async function getPriceInfoByRange(
+  stockNo: string,
+  startDate: string,
+  endDate: string
+): Promise<PriceInfoResponse | null> {
+  var result = await fugleService.getStockPriceByDates(stockNo, startDate, endDate);
+
+  if (!result || result.data.length == 0) {
+    return null;
+  }
+
+  const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
+
+  const highest = getHighestPoint(data);
+  const baseClose = data[0].close;
+  const target: DiffInfo = { date: highest.date || '', diff: 0, diffPercent: 0, price: 0 };
+  const targetDayInfo = data.find((x) => x.date === highest.date);
+  if (targetDayInfo) {
+    target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
+    target.price = targetDayInfo.close;
+    target.diffPercent = parseFloat(((target.diff / baseClose) * 100).toFixed(2));
+  }
+
+  return { stockNo, historicalInfo: data, processedData: [] };
+}
+
+export function getHighestPoint(data: HistoricalDataInfo[]): HistoricalDataInfo {
+  let highestPoint: HistoricalDataInfo = data[0];
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i].high > highestPoint.high) {
+      highestPoint = data[i];
+    }
+  }
+
+  return highestPoint;
 }
 
 function roundToDecimal(value: number, decimalPlaces: number): number {
@@ -132,6 +179,6 @@ export interface DiffInfo {
 
 export interface PriceInfoResponse {
   stockNo: string;
-  processedDates: DiffInfo[];
-  rawData: HistoricalDataInfo[];
+  processedData: DiffInfo[];
+  historicalInfo: HistoricalDataInfo[];
 }

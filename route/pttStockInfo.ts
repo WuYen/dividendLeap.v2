@@ -6,7 +6,7 @@ import { ILineToken } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
 import * as AuthorService from '../service/pttStockAuthor';
 import { IPostInfo } from '../model/PostInfo';
-import { today } from '../utility/dateTime';
+import { todayDate, today } from '../utility/dateTime';
 
 const router: Router = express.Router();
 
@@ -56,8 +56,8 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     const info = targetPosts[i];
     const stockNo = AuthorService.getStockNoFromTitle(info);
     if (stockNo) {
-      const targetDates = AuthorService.getTargetDates(info.id, []);
-      const resultInfo = await AuthorService.getPriceInfo(stockNo, today(), targetDates);
+      const targetDates = AuthorService.getMonthRangeFrom(info.id, todayDate());
+      const resultInfo = await AuthorService.getPriceInfoByRange(stockNo, targetDates[0], targetDates[1]);
       if (resultInfo) {
         result.push({ ...resultInfo, post: info });
       }
