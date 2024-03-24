@@ -23,7 +23,7 @@ const LINE_NOTIFY_CALL_BACK_URL: string | undefined =
 const LINE_NOTIFY_URL: string | undefined = process.env.LINE_NOTIFY_URL || 'https://notify-api.line.me/api/notify';
 const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
   process.env.LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL || 'http://localhost:3000/line/registration/callback';
-
+const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
 export default {
   NODE_ENV,
   MONGODB_URI,
@@ -42,4 +42,5 @@ export default {
   LINE_NOTIFY_CALL_BACK_URL,
   LINE_NOTIFY_URL,
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
+  FUGLE_API_KEY,
 };

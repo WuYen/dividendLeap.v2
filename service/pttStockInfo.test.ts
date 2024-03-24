@@ -1,24 +1,6 @@
 import service, { isRePosts } from './pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
-import { fastFindNewPosts, parseId } from './pttStockInfo';
-
-describe('isHighlightAuthor', () => {
-  // Test cases
-  test('Highlight author is recognized', () => {
-    const highlightAuthor: string = 'agogo1202';
-    expect(service.isHighlightAuthor(highlightAuthor)).toBe(true);
-  });
-
-  test('Non-highlight author is not recognized', () => {
-    const nonHighlightAuthor: string = 'JohnDoe';
-    expect(service.isHighlightAuthor(nonHighlightAuthor)).toBe(false);
-  });
-
-  test('Null author is not recognized', () => {
-    const nullAuthor: string | null = null;
-    expect(service.isHighlightAuthor(nullAuthor)).toBe(false);
-  });
-});
+import { fastFindNewPosts, parseId, processSinglePostToMessage } from './pttStockInfo';
 
 describe('test utility', () => {
   it('shouild get id', async () => {
@@ -33,28 +15,44 @@ describe('test utility', () => {
 
   it('should return true if post title contains "re:" as a separate word', () => {
     const post: IPostInfo = {
-      title: 'Some re: post',
-      tag: '標的',
-      href: null,
-      author: null,
-      date: null,
-      batchNo: 0,
-      id: 0,
+      id: 123,
+      tag: '請益',
+      title: 'Re:  關於大量未實現損益',
+      href: '/bbs/Stock/M.1709218876.A.B93.html',
+      author: 'cgagod',
+      date: '2/29',
+      batchNo: 1709220361794,
     };
     expect(isRePosts(post)).toBe(true);
   });
 
   it('should return false if post title not contains Re: ', () => {
     const post: IPostInfo = {
-      title: 'Some : post',
+      id: 456,
       tag: '標的',
-      href: null,
-      author: null,
-      date: null,
-      batchNo: 0,
-      id: 0,
+      title: 'NVDA尾盤5分鐘發生什麼事情',
+      href: '/bbs/Stock/M.1709243920.A.902.html',
+      author: 'wen17',
+      date: '3/01',
+      batchNo: 1709257208580,
     };
+
     expect(isRePosts(post)).toBe(false);
+  });
+
+  it('should not send re post', () => {
+    const post: IPostInfo = {
+      id: 123,
+      tag: '標的',
+      title: 'Re:  2880 華南金 多',
+      href: '/bbs/Stock/M.1710472460.A.BDE.html',
+      author: 'cgagod',
+      date: '2/29',
+      batchNo: 1709220361794,
+    };
+    var shouldSend = !isRePosts(post);
+    expect(isRePosts(post)).toBe(true);
+    expect(shouldSend).toBe(false);
   });
 });
 
@@ -99,23 +97,18 @@ describe('processMessage', () => {
       },
     ];
 
-    const result = service.processMessage(savedPosts);
+    var result = [];
+    for (let index = 0; index < savedPosts.length; index++) {
+      const post = savedPosts[index];
+      var message = processSinglePostToMessage(post, false);
+      result.push(message);
+    }
 
-    expect(result.includes('[閒聊] Sample Title')).toBeTruthy();
-    expect(result.includes('[標的] gogoggo')).toBeTruthy();
-    expect(result.includes('[閒聊] 2024/02/20 盤後閒聊')).toBeFalsy();
-    expect(result.includes('[新聞] 美股「融漲」紅燈亮了？這指標逼近達康泡')).toBeFalsy();
+    expect(result[0].includes('[閒聊] Sample Title')).toBeTruthy();
+    expect(result[1].includes('[標的] gogoggo')).toBeTruthy();
+    expect(result[2].includes('[閒聊] 2024/02/20 盤後閒聊')).toBeTruthy();
+    expect(result[3].includes('[新聞] 美股「融漲」紅燈亮了？這指標逼近達康泡')).toBeTruthy();
   });
-
-  test('should return an empty array when savedPosts is null', () => {
-    const savedPosts: IPostInfo[] | null = null;
-
-    const result = service.processMessage(savedPosts);
-
-    expect(result.length).toEqual(2);
-  });
-
-  // Add more tests as needed
 });
 
 const deletedPost = `<div class="r-ent">

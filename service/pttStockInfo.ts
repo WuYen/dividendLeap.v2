@@ -160,83 +160,6 @@ export function getPreviousPageIndex($: cheerio.Root): string {
   return index as string;
 }
 
-function processMessage(savedPosts: PostInfo.IPostInfo[] | null) {
-  const messageBuilder: string[] = ['PTT', ''];
-  if (savedPosts && savedPosts.length > 0) {
-    savedPosts.forEach((post) => {
-      if (post.tag == '標的' || isSubscribedAuthor(post.author)) {
-        if (isSubscribedAuthor(post.author)) {
-          messageBuilder.push(`【✨✨大神來囉✨✨】`);
-        }
-        messageBuilder.push(`[${post.tag}] ${post.title}`);
-        messageBuilder.push(`作者: ${post.author}`);
-        messageBuilder.push(`${domain}/${post.href}`);
-        messageBuilder.push('');
-      }
-    });
-  }
-  return messageBuilder;
-}
-
-function isHighlightAuthor(author: string | null): boolean {
-  var gods = ['agogo1202', 'nuwai57', 'WADE0616', 'kobekid', 'DwyaneAndy'];
-
-  return author !== null && gods.includes(author);
-}
-
-function isSubscribedAuthor(author: string | null): boolean {
-  var subscribeAuthor = [
-    'dearhau',
-    'macross2',
-    'bonbonwo2018',
-    'm4vu0',
-    'tacovirus',
-    'MOMO0478',
-    'ikariamman',
-    'agogo1202',
-    'pubg1106',
-    'ninia178178',
-    'nuwai57',
-    'xuane',
-    'Tadnone',
-    'uzgo',
-    'WADE0616',
-    'wenfang2012',
-    'cl3bp6',
-    'kobekid',
-    'a0933954587',
-    'Crypto',
-    'kone1869',
-    'DwyaneAndy',
-    'wayne6250',
-    'Esandman',
-    'adidas81923',
-    'peter5479',
-  ];
-  return author !== null && subscribeAuthor.includes(author);
-}
-
-function findNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo[]): IPostInfo[] {
-  const newArticles: IPostInfo[] = [];
-
-  for (const onlinePost of onlinePosts) {
-    let isNew = true;
-
-    for (const savedArticle of savedPosts) {
-      if (onlinePost.id == savedArticle.id) {
-        isNew = false;
-        break;
-      }
-    }
-
-    if (isNew) {
-      newArticles.push(onlinePost);
-    }
-  }
-
-  return newArticles;
-}
-
 export function fastFindNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo[]): IPostInfo[] {
   const newPosts: IPostInfo[] = [];
 
@@ -265,22 +188,11 @@ export function parseId(link: string): number {
   return id;
 }
 
-export function processSinglePostToMessage(post: IPostInfo): string[] {
+export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolean): string[] {
   const messageBuilder: string[] = ['', ''];
-  if (isSubscribedAuthor(post.author) && post.tag == '標的') {
+  if (isSubscribed && post.tag == '標的') {
     messageBuilder.push(`【✨✨大神來囉✨✨】`);
   }
-  messageBuilder.push(`[${post.tag}] ${post.title}`);
-  messageBuilder.push(`作者: ${post.author}`);
-  messageBuilder.push(`${domain}/${post.href}`);
-  messageBuilder.push('');
-  return messageBuilder;
-}
-
-function ProcessSinglePostToMessageToMyline(post: IPostInfo): string[] {
-  const messageBuilder: string[] = ['', ''];
-  const isHighlightAuthorFlag = isHighlightAuthor(post.author);
-  isHighlightAuthorFlag && post.tag == '標的' && messageBuilder.push(`【✨大神來囉✨】`);
   messageBuilder.push(`[${post.tag}] ${post.title}`);
   messageBuilder.push(`作者: ${post.author}`);
   messageBuilder.push(`${domain}/${post.href}`);
@@ -298,9 +210,5 @@ export function isRePosts(post: IPostInfo): boolean {
 
 export default {
   getNewPosts,
-  processMessage,
-  isHighlightAuthor,
-  isSubscribedAuthor,
   getLast50Posts,
-  ProcessSinglePostToMessageToMyline,
 };
