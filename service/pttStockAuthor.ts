@@ -150,7 +150,7 @@ export async function getPriceInfoByRange(
     target.diffPercent = parseFloat(((target.diff / baseClose) * 100).toFixed(2));
   }
 
-  return { stockNo, historicalInfo: data, processedData: [] };
+  return { stockNo, historicalInfo: data, processedData: [target] };
 }
 
 export function getHighestPoint(data: HistoricalDataInfo[]): HistoricalDataInfo {
