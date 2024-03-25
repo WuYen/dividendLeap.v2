@@ -2,11 +2,12 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 import service, { isRePosts, processSinglePostToMessage, parsePosts } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
-import { ILineToken } from '../model/lineToken';
+import { ILineToken, TokenLevel } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
 import * as AuthorService from '../service/pttStockAuthor';
 import { IPostInfo } from '../model/PostInfo';
 import { todayDate, today } from '../utility/dateTime';
+import config from '../utility/config';
 
 const router: Router = express.Router();
 
@@ -31,8 +32,11 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
           for (const post of newPosts) {
             let isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
             if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
-              const notifyContent = processSinglePostToMessage(post, isSubscribed).join('\n');
-              const response = await lineService.sendMessage(tokenInfo.token, notifyContent);
+              const notifyContent = processSinglePostToMessage(post, isSubscribed);
+              if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+                notifyContent.push(`${config.CYCLIC_URL}/ptt/author/${post.author}`);
+              }
+              const response = await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
               await delay(25);
             }
           }
@@ -93,31 +97,3 @@ async function retrieveTokenInfo(channel: string, channels: string) {
   }
   return tokenInfos;
 }
-// var subscribeAuthor = [
-//   'dearhau',
-//   'macross2',
-//   'bonbonwo2018',
-//   'm4vu0',
-//   'tacovirus',
-//   'MOMO0478',
-//   'ikariamman',
-//   'agogo1202',
-//   'pubg1106',
-//   'ninia178178',
-//   'nuwai57',
-//   'xuane',
-//   'Tadnone',
-//   'uzgo',
-//   'WADE0616',
-//   'wenfang2012',
-//   'cl3bp6',
-//   'kobekid',
-//   'a0933954587',
-//   'Crypto',
-//   'kone1869',
-//   'DwyaneAndy',
-//   'wayne6250',
-//   'Esandman',
-//   'adidas81923',
-//   'peter5479',
-// ];

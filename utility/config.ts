@@ -23,6 +23,7 @@ const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
   process.env.LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL || 'http://localhost:3000/line/registration/callback';
 const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
 const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
+const CYCLIC_URL: string = process.env.CYCLIC_URL || 'http://localhost:3000';
 
 export default {
   NODE_ENV,
@@ -42,4 +43,5 @@ export default {
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
   FUGLE_API_KEY,
   ADMIN_LINE_TOKEN,
+  CYCLIC_URL,
 };
