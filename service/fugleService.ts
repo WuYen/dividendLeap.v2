@@ -52,7 +52,7 @@ export interface FugleStockHistoricalResponse {
 }
 
 export interface HistoricalDataInfo {
-  date: string;
+  date: string; //"2024-03-19"
   open: number;
   high: number;
   low: number;
@@ -61,7 +61,7 @@ export interface HistoricalDataInfo {
   turnover: number;
   change: number;
 }
-
+//TODO: move this caller to utility, and make historical/candles to something like channel
 async function fugleCaller(stockNo: string, query: string) {
   console.log(`call fugle historical/candles/${stockNo}?${query}`);
   return await axios.get(`https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/${stockNo}?${query}`, {
@@ -75,13 +75,5 @@ export default {
   getStockPriceByDates,
   getStockPrice,
 };
-// {
-//    "date":"2024-03-19",
-//    "open":153.4,
-//    "high":154.55,
-//    "low":153,
-//    "close":154.05,
-//    "volume":8872114
-//  }
 
 //getStockPrice('1314', '20240319');

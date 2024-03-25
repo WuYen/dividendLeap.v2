@@ -76,7 +76,7 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
-export function getMonthRangeFrom(timestamp: number, today: Date): string[] {
+export function getNext4MonthFromPostedDate(timestamp: number, today: Date): string[] {
   const baseDate = new Date(timestamp * 1000);
   const targetDate = new Date(baseDate);
   targetDate.setMonth(targetDate.getMonth() + 4);
@@ -84,50 +84,7 @@ export function getMonthRangeFrom(timestamp: number, today: Date): string[] {
   return [toDateString(baseDate), toDateString(finalDate)];
 }
 
-export async function getPriceInfo(
-  stockNo: string,
-  today: string,
-  dateRange: string[]
-): Promise<PriceInfoResponse | null> {
-  console.log(`start getPriceInfo for ${stockNo} at ${today}`);
-  const dateRangeWithinToday: string[] = [];
-
-  for (const date of dateRange) {
-    if (date > today) {
-      dateRangeWithinToday.push(today);
-      break;
-    }
-    dateRangeWithinToday.push(date);
-  }
-
-  var result = await fugleService.getStockPriceByDates(
-    stockNo,
-    dateRangeWithinToday[0],
-    dateRangeWithinToday[dateRangeWithinToday.length - 1]
-  );
-
-  if (!result || result.data.length == 0) {
-    return null;
-  }
-
-  const rawData = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
-  const baseClose = rawData[0].close;
-  const processedDates: DiffInfo[] = dateRange.map((dateStr) => {
-    const target: DiffInfo = { date: dateStr, diff: 0, diffPercent: 0, price: 0 };
-    //TODO: if targetDayInfo, get closest day
-    const targetDayInfo = rawData.find((x) => x.date === dateStr);
-    if (targetDayInfo) {
-      target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
-      target.price = targetDayInfo.close;
-      target.diffPercent = parseFloat(((target.diff / baseClose) * 100).toFixed(2));
-    }
-    return target;
-  });
-
-  return { stockNo, processedData: processedDates, historicalInfo: rawData };
-}
-
-export async function getPriceInfoByRange(
+export async function getPriceInfoByDates(
   stockNo: string,
   startDate: string,
   endDate: string
@@ -140,24 +97,24 @@ export async function getPriceInfoByRange(
 
   const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
 
-  const highest = getHighestPoint(data);
+  const highestPoint = getHighestPoint(data);
   const baseClose = data[0].close;
-  const target: DiffInfo = { date: highest.date || '', diff: 0, diffPercent: 0, price: 0 };
-  const targetDayInfo = data.find((x) => x.date === highest.date);
+  const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0 };
+  const targetDayInfo = data.find((x) => x.date === highestPoint.date);
   if (targetDayInfo) {
-    target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
-    target.price = targetDayInfo.close;
-    target.diffPercent = parseFloat(((target.diff / baseClose) * 100).toFixed(2));
+    highest.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
+    highest.price = targetDayInfo.close;
+    highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
   }
 
-  return { stockNo, historicalInfo: data, processedData: [target] };
+  return { stockNo, historicalInfo: data, processedData: [highest] };
 }
 
 export function getHighestPoint(data: HistoricalDataInfo[]): HistoricalDataInfo {
   let highestPoint: HistoricalDataInfo = data[0];
 
   for (let i = 1; i < data.length; i++) {
-    if (data[i].high > highestPoint.high) {
+    if (data[i].close > highestPoint.close) {
       highestPoint = data[i];
     }
   }

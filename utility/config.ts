@@ -9,8 +9,6 @@ const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'secret';
 const MAIL_ACCOUNT: string | undefined = process.env.MAIL_ACCOUNT;
 const MAIL_PASSWORD: string | undefined = process.env.MAIL_PASSWORD;
 const FINMIND_TOKEN: string | undefined = process.env.FINMIND_TOKEN;
-const FUGLE_TOKEN: string | undefined = process.env.FUGLE_TOKEN;
-const FUGLE_URI: string | undefined = process.env.FUGLE_URI;
 
 const LINE_NOTIFY_AUTH_URL: string | undefined =
   process.env.LINE_NOTIFY_AUTH_URL || 'https://notify-bot.line.me/oauth/authorize';
@@ -24,6 +22,9 @@ const LINE_NOTIFY_URL: string | undefined = process.env.LINE_NOTIFY_URL || 'http
 const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
   process.env.LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL || 'http://localhost:3000/line/registration/callback';
 const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
+const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
+const CYCLIC_URL: string = process.env.CYCLIC_URL || 'http://localhost:3000';
+
 export default {
   NODE_ENV,
   MONGODB_URI,
@@ -33,8 +34,6 @@ export default {
   MAIL_ACCOUNT,
   MAIL_PASSWORD,
   FINMIND_TOKEN,
-  FUGLE_TOKEN,
-  FUGLE_URI,
   LINE_NOTIFY_AUTH_URL,
   LINE_NOTIFY_TOKEN_URL,
   LINE_NOTIFY_CLIENT_ID,
@@ -43,4 +42,6 @@ export default {
   LINE_NOTIFY_URL,
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
   FUGLE_API_KEY,
+  ADMIN_LINE_TOKEN,
+  CYCLIC_URL,
 };

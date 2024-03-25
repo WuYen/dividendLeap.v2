@@ -76,8 +76,8 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       updateDate: today(),
     };
     const savedTokenInfo = await new LineTokenModel(tokenInfo).save();
-    //TODO: move to env, admin token
-    await lineService.sendMessage('orGOxFXfyeuOeVKhIasWO1gi5gemSDXfY26zVFzOWg3', '有新註冊的人: ' + channel);
+    const count = await LineTokenModel.countDocuments({ notifyEnabled: true });
+    await lineService.sendMessage(config.ADMIN_LINE_TOKEN, `新註冊的人: ${channel}, 使用者數量:${count}`);
 
     if (LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL == '') {
       return res.json({ tokenInfo });

@@ -5,7 +5,7 @@ import config from '../utility/config';
 
 async function getTokenByChannel(channel: string): Promise<ILineToken | null> {
   const tokenInfo = await LineTokenModel.findOne({ channel: channel }).lean();
-  return tokenInfo; //tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
+  return tokenInfo;
 }
 
 async function getTokensBychannels(channels: string[]): Promise<ILineToken[] | null> {
@@ -13,13 +13,12 @@ async function getTokensBychannels(channels: string[]): Promise<ILineToken[] | n
   if (!tokenInfo || tokenInfo.length === 0) {
     return null;
   }
-  //const tokens: string[] = tokenInfo.map((record) => record.token);
   return tokenInfo;
 }
 
 async function getAllEnabledChannel(): Promise<ILineToken[] | null> {
   const tokenInfo = await LineTokenModel.find({ notifyEnabled: true }).lean();
-  return tokenInfo; //tokenInfo == null || !tokenInfo.token.length ? null : tokenInfo.token;
+  return tokenInfo;
 }
 
 async function sendMessage(token: string, message: string): Promise<AxiosResponse<any, any>> {
