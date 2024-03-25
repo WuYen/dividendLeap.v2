@@ -755,7 +755,6 @@ describe('test get author unit', () => {
     //   id: 1688452709,
     //   batchNo: 0,
     // },
-    //TODO: create interface of this result
     afterEach(() => {
       jest.resetAllMocks();
     });

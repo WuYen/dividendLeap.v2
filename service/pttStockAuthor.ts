@@ -114,7 +114,6 @@ export async function getPriceInfo(
   const baseClose = rawData[0].close;
   const processedDates: DiffInfo[] = dateRange.map((dateStr) => {
     const target: DiffInfo = { date: dateStr, diff: 0, diffPercent: 0, price: 0 };
-    //TODO: if targetDayInfo, get closest day
     const targetDayInfo = rawData.find((x) => x.date === dateStr);
     if (targetDayInfo) {
       target.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
