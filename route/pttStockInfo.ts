@@ -56,8 +56,8 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     const info = targetPosts[i];
     const stockNo = AuthorService.getStockNoFromTitle(info);
     if (stockNo) {
-      const targetDates = AuthorService.getMonthRangeFrom(info.id, todayDate());
-      const resultInfo = await AuthorService.getPriceInfoByRange(stockNo, targetDates[0], targetDates[1]);
+      const targetDates = AuthorService.getNext4MonthFromPostedDate(info.id, todayDate());
+      const resultInfo = await AuthorService.getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
       if (resultInfo) {
         result.push({ ...resultInfo, post: info });
       }
