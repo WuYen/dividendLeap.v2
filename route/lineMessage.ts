@@ -64,7 +64,7 @@ router.get('/', async (req: Request, res: Response): Promise<Response> => {
 });
 
 // This route is used for the Webhook.
-router.post('/callback', middleware(middlewareConfig), async (req: Request, res: Response): Promise<Response> => {
+router.post('/callback', async (req: Request, res: Response): Promise<Response> => {
   const callbackRequest: webhook.CallbackRequest = req.body;
   const events: webhook.Event[] = callbackRequest.events!;
 

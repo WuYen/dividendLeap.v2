@@ -131,34 +131,33 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
   if (!channel && !channels) {
     return res.send('channel is empty');
   }
-
-  let tokens: ILineToken[] | null = [];
-
-  if (channel) {
-    const token = await lineService.getTokenByChannel(channel);
-    if (token == null) {
-      throw new Error('No match token for ' + channel);
-    }
-    tokens.push(token);
-  } else if (channels) {
-    const splitedChannel = channels.split(',');
-    const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
-    if (retrivedTokens == null || retrivedTokens.length < 1) {
-      throw new Error('No match tokens for ' + channels);
-    }
-    tokens = retrivedTokens;
-  }
-
   try {
+    let tokens: ILineToken[] | null = [];
+
+    if (channel) {
+      const token = await lineService.getTokenByChannel(channel);
+      if (token == null) {
+        throw new Error('No match token for ' + channel);
+      }
+      tokens.push(token);
+    } else if (channels) {
+      const splitedChannel = channels.split(',');
+      const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
+      if (retrivedTokens == null || retrivedTokens.length < 1) {
+        throw new Error('No match tokens for ' + channels);
+      }
+      tokens = retrivedTokens;
+    }
+
     for (const token of tokens) {
       const response = await lineService.sendMessage(token.token, message);
       await delay(30);
     }
 
-    return res.send({ success: 'send message success' });
+    return res.send({ success: 'send notify success' });
   } catch (error) {
     console.log('send notify fail', error);
-    return res.send({ error: 'send message fail' });
+    return res.send({ error: 'send notify fail' });
   }
 });
 
