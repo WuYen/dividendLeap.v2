@@ -26,6 +26,10 @@ const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
 const CYCLIC_URL: string = process.env.CYCLIC_URL || 'http://localhost:8000';
 const CLIENT_URL: string = process.env.CLIENT_URL || 'http://localhost:3000';
 
+const LINE_CHANNEL_ID: string = process.env.LINE_CHANNEL_ID || '';
+const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
+const LINE_CHANNEL_ACCESS_TOKEN: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
+
 export default {
   NODE_ENV,
   MONGODB_URI,
@@ -46,4 +50,7 @@ export default {
   ADMIN_LINE_TOKEN,
   CYCLIC_URL,
   CLIENT_URL,
+  LINE_CHANNEL_ID,
+  LINE_CHANNEL_SECRET,
+  LINE_CHANNEL_ACCESS_TOKEN,
 };
