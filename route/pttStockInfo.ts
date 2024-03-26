@@ -34,7 +34,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
             if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
               const notifyContent = processSinglePostToMessage(post, isSubscribed);
               if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
-                notifyContent.push(`${config.CYCLIC_URL}/ptt/author/${post.author}`);
+                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
               }
               const response = await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
               await delay(25);
