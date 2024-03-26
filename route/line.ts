@@ -1,7 +1,7 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 import axios from 'axios';
 import qs from 'qs';
-import { LineTokenModel, ILineToken } from '../model/lineToken';
+import { LineTokenModel, ILineToken, TokenLevel } from '../model/lineToken';
 import config from '../utility/config';
 import { today } from '../utility/dateTime';
 import lineService from '../service/lineService';
@@ -73,6 +73,7 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       channel: channel,
       token: access_token,
       notifyEnabled: true,
+      tokenLevel: [TokenLevel.Basic],
       updateDate: today(),
     };
     const savedTokenInfo = await new LineTokenModel(tokenInfo).save();
