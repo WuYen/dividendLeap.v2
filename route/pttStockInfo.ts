@@ -8,6 +8,7 @@ import * as AuthorService from '../service/pttStockAuthor';
 import { IPostInfo } from '../model/PostInfo';
 import { todayDate, today } from '../utility/dateTime';
 import config from '../utility/config';
+import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
 
 const router: Router = express.Router();
 
@@ -51,23 +52,38 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
-  const result = [];
   const authorId = req.params.id;
-  const $ = await AuthorService.getHtmlSource(authorId);
-  const posts = parsePosts($, +new Date());
-  const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
-  for (let i = 0; i < Math.min(targetPosts.length, 4); i++) {
-    const info = targetPosts[i];
-    const stockNo = AuthorService.getStockNoFromTitle(info);
-    if (stockNo) {
-      const targetDates = AuthorService.getNext4MonthFromPostedDate(info.id, todayDate());
-      const resultInfo = await AuthorService.getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
-      if (resultInfo) {
-        result.push({ ...resultInfo, post: info });
+  const existingResult = await AuthorHistoricalCache.findOne({ authorId }).lean().exec();
+  // Check if there is an existing result and if it's not expired
+  if (existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
+    res.json(existingResult.data);
+  } else {
+    const result = [];
+    const $ = await AuthorService.getHtmlSource(authorId);
+    const posts = parsePosts($, +new Date());
+    const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
+    for (let i = 0; i < Math.min(targetPosts.length, 4); i++) {
+      const info = targetPosts[i];
+      const stockNo = AuthorService.getStockNoFromTitle(info);
+      if (stockNo) {
+        const targetDates = AuthorService.getNext4MonthFromPostedDate(info.id, todayDate());
+        const resultInfo = await AuthorService.getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
+        if (resultInfo) {
+          result.push({ ...resultInfo, post: info });
+        }
       }
     }
+    // Delete any existing result for the authorId
+    await AuthorHistoricalCache.deleteMany({ authorId }).exec();
+    const newResult: IHistoricalCache = {
+      timestamp: +Date.now(),
+      authorId,
+      data: result,
+    };
+    await new AuthorHistoricalCache(newResult).save();
+
+    res.json(result);
   }
-  res.json(result);
 });
 
 export default router;
