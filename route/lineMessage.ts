@@ -1,6 +1,13 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import config from '../utility/config';
-import { ClientConfig, MessageAPIResponseBase, messagingApi, webhook, HTTPFetchError } from '@line/bot-sdk';
+import {
+  ClientConfig,
+  MessageAPIResponseBase,
+  messagingApi,
+  webhook,
+  HTTPFetchError,
+  ImageMessage,
+} from '@line/bot-sdk';
 import * as crypto from 'crypto';
 
 const router: Router = express.Router();
@@ -42,6 +49,31 @@ router.get('/', async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json({
     status: 'success',
     message: 'Connected successfully!',
+  });
+});
+
+router.get('/send/to/me', async (req: Request, res: Response) => {
+  const type = req.query.type || 'text';
+
+  if (type === 'text') {
+    var result = await client.pushMessage({
+      to: config.LINE_USER_ID,
+      messages: [{ type: 'text', text: 'hello, world' }],
+    });
+  } else if (type === 'image') {
+    var imageMessage: ImageMessage = {
+      type: 'image',
+      originalContentUrl: 'https://payload.cargocollective.com/1/6/208500/3947868/erosie_writers_block.jpg',
+      previewImageUrl: 'https://payload.cargocollective.com/1/6/208500/3947868/erosie_writers_block.jpg',
+    };
+    var result = await client.pushMessage({
+      to: config.LINE_USER_ID,
+      messages: [imageMessage],
+    });
+  }
+  return res.status(200).json({
+    status: 'success',
+    message: 'send message successfully!',
   });
 });
 
