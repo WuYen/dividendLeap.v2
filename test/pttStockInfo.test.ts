@@ -1,6 +1,6 @@
-import service, { isRePosts } from './pttStockInfo'; // Replace with the correct path to your file
+import service, { isRePosts } from '../service/pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
-import { fastFindNewPosts, parseId, processSinglePostToMessage } from './pttStockInfo';
+import { fastFindNewPosts, parseId, processSinglePostToMessage } from '../service/pttStockInfo';
 
 describe('test utility', () => {
   it('shouild get id', async () => {

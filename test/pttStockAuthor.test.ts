@@ -1,15 +1,15 @@
-import * as service from './pttStockAuthor';
-import * as StockBoardService from './pttStockInfo';
+import * as service from '../service/pttStockAuthor';
+import * as StockBoardService from '../service/pttStockInfo';
 import cheerio from 'cheerio';
 import { IPostInfo } from '../model/PostInfo';
-import fugleService, { HistoricalDataInfo } from './fugleService';
-import { getHighestPoint } from './pttStockAuthor';
+import fugleService, { HistoricalDataInfo } from '../service/fugleService';
+import { getHighestPoint } from '../service/pttStockAuthor';
 
 jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
 }));
 
-jest.mock('./fugleService', () => ({
+jest.mock('../service/fugleService', () => ({
   getStockPriceByDates: jest.fn(),
 }));
 
@@ -756,7 +756,7 @@ describe('test get author unit', () => {
     });
 
     it('測試選出資料&漲幅百分比', async () => {
-      const getStockPriceByDatesMock = jest.requireMock('./fugleService').getStockPriceByDates;
+      const getStockPriceByDatesMock = jest.requireMock('../service/fugleService').getStockPriceByDates;
       getStockPriceByDatesMock.mockResolvedValue({
         symbol: '3163',
         type: 'EQUITY',

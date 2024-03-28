@@ -1,4 +1,4 @@
-import service, { parsePostTest, fetchNewPosts } from './pttStockInfo'; // Replace with the correct path to your file
+import service, { parsePostTest, fetchNewPosts } from '../service/pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
 import cheerio from 'cheerio';
 
