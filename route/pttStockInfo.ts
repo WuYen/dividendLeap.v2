@@ -9,6 +9,7 @@ import { IPostInfo } from '../model/PostInfo';
 import { todayDate, today } from '../utility/dateTime';
 import config from '../utility/config';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
+import { getStockNoFromTitle } from '../service/pttStockAuthor';
 
 const router: Router = express.Router();
 
@@ -22,22 +23,22 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
 
   if (newPosts && newPosts.length) {
     try {
-      let tokenInfos: ILineToken[] | null = await retrieveTokenInfo(
+      const tokenInfos: ILineToken[] | null = await retrieveTokenInfo(
         req.query.channel as string,
         req.query.channels as string
       );
       //先統一拿所有的author, 之後會改成by user 訂閱方式
-      let subscribeAuthor: string[] = (await AuthorModel.find({}, 'name').lean()).map((author) => author.name);
+      const subscribeAuthor: string[] = (await AuthorModel.find({}, 'name').lean()).map((author) => author.name);
       if (tokenInfos != null && tokenInfos.length > 0) {
         for (const tokenInfo of tokenInfos) {
           for (const post of newPosts) {
-            let isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
+            const isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
             if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
               const notifyContent = processSinglePostToMessage(post, isSubscribed);
-              if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+              if (post.tag == '標的' && getStockNoFromTitle(post)) {
                 notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
               }
-              const response = await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
+              await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
               await delay(25);
             }
           }
