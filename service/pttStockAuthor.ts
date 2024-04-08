@@ -76,12 +76,23 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
   return targetDates; //[目標日, 目標隔天, 兩週, 四週, 六週, 八週]
 }
 
-export function getNext4MonthFromPostedDate(timestamp: number, today: Date): string[] {
-  const baseDate = new Date(timestamp * 1000);
+export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): string[] {
+  if (isRecentPost(baseDate, today)) {
+    const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+    const twoWeeksAgo = new Date(today.getTime() - 2 * oneWeekInMilliseconds);
+    return [toDateString(twoWeeksAgo), toDateString(today)];
+  }
+
   const targetDate = new Date(baseDate);
   targetDate.setMonth(targetDate.getMonth() + 4);
   const finalDate = targetDate > today ? today : targetDate;
   return [toDateString(baseDate), toDateString(finalDate)];
+}
+
+export function isRecentPost(baseDate: Date, today: Date): boolean {
+  const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+  const diffFromToday = today.getTime() - baseDate.getTime();
+  return diffFromToday < oneWeekInMilliseconds;
 }
 
 export async function getPriceInfoByDates(

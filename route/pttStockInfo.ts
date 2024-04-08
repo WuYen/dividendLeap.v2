@@ -52,25 +52,41 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   res.json({ msg: `send notify success` });
 });
 
+interface ResultItem extends AuthorService.PriceInfoResponse {
+  post: IPostInfo;
+  isRecentPost: boolean;
+}
+
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
   const authorId = req.params.id;
+  const refresh = Boolean(req.query.refresh === 'true');
   const existingResult = await AuthorHistoricalCache.findOne({ authorId }).lean().exec();
   // Check if there is an existing result and if it's not expired
-  if (existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
+  if (!refresh && existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
     res.json(existingResult.data);
   } else {
-    const result = [];
+    const result: ResultItem[] = [];
     const $ = await AuthorService.getHtmlSource(authorId);
     const posts = parsePosts($, +new Date());
     const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
+    console.log(`targetPosts.length:${targetPosts.length}`);
     for (let i = 0; i < Math.min(targetPosts.length, 4); i++) {
       const info = targetPosts[i];
       const stockNo = AuthorService.getStockNoFromTitle(info);
       if (stockNo) {
-        const targetDates = AuthorService.getNext4MonthFromPostedDate(info.id, todayDate());
-        const resultInfo = await AuthorService.getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
+        const postDate = new Date(info.id * 1000);
+        const targetDates = AuthorService.getDateRangeBaseOnPostedDate(postDate, todayDate());
+        const resultInfo: AuthorService.PriceInfoResponse | null = await AuthorService.getPriceInfoByDates(
+          stockNo,
+          targetDates[0],
+          targetDates[1]
+        );
         if (resultInfo) {
-          result.push({ ...resultInfo, post: info });
+          result.push({
+            ...resultInfo,
+            post: info,
+            isRecentPost: AuthorService.isRecentPost(postDate, todayDate()),
+          });
         }
       }
     }

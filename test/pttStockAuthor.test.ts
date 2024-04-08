@@ -841,19 +841,26 @@ describe('test get author unit', () => {
     expect(highestPoint).toEqual(testData[2]); // The third data point has the highest 'high' value
   });
 
-  describe('get next 4 month base on posted date', () => {
+  describe('get date range', () => {
     it('target date is in the future', () => {
       const timestamp = 1637140800; // 2021年11月17日
       const today = new Date('2021-12-25');
-      const result = service.getNext4MonthFromPostedDate(timestamp, today);
+      const result = service.getDateRangeBaseOnPostedDate(new Date(timestamp * 1000), today);
       expect(result).toEqual(['20211117', '20211225']);
     });
 
     it('target date is in the past', () => {
       const timestamp = 1637140800; // 2021年11月17日
       const today = new Date('2022-10-01');
-      const result = service.getNext4MonthFromPostedDate(timestamp, today);
+      const result = service.getDateRangeBaseOnPostedDate(new Date(timestamp * 1000), today);
       expect(result).toEqual(['20211117', '20220317']); // Adjust expected values based on your implementation
+    });
+
+    it('近一周post, 發文日往前抓兩週', () => {
+      const timestamp = 1633046400; // 2021年10月01日
+      const today = new Date('2021-10-01');
+      const result = service.getDateRangeBaseOnPostedDate(new Date(timestamp * 1000), today);
+      expect(result).toEqual(['20210917', '20211001']); // Adjust expected values based on your implementation
     });
   });
 });
