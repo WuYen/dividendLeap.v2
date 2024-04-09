@@ -1,6 +1,6 @@
-import fugleService from './fugleService';
+import fugleService from '../service/fugleService';
 
-jest.mock('./fugleService', () => ({
+jest.mock('../service/fugleService', () => ({
   getStockPriceByDates: jest.fn(),
 }));
 

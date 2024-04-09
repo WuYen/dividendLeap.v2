@@ -29,6 +29,7 @@ const CLIENT_URL: string = process.env.CLIENT_URL || 'http://localhost:3000';
 const LINE_CHANNEL_ID: string = process.env.LINE_CHANNEL_ID || '';
 const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
 const LINE_CHANNEL_ACCESS_TOKEN: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
+const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
 
 export default {
   NODE_ENV,
@@ -53,4 +54,5 @@ export default {
   LINE_CHANNEL_ID,
   LINE_CHANNEL_SECRET,
   LINE_CHANNEL_ACCESS_TOKEN,
+  LINE_USER_ID,
 };

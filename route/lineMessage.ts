@@ -1,25 +1,20 @@
-import express, { Router, Request, Response } from 'express';
+import express, { Router, Request, Response, NextFunction } from 'express';
 import config from '../utility/config';
 import {
   ClientConfig,
   MessageAPIResponseBase,
   messagingApi,
-  middleware,
-  MiddlewareConfig,
   webhook,
   HTTPFetchError,
+  ImageMessage,
 } from '@line/bot-sdk';
+import * as crypto from 'crypto';
 
 const router: Router = express.Router();
 
 // Setup all LINE client and Express configurations.
 const clientConfig: ClientConfig = {
   channelAccessToken: config.LINE_CHANNEL_ACCESS_TOKEN,
-};
-
-const middlewareConfig: MiddlewareConfig = {
-  channelAccessToken: config.LINE_CHANNEL_ACCESS_TOKEN,
-  channelSecret: config.LINE_CHANNEL_SECRET,
 };
 
 // Create a new LINE SDK client.
@@ -50,12 +45,6 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
   });
 };
 
-// Register the LINE middleware.
-// As an alternative, you could also pass the middleware in the route handler, which is what is used here.
-// app.use(middleware(middlewareConfig));
-
-// Route handler to receive webhook events.
-// This route is used to receive connection tests.
 router.get('/', async (req: Request, res: Response): Promise<Response> => {
   return res.status(200).json({
     status: 'success',
@@ -63,12 +52,55 @@ router.get('/', async (req: Request, res: Response): Promise<Response> => {
   });
 });
 
-// This route is used for the Webhook.
-router.post('/callback', async (req: Request, res: Response): Promise<Response> => {
+router.get('/send/to/me', async (req: Request, res: Response) => {
+  const type = req.query.type || 'text';
+
+  if (type === 'text') {
+    var result = await client.pushMessage({
+      to: config.LINE_USER_ID,
+      messages: [{ type: 'text', text: 'hello, world' }],
+    });
+  } else if (type === 'image') {
+    var imageMessage: ImageMessage = {
+      type: 'image',
+      originalContentUrl: 'https://payload.cargocollective.com/1/6/208500/3947868/erosie_writers_block.jpg',
+      previewImageUrl: 'https://payload.cargocollective.com/1/6/208500/3947868/erosie_writers_block.jpg',
+    };
+    var result = await client.pushMessage({
+      to: config.LINE_USER_ID,
+      messages: [imageMessage],
+    });
+  }
+  return res.status(200).json({
+    status: 'success',
+    message: 'send message successfully!',
+  });
+});
+
+function verifyLineSignature(req: Request, res: Response, next: NextFunction) {
+  const bodyString = JSON.stringify(req.body); // 将请求主体转换为字符串
+
+  const channelSecret = config.LINE_CHANNEL_SECRET; // Channel secret string
+
+  const sign = crypto.createHmac('SHA256', channelSecret).update(bodyString).digest('base64');
+
+  const signature = req.get('X-Line-Signature'); // 获取请求头中的签名
+
+  // 比较签名是否匹配
+  if (sign !== signature) {
+    return res.status(500).json({
+      status: 'signature validation failed',
+    });
+  }
+
+  // 如果签名匹配，继续处理下一个中间件或路由处理程序
+  next();
+}
+
+// This route is used for the Webhook.    , middleware(middlewareConfig)
+router.post('/callback', verifyLineSignature, async (req: Request, res: Response): Promise<Response> => {
   const callbackRequest: webhook.CallbackRequest = req.body;
   const events: webhook.Event[] = callbackRequest.events!;
-
-  // Process all the received events asynchronously.
   const results = await Promise.all(
     events.map(async (event: webhook.Event) => {
       try {
