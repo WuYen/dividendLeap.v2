@@ -856,11 +856,11 @@ describe('test get author unit', () => {
       expect(result).toEqual(['20211117', '20220317']); // Adjust expected values based on your implementation
     });
 
-    it('近一周post, 發文日往前抓兩週', () => {
+    it('近一周post, 發文日往前抓一週', () => {
       const timestamp = 1633046400; // 2021年10月01日
       const today = new Date('2021-10-01');
       const result = service.getDateRangeBaseOnPostedDate(new Date(timestamp * 1000), today);
-      expect(result).toEqual(['20210917', '20211001']); // Adjust expected values based on your implementation
+      expect(result).toEqual(['20210924', '20211001']); // Adjust expected values based on your implementation
     });
   });
 });

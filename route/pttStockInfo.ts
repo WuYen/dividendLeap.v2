@@ -85,7 +85,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
           result.push({
             ...resultInfo,
             post: info,
-            isRecentPost: AuthorService.isRecentPost(postDate, todayDate()),
+            isRecentPost: AuthorService.isPostedInOneWeek(postDate, todayDate()),
           });
         }
       }
