@@ -57,6 +57,11 @@ interface ResultItem extends AuthorService.PriceInfoResponse {
   isRecentPost: boolean;
 }
 
+router.get('/author/list', async (req: Request, res: Response, next: NextFunction) => {
+  const result = await AuthorModel.find().lean().exec();
+  res.json(result);
+});
+
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
   const authorId = req.params.id;
   const refresh = Boolean(req.query.refresh === 'true');
