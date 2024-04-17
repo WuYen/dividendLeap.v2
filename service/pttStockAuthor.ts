@@ -79,8 +79,8 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
 export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): string[] {
   if (isPostedInOneWeek(baseDate, today)) {
     const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-    const twoWeeksAgo = new Date(today.getTime() - oneWeekInMilliseconds);
-    return [toDateString(twoWeeksAgo), toDateString(today)];
+    const oneWeeksAgo = new Date(today.getTime() - oneWeekInMilliseconds);
+    return [toDateString(oneWeeksAgo), toDateString(today)];
   }
 
   const targetDate = new Date(baseDate);
