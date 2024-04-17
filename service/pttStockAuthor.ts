@@ -77,10 +77,10 @@ export function getTargetDates(timestamp: number, closeDays: String[]) {
 }
 
 export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): string[] {
-  if (isRecentPost(baseDate, today)) {
+  if (isPostedInOneWeek(baseDate, today)) {
     const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-    const twoWeeksAgo = new Date(today.getTime() - 2 * oneWeekInMilliseconds);
-    return [toDateString(twoWeeksAgo), toDateString(today)];
+    const oneWeeksAgo = new Date(today.getTime() - oneWeekInMilliseconds);
+    return [toDateString(oneWeeksAgo), toDateString(today)];
   }
 
   const targetDate = new Date(baseDate);
@@ -89,7 +89,7 @@ export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): strin
   return [toDateString(baseDate), toDateString(finalDate)];
 }
 
-export function isRecentPost(baseDate: Date, today: Date): boolean {
+export function isPostedInOneWeek(baseDate: Date, today: Date): boolean {
   const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
   const diffFromToday = today.getTime() - baseDate.getTime();
   return diffFromToday < oneWeekInMilliseconds;
@@ -149,4 +149,55 @@ export interface PriceInfoResponse {
   stockNo: string;
   processedData: DiffInfo[];
   historicalInfo: HistoricalDataInfo[];
+}
+
+export function processRecentPost(postDate: Date, info: PriceInfoResponse) {
+  // info.historicalInfo 裡面找到最靠近 postDate 的  跟 today 的股價
+  const nearestDay = findNearestHistoricalInfo(info.historicalInfo, postDate);
+  if (nearestDay) {
+    const baseClose = nearestDay.close;
+    const lastElement = info.historicalInfo[info.historicalInfo.length - 1]; //supposed to be today
+    const processLastElement: DiffInfo = { date: lastElement.date || '', diff: 0, diffPercent: 0, price: 0 };
+    processLastElement.diff = roundToDecimal(lastElement.close - baseClose, 2);
+    processLastElement.price = lastElement.close;
+    processLastElement.diffPercent = parseFloat(((processLastElement.diff / baseClose) * 100).toFixed(2));
+    info.historicalInfo = [nearestDay];
+    info.processedData = [processLastElement];
+  }
+}
+
+function findNearestHistoricalInfo(
+  historicalInfo: HistoricalDataInfo[],
+  postDate: Date
+): HistoricalDataInfo | undefined {
+  // 找到與 postDate 最接近的日期
+  return historicalInfo.reduce((closest: HistoricalDataInfo | undefined, current: HistoricalDataInfo) => {
+    // const currentDate = new Date(current.date);
+    // const closestDate = closest ? new Date(closest.date) : null;
+
+    const currentDate = new Date(
+      parseInt(current.date.substring(0, 4)), // 年份
+      parseInt(current.date.substring(4, 6)) - 1, // 月份（要減 1 因為月份從 0 開始）
+      parseInt(current.date.substring(6))
+    ); // 日
+
+    const closestDate = closest
+      ? new Date(
+          parseInt(closest.date.substring(0, 4)), // 年份
+          parseInt(closest.date.substring(4, 6)) - 1, // 月份
+          parseInt(closest.date.substring(6))
+        )
+      : null; // 日
+
+    // 計算當前日期與 postDate 之間的時間差
+    const currentDiff = Math.abs(currentDate.getTime() - postDate.getTime());
+    const closestDiff = closestDate ? Math.abs(closestDate.getTime() - postDate.getTime()) : Infinity;
+
+    // 如果當前日期比 closestDate 更接近 postDate，則更新 closest
+    if (currentDiff < closestDiff) {
+      return current;
+    } else {
+      return closest;
+    }
+  }, undefined);
 }

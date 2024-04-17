@@ -57,6 +57,33 @@ interface ResultItem extends AuthorService.PriceInfoResponse {
   isRecentPost: boolean;
 }
 
+router.get('/author/list', async (req: Request, res: Response, next: NextFunction) => {
+  const result = await AuthorModel.find().lean().exec();
+  // 根据作者名查找作者及其帖子
+  const authorNames = ['uzgo', 'kobekid']; // 假设这里是你的作者名数组
+
+  try {
+    const authorsWithPosts = await AuthorModel.aggregate([
+      { $match: { name: { $in: authorNames } } },
+      {
+        $lookup: {
+          from: 'postinfos', // 假设这是帖子集合的名称
+          localField: 'name', // 使用作者的名字进行匹配
+          foreignField: 'author', // 假设这是帖子中作者的字段名
+          as: 'posts',
+        },
+      },
+      { $project: { name: 1, posts: { $slice: ['$posts', 5] } } }, // 限制每个作者的帖子数量为 5 条
+    ]);
+
+    console.log(JSON.stringify(authorsWithPosts));
+  } catch (err) {
+    console.error(err);
+  }
+
+  res.json(result);
+});
+
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
   const authorId = req.params.id;
   const refresh = Boolean(req.query.refresh === 'true');
@@ -76,16 +103,20 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
       if (stockNo) {
         const postDate = new Date(info.id * 1000);
         const targetDates = AuthorService.getDateRangeBaseOnPostedDate(postDate, todayDate());
+        const isRecentPost = AuthorService.isPostedInOneWeek(postDate, todayDate());
         const resultInfo: AuthorService.PriceInfoResponse | null = await AuthorService.getPriceInfoByDates(
           stockNo,
           targetDates[0],
           targetDates[1]
         );
         if (resultInfo) {
+          if (isRecentPost) {
+            AuthorService.processRecentPost(postDate, resultInfo);
+          }
           result.push({
             ...resultInfo,
             post: info,
-            isRecentPost: AuthorService.isRecentPost(postDate, todayDate()),
+            isRecentPost,
           });
         }
       }
