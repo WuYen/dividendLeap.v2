@@ -103,16 +103,20 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
       if (stockNo) {
         const postDate = new Date(info.id * 1000);
         const targetDates = AuthorService.getDateRangeBaseOnPostedDate(postDate, todayDate());
+        const isRecentPost = AuthorService.isPostedInOneWeek(postDate, todayDate());
         const resultInfo: AuthorService.PriceInfoResponse | null = await AuthorService.getPriceInfoByDates(
           stockNo,
           targetDates[0],
           targetDates[1]
         );
         if (resultInfo) {
+          if (isRecentPost) {
+            AuthorService.processRecentPost(postDate, resultInfo);
+          }
           result.push({
             ...resultInfo,
             post: info,
-            isRecentPost: AuthorService.isPostedInOneWeek(postDate, todayDate()),
+            isRecentPost,
           });
         }
       }

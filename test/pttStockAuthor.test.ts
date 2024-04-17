@@ -3,7 +3,7 @@ import * as StockBoardService from '../service/pttStockInfo';
 import cheerio from 'cheerio';
 import { IPostInfo } from '../model/PostInfo';
 import fugleService, { HistoricalDataInfo } from '../service/fugleService';
-import { getHighestPoint } from '../service/pttStockAuthor';
+import { PriceInfoResponse, getHighestPoint, processRecentPost } from '../service/pttStockAuthor';
 
 jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
@@ -861,6 +861,51 @@ describe('test get author unit', () => {
       const today = new Date('2021-10-01');
       const result = service.getDateRangeBaseOnPostedDate(new Date(timestamp * 1000), today);
       expect(result).toEqual(['20210924', '20211001']); // Adjust expected values based on your implementation
+    });
+  });
+
+  describe('processRecentPost function', () => {
+    const historicalInfo = [
+      { date: '2024-03-11', open: 100, high: 105, low: 98, close: 102, volume: 10000, turnover: 5000, change: 2 },
+      { date: '2024-03-12', open: 102, high: 108, low: 100, close: 105, volume: 12000, turnover: 6000, change: 3 },
+      { date: '2024-03-13', open: 105, high: 110, low: 103, close: 107, volume: 15000, turnover: 7000, change: 2 },
+      { date: '2024-03-14', open: 107, high: 112, low: 105, close: 110, volume: 18000, turnover: 8000, change: 3 },
+      { date: '2024-03-15', open: 110, high: 115, low: 108, close: 112, volume: 20000, turnover: 9000, change: 2 },
+      { date: '2024-03-18', open: 110, high: 115, low: 108, close: 113, volume: 20000, turnover: 9000, change: 2 },
+    ];
+
+    let info: PriceInfoResponse;
+
+    beforeEach(() => {
+      info = {
+        stockNo: '',
+        historicalInfo: [...historicalInfo], // Make a copy to avoid modifying the original data
+        processedData: [],
+      };
+    });
+
+    it('should process recent post correctly for 2024-03-16', () => {
+      processRecentPost(new Date('2024-03-16'), info);
+      expect(info.processedData.length).toBe(1);
+      expect(info.historicalInfo[0].date).toBe('2024-03-15');
+      expect(info.processedData[0].date).toBe('2024-03-18');
+      expect(info.processedData[0].price).toBe(113);
+    });
+
+    it('should process recent post correctly for 2024-03-17', () => {
+      processRecentPost(new Date('2024-03-17'), info);
+      expect(info.processedData.length).toBe(1);
+      expect(info.historicalInfo[0].date).toBe('2024-03-18');
+      expect(info.processedData[0].date).toBe('2024-03-18');
+      expect(info.processedData[0].price).toBe(113);
+    });
+
+    it('should process recent post correctly for 2024-03-18', () => {
+      processRecentPost(new Date('2024-03-18'), info);
+      expect(info.processedData.length).toBe(1);
+      expect(info.historicalInfo[0].date).toBe('2024-03-18');
+      expect(info.processedData[0].date).toBe('2024-03-18');
+      expect(info.processedData[0].price).toBe(113);
     });
   });
 });

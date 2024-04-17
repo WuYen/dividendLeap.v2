@@ -150,3 +150,44 @@ export interface PriceInfoResponse {
   processedData: DiffInfo[];
   historicalInfo: HistoricalDataInfo[];
 }
+
+export function processRecentPost(postDate: Date, info: PriceInfoResponse) {
+  // info.historicalInfo 裡面找到最靠近 postDate 的  跟 today 的股價
+  // historicalInfo   date: string; //"2024-03-19"
+  const nearestDay = findNearestHistoricalInfo(info.historicalInfo, postDate);
+  if (nearestDay) {
+    const baseClose = nearestDay.close;
+    const lastElement = info.historicalInfo[info.historicalInfo.length - 1]; //supposed to be today
+    const processLastElement: DiffInfo = { date: lastElement.date || '', diff: 0, diffPercent: 0, price: 0 };
+    processLastElement.diff = roundToDecimal(lastElement.close - baseClose, 2);
+    processLastElement.price = lastElement.close;
+    processLastElement.diffPercent = parseFloat(((processLastElement.diff / baseClose) * 100).toFixed(2));
+    info.historicalInfo = [nearestDay];
+    info.processedData = [processLastElement];
+  }
+}
+
+function findNearestHistoricalInfo(
+  historicalInfo: HistoricalDataInfo[],
+  postDate: Date
+): HistoricalDataInfo | undefined {
+  // 將 postDate 轉換為 YYYY-MM-DD 格式的字串
+  const postDateString = postDate.toISOString().split('T')[0];
+
+  // 找到與 postDate 最接近的日期
+  return historicalInfo.reduce((closest: HistoricalDataInfo | undefined, current: HistoricalDataInfo) => {
+    const currentDate = new Date(current.date);
+    const closestDate = closest ? new Date(closest.date) : null;
+
+    // 計算當前日期與 postDate 之間的時間差
+    const currentDiff = Math.abs(currentDate.getTime() - postDate.getTime());
+    const closestDiff = closestDate ? Math.abs(closestDate.getTime() - postDate.getTime()) : Infinity;
+
+    // 如果當前日期比 closestDate 更接近 postDate，則更新 closest
+    if (currentDiff < closestDiff) {
+      return current;
+    } else {
+      return closest;
+    }
+  }, undefined);
+}
