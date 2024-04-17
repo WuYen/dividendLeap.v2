@@ -52,7 +52,7 @@ export interface FugleStockHistoricalResponse {
 }
 
 export interface HistoricalDataInfo {
-  date: string; //"2024-03-19"
+  date: string; //原始"2024-03-19" or 處理過會是yyyyMMdd
   open: number;
   high: number;
   low: number;

@@ -153,7 +153,6 @@ export interface PriceInfoResponse {
 
 export function processRecentPost(postDate: Date, info: PriceInfoResponse) {
   // info.historicalInfo 裡面找到最靠近 postDate 的  跟 today 的股價
-  // historicalInfo   date: string; //"2024-03-19"
   const nearestDay = findNearestHistoricalInfo(info.historicalInfo, postDate);
   if (nearestDay) {
     const baseClose = nearestDay.close;
@@ -171,13 +170,24 @@ function findNearestHistoricalInfo(
   historicalInfo: HistoricalDataInfo[],
   postDate: Date
 ): HistoricalDataInfo | undefined {
-  // 將 postDate 轉換為 YYYY-MM-DD 格式的字串
-  const postDateString = postDate.toISOString().split('T')[0];
-
   // 找到與 postDate 最接近的日期
   return historicalInfo.reduce((closest: HistoricalDataInfo | undefined, current: HistoricalDataInfo) => {
-    const currentDate = new Date(current.date);
-    const closestDate = closest ? new Date(closest.date) : null;
+    // const currentDate = new Date(current.date);
+    // const closestDate = closest ? new Date(closest.date) : null;
+
+    const currentDate = new Date(
+      parseInt(current.date.substring(0, 4)), // 年份
+      parseInt(current.date.substring(4, 6)) - 1, // 月份（要減 1 因為月份從 0 開始）
+      parseInt(current.date.substring(6))
+    ); // 日
+
+    const closestDate = closest
+      ? new Date(
+          parseInt(closest.date.substring(0, 4)), // 年份
+          parseInt(closest.date.substring(4, 6)) - 1, // 月份
+          parseInt(closest.date.substring(6))
+        )
+      : null; // 日
 
     // 計算當前日期與 postDate 之間的時間差
     const currentDiff = Math.abs(currentDate.getTime() - postDate.getTime());
