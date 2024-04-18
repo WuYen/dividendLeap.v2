@@ -28,15 +28,28 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
         req.query.channels as string
       );
       //先統一拿所有的author, 之後會改成by user 訂閱方式
-      const subscribeAuthor: string[] = (await AuthorModel.find({}, 'name').lean()).map((author) => author.name);
+      const subscribeAuthor: IAuthor[] = await AuthorModel.find({}).lean();
       if (tokenInfos != null && tokenInfos.length > 0) {
         for (const tokenInfo of tokenInfos) {
           for (const post of newPosts) {
-            const isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
+            const authorInfo = subscribeAuthor.find((x) => x.name === post.author);
+            const isSubscribed = authorInfo != null;
             if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
-              const notifyContent = processSinglePostToMessage(post, isSubscribed);
-              if (post.tag == '標的' && getStockNoFromTitle(post)) {
-                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+              let notifyContent: string[] = [];
+              if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+                notifyContent = ['', ''];
+                if (isSubscribed && post.tag == '標的') {
+                  notifyContent.push(`【✨✨大神來囉✨✨】`);
+                }
+                notifyContent.push(`[${post.tag}] ${post.title}`);
+                notifyContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
+                notifyContent.push('');
+                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}?token=${tokenInfo.channel}`);
+              } else {
+                notifyContent = processSinglePostToMessage(post, isSubscribed);
+                if (post.tag == '標的' && getStockNoFromTitle(post)) {
+                  notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+                }
               }
               await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
               await delay(25);

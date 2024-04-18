@@ -1,6 +1,7 @@
 import service, { isRePosts } from '../service/pttStockInfo'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
 import { fastFindNewPosts, parseId, processSinglePostToMessage } from '../service/pttStockInfo';
+import { TokenLevel } from '../model/lineToken';
 
 describe('test utility', () => {
   it('shouild get id', async () => {
@@ -108,6 +109,14 @@ describe('processMessage', () => {
     expect(result[1].includes('[標的] gogoggo')).toBeTruthy();
     expect(result[2].includes('[閒聊] 2024/02/20 盤後閒聊')).toBeTruthy();
     expect(result[3].includes('[新聞] 美股「融漲」紅燈亮了？這指標逼近達康泡')).toBeTruthy();
+  });
+
+  test('token level', () => {
+    var tokenLevels: TokenLevel[] = [TokenLevel.Premium, TokenLevel.Test];
+
+    expect(tokenLevels.includes(TokenLevel.Premium)).toBeTruthy();
+    expect(tokenLevels.includes(TokenLevel.Test)).toBeTruthy();
+    expect(tokenLevels.includes(TokenLevel.Basic)).toBeFalsy();
   });
 });
 
