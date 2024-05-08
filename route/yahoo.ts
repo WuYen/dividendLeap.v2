@@ -1,17 +1,20 @@
 import express, { Router, NextFunction, Request, Response, urlencoded } from 'express';
-import { getTodayWithTZ } from '../utility/dateTime';
-import yahooStockAPI from 'yahoo-stock-api';
+import { getTodayWithTZ, toDateString } from '../utility/dateTime';
+import yahooFinance from 'yahoo-finance2';
+import { end } from 'cheerio/lib/api/traversing';
+import { HistoricalOptions } from 'yahoo-finance2/dist/esm/src/modules/historical';
 
 const router: Router = express.Router();
 
 interface IndexMapping {
   key: string;
   value: string;
+  query: string;
 }
 const indexMapping: IndexMapping[] = [
-  { key: 'DJI', value: '道瓊工業指數' },
-  { key: 'GSPC', value: '標普500指數' },
-  { key: 'IXIC', value: 'NASDAQ指數' },
+  { key: 'DJI', value: '道瓊工業指數', query: '%5EDJI' },
+  { key: 'GSPC', value: '標普500指數', query: '%5EGSPC' },
+  { key: 'IXIC', value: 'NASDAQ指數', query: '%5EIXIC' },
 ];
 
 function getValueByKey(key: string): string | undefined {
@@ -25,13 +28,13 @@ function getValueByKey(key: string): string | undefined {
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   const responseList = [];
   for (let index = 0; index < indexMapping.length; index++) {
-    const result = await getHistoricalPrices('^' + indexMapping[index].key);
+    const result = await getHistoricalPrices(indexMapping[index].query);
     responseList.push(result);
   }
   const messageBuilder: string[] = ['美股大盤當日趨勢:', ''];
   let accuDiff = 0;
   responseList.forEach((result, index: number) => {
-    const data = result.response;
+    const data = result;
     const symbol = indexMapping[index].key;
     if (data.length > 0) {
       var diffResult = processDataDiff(symbol, data);
@@ -41,7 +44,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }
   });
 
-  messageBuilder[1] = '美股時間:' + formatDateToYYYYMMDD(responseList[0].response[0].date);
+  messageBuilder[1] = '美股時間:' + formatDateToYYYYMMDD(responseList[0].date);
 
   // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
   var avgDiff = accuDiff / 3;
@@ -89,29 +92,34 @@ router.get('/raw/:symbol', async (req: Request, res: Response, next: NextFunctio
 // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
 
 const getHistoricalPrices = async (stockNo: string): Promise<any> => {
-  const yahoo = new yahooStockAPI();
+  // const yahoo = new yahooStockAPI();
   const endDate = getTodayWithTZ(-4);
   const startDate = getTodayWithTZ(-4);
   startDate.setDate(-3);
-  console.log(`get yahoo stock ${stockNo}, ${startDate}->${endDate}`);
+  console.log(`get ${stockNo}, from:${startDate}, to:${endDate}`);
 
-  return new Promise((resolve, reject) => {
-    yahoo
-      .getHistoricalPrices({
-        startDate,
-        endDate,
-        symbol: Boolean(stockNo) ? stockNo : 'AAPL',
-        frequency: '1d',
-      })
-      .then((response) => {
-        if (response.error) {
-          reject(response.message);
-        } else {
-          resolve(response);
-        }
-      })
-      .catch(reject);
-  });
+  const query = Boolean(stockNo) ? stockNo : 'AAPL';
+  const queryOptions: HistoricalOptions = { period1: startDate, interval: '1d' };
+  const result = await yahooFinance.historical(query, queryOptions);
+  return result;
+
+  // return new Promise((resolve, reject) => {
+  //   yahoo
+  //     .getHistoricalPrices({
+  //       startDate,
+  //       endDate,
+  //       symbol: Boolean(stockNo) ? stockNo : 'AAPL',
+  //       frequency: '1d',
+  //     })
+  //     .then((response) => {
+  //       if (response.error) {
+  //         reject(response.message);
+  //       } else {
+  //         resolve(response);
+  //       }
+  //     })
+  //     .catch(reject);
+  // });
 };
 
 interface IDiff {
