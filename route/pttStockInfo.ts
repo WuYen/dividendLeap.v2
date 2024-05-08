@@ -28,15 +28,28 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
         req.query.channels as string
       );
       //先統一拿所有的author, 之後會改成by user 訂閱方式
-      const subscribeAuthor: string[] = (await AuthorModel.find({}, 'name').lean()).map((author) => author.name);
+      const subscribeAuthor: IAuthor[] = await AuthorModel.find({}).lean();
       if (tokenInfos != null && tokenInfos.length > 0) {
         for (const tokenInfo of tokenInfos) {
           for (const post of newPosts) {
-            const isSubscribed = (post.author && subscribeAuthor.includes(post.author)) as boolean;
+            const authorInfo = subscribeAuthor.find((x) => x.name === post.author);
+            const isSubscribed = authorInfo != null;
             if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
-              const notifyContent = processSinglePostToMessage(post, isSubscribed);
-              if (post.tag == '標的' && getStockNoFromTitle(post)) {
-                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+              let notifyContent: string[] = [];
+              if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+                notifyContent = ['', ''];
+                if (isSubscribed && post.tag == '標的') {
+                  notifyContent.push(`【✨✨大神來囉✨✨】`);
+                }
+                notifyContent.push(`[${post.tag}] ${post.title}`);
+                notifyContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
+                notifyContent.push('');
+                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}?token=${tokenInfo.channel}`);
+              } else {
+                notifyContent = processSinglePostToMessage(post, isSubscribed);
+                if (post.tag == '標的' && getStockNoFromTitle(post)) {
+                  notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+                }
               }
               await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
               await delay(25);
@@ -58,28 +71,28 @@ interface ResultItem extends AuthorService.PriceInfoResponse {
 }
 
 router.get('/author/list', async (req: Request, res: Response, next: NextFunction) => {
-  const result = await AuthorModel.find().lean().exec();
-  // 根据作者名查找作者及其帖子
-  const authorNames = ['uzgo', 'kobekid']; // 假设这里是你的作者名数组
+  const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
 
-  try {
-    const authorsWithPosts = await AuthorModel.aggregate([
-      { $match: { name: { $in: authorNames } } },
-      {
-        $lookup: {
-          from: 'postinfos', // 假设这是帖子集合的名称
-          localField: 'name', // 使用作者的名字进行匹配
-          foreignField: 'author', // 假设这是帖子中作者的字段名
-          as: 'posts',
-        },
-      },
-      { $project: { name: 1, posts: { $slice: ['$posts', 5] } } }, // 限制每个作者的帖子数量为 5 条
-    ]);
+  // try {
+  //   // 根据作者名查找作者及其帖子
+  //   const authorNames = ['uzgo', 'kobekid']; // 假设这里是你的作者名数组
+  //   const authorsWithPosts = await AuthorModel.aggregate([
+  //     { $match: { name: { $in: authorNames } } },
+  //     {
+  //       $lookup: {
+  //         from: 'postinfos', // 假设这是帖子集合的名称
+  //         localField: 'name', // 使用作者的名字进行匹配
+  //         foreignField: 'author', // 假设这是帖子中作者的字段名
+  //         as: 'posts',
+  //       },
+  //     },
+  //     { $project: { name: 1, posts: { $slice: ['$posts', 5] } } }, // 限制每个作者的帖子数量为 5 条
+  //   ]);
 
-    console.log(JSON.stringify(authorsWithPosts));
-  } catch (err) {
-    console.error(err);
-  }
+  //   console.log(JSON.stringify(authorsWithPosts));
+  // } catch (err) {
+  //   console.error(err);
+  // }
 
   res.json(result);
 });
@@ -131,6 +144,30 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     await new AuthorHistoricalCache(newResult).save();
 
     res.json(result);
+  }
+});
+
+router.get('/author/:id/like', async (req: Request, res: Response, next: NextFunction) => {
+  const authorId = req.params.id;
+  try {
+    let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
+
+    if (!authorInfo) {
+      authorInfo = new AuthorModel({
+        name: authorId,
+        likes: 0,
+        dislikes: 0,
+      });
+    }
+
+    authorInfo.likes += 1;
+
+    await authorInfo.save();
+
+    res.json('Liked!');
+  } catch (error) {
+    console.error('Error while liking author:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

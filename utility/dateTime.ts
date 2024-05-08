@@ -65,9 +65,13 @@ export function getMonthRange(n = 1) {
 }
 
 /** 取得yyyymmdd */
-export function toDateString(date: string | Date) {
+export function toDateString(date: string | Date, separator?: string) {
   const { year, month, day } = getDateFragment(date);
-  return `${year}${month}${day}`;
+  if (separator) {
+    return `${year}${separator}${month}${separator}${day}`;
+  } else {
+    return `${year}${month}${day}`;
+  }
 }
 
 export function parseChineseDate(str: string) {
@@ -76,10 +80,11 @@ export function parseChineseDate(str: string) {
 
 export function getDateFragment(date: string | Date): IDateFragement {
   if (typeof date == 'string') {
+    const numericDate = date.replace(/\D/g, '');
     return {
-      year: date.slice(0, 4),
-      month: date.slice(4, 6),
-      day: date.slice(6, 8),
+      year: numericDate.slice(0, 4),
+      month: numericDate.slice(4, 6),
+      day: numericDate.slice(6, 8),
     };
   } else {
     return {
