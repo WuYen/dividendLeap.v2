@@ -44,7 +44,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     }
   });
 
-  messageBuilder[1] = '美股時間:' + formatDateToYYYYMMDD(responseList[0].date);
+  var d = new Date(responseList[0].slice(-1)[0].date);
+  messageBuilder[1] = '美股時間:' + toDateString(d, '-');
 
   // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
   var avgDiff = accuDiff / 3;
@@ -131,7 +132,7 @@ interface IDiff {
 
 const processDataDiff = (symbol: string, data: any[]): IDiff => {
   // 取出最近的兩個 date 的資料
-  const latestTwoDates = data.slice(0, 2);
+  const latestTwoDates = data.slice(-2);
   const [d0, d1] = latestTwoDates;
 
   const difference = d0.adjClose - d1.adjClose;
@@ -150,7 +151,7 @@ const processMessage = (symbol: string, data: IDiff): string => {
   const diffRatio = data.diffRatio.toFixed(2);
 
   //道瓊工業指數 34,509 ↑113(0.33%)
-  return `${title} ${data.close} ${arrow}${diff}(${diffRatio}%)`;
+  return `${title} ${data.close.toFixed(2)} ${arrow}${diff}(${diffRatio}%)`;
 };
 
 function formatDateToYYYYMMDD(timestamp: number) {
