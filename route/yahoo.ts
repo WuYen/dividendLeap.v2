@@ -1,11 +1,16 @@
 import express, { Router, NextFunction, Request, Response, urlencoded } from 'express';
 import { getTodayWithTZ, toDateString } from '../utility/dateTime';
 import yahooFinance from 'yahoo-finance2';
-import { end } from 'cheerio/lib/api/traversing';
 import { HistoricalOptions } from 'yahoo-finance2/dist/esm/src/modules/historical';
 
 const router: Router = express.Router();
 
+interface IDiff {
+  symbol: string;
+  diff: number;
+  diffRatio: number;
+  close: number;
+}
 interface IndexMapping {
   key: string;
   value: string;
@@ -17,14 +22,6 @@ const indexMapping: IndexMapping[] = [
   { key: 'IXIC', value: 'NASDAQ指數', query: '%5EIXIC' },
 ];
 
-function getValueByKey(key: string): string | undefined {
-  const normalizedKey = key.replace(/[\^%5E]/g, ''); // Normalize the key before searching
-
-  const mapping = indexMapping.find((item) => item.key === normalizedKey);
-
-  return mapping?.value;
-}
-
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   const responseList = [];
   for (let index = 0; index < indexMapping.length; index++) {
@@ -35,10 +32,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   let accuDiff = 0;
   responseList.forEach((result, index: number) => {
     const data = result;
-    const symbol = indexMapping[index].key;
+    const symbol = indexMapping[index];
     if (data.length > 0) {
-      var diffResult = processDataDiff(symbol, data);
-      var message = processMessage(symbol, diffResult);
+      var diffResult = processDataDiff(symbol.key, data);
+      var message = processMessage(symbol.value, diffResult);
       messageBuilder.push(index + 1 + '. ' + message);
       accuDiff += diffResult.diffRatio;
     }
@@ -62,19 +59,6 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   } else {
     res.json({ msg: messageBuilder.join('\n') });
   }
-});
-
-router.get('/:symbol', async (req: Request, res: Response, next: NextFunction) => {
-  const symbol = req.params.symbol;
-  const channel = req.query.channel;
-  const result = await getHistoricalPrices(symbol);
-  // const data = result.response as HistoricalPricesResponse[];
-  const data = result.response;
-  let message = data.length > 0 ? processMessage(symbol, result.response) : '';
-  const date = formatDateToYYYYMMDD(data[0].date);
-  message += '\n收盤時間: ' + date;
-  const encodeMsg = encodeURIComponent(message);
-  res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
 });
 
 router.get('/raw/:symbol', async (req: Request, res: Response, next: NextFunction) => {
@@ -103,32 +87,7 @@ const getHistoricalPrices = async (stockNo: string): Promise<any> => {
   const queryOptions: HistoricalOptions = { period1: startDate, interval: '1d' };
   const result = await yahooFinance.historical(query, queryOptions);
   return result;
-
-  // return new Promise((resolve, reject) => {
-  //   yahoo
-  //     .getHistoricalPrices({
-  //       startDate,
-  //       endDate,
-  //       symbol: Boolean(stockNo) ? stockNo : 'AAPL',
-  //       frequency: '1d',
-  //     })
-  //     .then((response) => {
-  //       if (response.error) {
-  //         reject(response.message);
-  //       } else {
-  //         resolve(response);
-  //       }
-  //     })
-  //     .catch(reject);
-  // });
 };
-
-interface IDiff {
-  symbol: string;
-  diff: number;
-  diffRatio: number;
-  close: number;
-}
 
 const processDataDiff = (symbol: string, data: any[]): IDiff => {
   // 取出最近的兩個 date 的資料
@@ -137,7 +96,6 @@ const processDataDiff = (symbol: string, data: any[]): IDiff => {
 
   const difference = d0.adjClose - d1.adjClose;
   const diffRatio = ((d0.adjClose - d1.adjClose) / d1.adjClose) * 100;
-  const title = getValueByKey(symbol) || symbol;
 
   //道瓊工業指數 34,509 ↑113(0.33%)
   return { symbol, diff: difference, diffRatio, close: d0.adjClose };
@@ -145,7 +103,7 @@ const processDataDiff = (symbol: string, data: any[]): IDiff => {
 
 const processMessage = (symbol: string, data: IDiff): string => {
   // 取出最近的兩個 date 的資料
-  const title = getValueByKey(symbol) || symbol;
+  const title = symbol;
   const arrow = data.diff > 0 ? '↑' : '↓';
   const diff = Math.abs(data.diff).toFixed(2);
   const diffRatio = data.diffRatio.toFixed(2);
@@ -153,13 +111,5 @@ const processMessage = (symbol: string, data: IDiff): string => {
   //道瓊工業指數 34,509 ↑113(0.33%)
   return `${title} ${data.close.toFixed(2)} ${arrow}${diff}(${diffRatio}%)`;
 };
-
-function formatDateToYYYYMMDD(timestamp: number) {
-  const date = new Date(timestamp * 1000);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export default router;
