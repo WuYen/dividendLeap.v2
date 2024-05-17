@@ -46,7 +46,7 @@ const LineTokenSchema: Schema = new Schema({
 
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);
 
-export { LineTokenModel, ILineToken, TokenLevel };
+export { LineTokenModel, ILineToken, TokenLevel, IUserSetting };
 
 // === Sample Code ===
 // async function updateExistData() {

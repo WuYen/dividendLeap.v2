@@ -3,6 +3,7 @@ import { today } from '../utility/dateTime';
 import { ScheduleModel, ISchedule } from '../model/schedule';
 import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 import stockInfoService from '../service/stockInfoService';
+import subscribeService from '../service/subscribeService';
 
 const router: Router = express.Router();
 
@@ -77,4 +78,9 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/all', async (req: Request, res: Response, next: NextFunction) => {
   return res.json({ data: stockInfoService.stockInfo });
 });
+
+router.get('/subscribe', async (req: Request, res: Response, next: NextFunction) => {
+  return res.json({ data: stockInfoService.stockInfo });
+});
+
 export default router;
