@@ -4,6 +4,7 @@ import { ScheduleModel, ISchedule } from '../model/schedule';
 import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 import stockInfoService from '../service/stockInfoService';
 import subscribeService from '../service/subscribeService';
+import { channel } from 'diagnostics_channel';
 
 const router: Router = express.Router();
 
@@ -79,8 +80,17 @@ router.get('/all', async (req: Request, res: Response, next: NextFunction) => {
   return res.json({ data: stockInfoService.stockInfo });
 });
 
-router.get('/subscribe', async (req: Request, res: Response, next: NextFunction) => {
-  return res.json({ data: stockInfoService.stockInfo });
+router.get('/subscribe/:channel/:stockNo', async (req: Request, res: Response, next: NextFunction) => {
+  const channel = req.params.channel;
+  const stockNo = req.params.stockNo;
+
+  if (!channel || !stockNo) {
+    return res.status(400).send('Channel and stockNo must not be empty or null');
+  }
+
+  var result = await subscribeService.subscribeStock(channel, [stockNo]);
+
+  return res.json({ data: result });
 });
 
 export default router;

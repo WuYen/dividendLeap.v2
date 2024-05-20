@@ -1,13 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
-import qs from 'qs';
-import { LineTokenModel, ILineToken, IUserSetting } from '../model/lineToken';
-import config from '../utility/config';
-import lineService from './lineService';
-
-// export async function subscribeAuthor(channel: string): Promise<ILineToken | null> {
-//   const tokenInfo = await LineTokenModel.findOne({ channel: channel }).lean();
-//   return tokenInfo;
-// }
+import { LineTokenModel, IUserSetting } from '../model/lineToken';
 
 export async function subscribeStock(channel: string, stocks: string[]): Promise<any> {
   try {
@@ -31,10 +22,14 @@ export async function subscribeStock(channel: string, stocks: string[]): Promise
 
     // 儲存變更
     const result = await lineToken.save();
-    return result;
+    return result.setting?.subscribeStock;
   } catch (e) {
     return null;
   }
 }
 
-export default { subscribeStock };
+export function isSubscribedPost(title: string, subscribeNo: string[]) {
+  return subscribeNo.some((target) => title.includes(target));
+}
+
+export default { subscribeStock, isSubscribedPost };

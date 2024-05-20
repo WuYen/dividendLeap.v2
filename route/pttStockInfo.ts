@@ -1,15 +1,13 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import service, { isRePosts, processSinglePostToMessage, parsePosts } from '../service/pttStockInfo';
+import service, { parsePosts } from '../service/pttStockInfo';
 import lineService from '../service/lineService';
-import { delay } from '../utility/delay';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
 import * as AuthorService from '../service/pttStockAuthor';
 import { IPostInfo } from '../model/PostInfo';
 import { todayDate, today } from '../utility/dateTime';
-import config from '../utility/config';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
-import { getStockNoFromTitle } from '../service/pttStockAuthor';
+import { notifyUsers } from '../service/notifyService';
 
 const router: Router = express.Router();
 
@@ -19,50 +17,25 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
-  const newPosts = await service.getNewPosts();
-
-  if (newPosts && newPosts.length) {
-    try {
+  try {
+    const newPosts = await service.getNewPosts();
+    if (newPosts && newPosts.length > 0) {
       const tokenInfos: ILineToken[] | null = await retrieveTokenInfo(
         req.query.channel as string,
         req.query.channels as string
       );
-      //先統一拿所有的author, 之後會改成by user 訂閱方式
-      const subscribeAuthor: IAuthor[] = await AuthorModel.find({}).lean();
-      if (tokenInfos != null && tokenInfos.length > 0) {
-        for (const tokenInfo of tokenInfos) {
-          for (const post of newPosts) {
-            const authorInfo = subscribeAuthor.find((x) => x.name === post.author);
-            const isSubscribed = authorInfo != null;
-            if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
-              let notifyContent: string[] = [];
-              if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
-                notifyContent = ['', ''];
-                if (isSubscribed && post.tag == '標的') {
-                  notifyContent.push(`【✨✨大神來囉✨✨】`);
-                }
-                notifyContent.push(`[${post.tag}] ${post.title}`);
-                notifyContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
-                notifyContent.push('');
-                notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}?token=${tokenInfo.channel}`);
-              } else {
-                notifyContent = processSinglePostToMessage(post, isSubscribed);
-                if (post.tag == '標的' && getStockNoFromTitle(post)) {
-                  notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
-                }
-              }
-              await lineService.sendMessage(tokenInfo.token, notifyContent.join('\n'));
-              await delay(25);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.log('send notify fail', error);
-    }
-  }
+      const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
 
-  res.json({ msg: `send notify success` });
+      if (tokenInfos && tokenInfos.length > 0) {
+        await notifyUsers(tokenInfos, newPosts, subscribeAuthors);
+      }
+    }
+
+    res.json({ msg: 'send notify success' });
+  } catch (error) {
+    console.error('send notify fail', error);
+    res.status(500).json({ msg: 'send notify fail', error });
+  }
 });
 
 interface ResultItem extends AuthorService.PriceInfoResponse {

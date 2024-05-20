@@ -188,14 +188,18 @@ export function parseId(link: string): number {
   return id;
 }
 
-export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolean): string[] {
+export function processSinglePostToMessage(
+  post: IPostInfo,
+  isSubscribed: boolean,
+  showOriginalLink: boolean = false
+): string[] {
   const messageBuilder: string[] = ['', ''];
   if (isSubscribed && post.tag == '標的') {
     messageBuilder.push(`【✨✨大神來囉✨✨】`);
   }
   messageBuilder.push(`[${post.tag}] ${post.title}`);
   messageBuilder.push(`作者: ${post.author}`);
-  messageBuilder.push(`${domain}/${post.href}`);
+  showOriginalLink && messageBuilder.push(`${domain}/${post.href}`);
   messageBuilder.push('');
   return messageBuilder;
 }
