@@ -27,7 +27,9 @@
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
     "qs": "^6.11.2",
-    "yahoo-finance2": "^2.11.2"
+    "yahoo-finance2": "^2.11.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.35",
@@ -39,8 +41,6 @@
     "concurrently": "^7.6.0",
     "jest": "^29.7.0",
     "rimraf": "^4.4.1",
-    "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.0.2"
+    "ts-jest": "^29.1.2"
   }
 }
