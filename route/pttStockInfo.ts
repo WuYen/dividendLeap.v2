@@ -110,28 +110,36 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     const posts = parsePosts($, +new Date());
     const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
     console.log(`targetPosts.length:${targetPosts.length}`);
-    for (let i = 0; i < Math.min(targetPosts.length, 4); i++) {
+    for (let i = 0; i < Math.min(targetPosts.length, 8); i++) {
       const info = targetPosts[i];
       const stockNo = AuthorService.getStockNoFromTitle(info);
+
+      const postDate = new Date(info.id * 1000);
+      const isRecentPost = AuthorService.isPostedInOneWeek(postDate, todayDate());
       if (stockNo) {
-        const postDate = new Date(info.id * 1000);
         const targetDates = AuthorService.getDateRangeBaseOnPostedDate(postDate, todayDate());
-        const isRecentPost = AuthorService.isPostedInOneWeek(postDate, todayDate());
         const resultInfo: AuthorService.PriceInfoResponse | null = await AuthorService.getPriceInfoByDates(
           stockNo,
           targetDates[0],
           targetDates[1]
         );
         if (resultInfo) {
-          if (isRecentPost) {
-            AuthorService.processRecentPost(postDate, resultInfo);
-          }
+          isRecentPost && AuthorService.processRecentPost(postDate, resultInfo);
           result.push({
             ...resultInfo,
             post: info,
             isRecentPost,
           });
         }
+      } else {
+        //post without stock no, so it won't contain any data
+        result.push({
+          stockNo,
+          historicalInfo: [],
+          processedData: [],
+          post: info,
+          isRecentPost,
+        });
       }
     }
     // Delete any existing result for the authorId
