@@ -108,14 +108,21 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     const result: ResultItem[] = [];
     const $ = await AuthorService.getHtmlSource(authorId);
     const posts = parsePosts($, +new Date());
-    const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
-    console.log(`targetPosts.length:${targetPosts.length}`);
-    for (let i = 0; i < Math.min(targetPosts.length, 8); i++) {
-      const info = targetPosts[i];
+    //const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
+    console.log(`posts.length:${posts.length}`);
+    for (let i = 0; i < Math.min(posts.length, 8); i++) {
+      const info = posts[i];
       const stockNo = AuthorService.getStockNoFromTitle(info);
 
       const postDate = new Date(info.id * 1000);
       const isRecentPost = AuthorService.isPostedInOneWeek(postDate, todayDate());
+      var target: ResultItem = {
+        stockNo,
+        historicalInfo: [],
+        processedData: [],
+        post: info,
+        isRecentPost,
+      };
       if (stockNo) {
         const targetDates = AuthorService.getDateRangeBaseOnPostedDate(postDate, todayDate());
         const resultInfo: AuthorService.PriceInfoResponse | null = await AuthorService.getPriceInfoByDates(
@@ -125,22 +132,12 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
         );
         if (resultInfo) {
           isRecentPost && AuthorService.processRecentPost(postDate, resultInfo);
-          result.push({
-            ...resultInfo,
-            post: info,
-            isRecentPost,
-          });
+          target.historicalInfo = resultInfo.historicalInfo;
+          target.processedData = resultInfo.processedData;
         }
-      } else {
-        //post without stock no, so it won't contain any data
-        result.push({
-          stockNo,
-          historicalInfo: [],
-          processedData: [],
-          post: info,
-          isRecentPost,
-        });
       }
+
+      result.push(target);
     }
     // Delete any existing result for the authorId
     await AuthorHistoricalCache.deleteMany({ authorId }).exec();
