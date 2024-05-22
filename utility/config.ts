@@ -3,7 +3,7 @@ dotenv.config(); // get config vars
 
 const NODE_ENV: string | undefined = process.env.NODE_ENV;
 const MONGODB_URI: string = process.env.MONGODB_URI || '';
-const SERVER_PORT: string = process.env.SERVER_PORT || '8000';
+const SERVER_PORT: string = process.env.PORT || process.env.SERVER_PORT || '8000';
 const DIVIDENDINFO_URL: string | undefined = process.env.DIVIDENDINFO_URL;
 const TOKEN_SECRET: string = process.env.TOKEN_SECRET || 'secret';
 const MAIL_ACCOUNT: string | undefined = process.env.MAIL_ACCOUNT;
