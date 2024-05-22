@@ -5,7 +5,7 @@ import { delay } from '../utility/delay';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
 import * as AuthorService from '../service/pttStockAuthor';
-import { IPostInfo } from '../model/PostInfo';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { todayDate, today } from '../utility/dateTime';
 import config from '../utility/config';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
@@ -108,10 +108,21 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     const result: ResultItem[] = [];
     const $ = await AuthorService.getHtmlSource(authorId);
     const posts = parsePosts($, +new Date());
+
+    const storedPosts = await PostInfoModel.find({ author: authorId })
+      .sort({ id: -1 }) // 按 id 降序排列
+      .limit(8) // 只返回最近的五篇
+      .lean()
+      .exec();
+
+    const combinedPosts = [...posts, ...storedPosts].filter(
+      (postInfo, index, self) => index === self.findIndex((item) => item.id === postInfo.id)
+    );
+    combinedPosts.sort((a, b) => b.id - a.id);
     //const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
-    console.log(`posts.length:${posts.length}`);
-    for (let i = 0; i < Math.min(posts.length, 8); i++) {
-      const info = posts[i];
+    console.log(`posts.length:${combinedPosts.length}`);
+    for (let i = 0; i < Math.min(combinedPosts.length, 8); i++) {
+      const info = combinedPosts[i];
       const stockNo = AuthorService.getStockNoFromTitle(info);
 
       const postDate = new Date(info.id * 1000);
