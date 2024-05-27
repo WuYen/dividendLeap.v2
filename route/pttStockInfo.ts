@@ -34,7 +34,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
           for (const post of newPosts) {
             const authorInfo = subscribeAuthor.find((x) => x.name === post.author);
             const isSubscribed = authorInfo != null;
-            if ((post.tag == '標的' || isSubscribed) && !isRePosts(post)) {
+            if (post.tag === '標的' && !isRePosts(post)) {
               let notifyContent: string[] = [];
               if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
                 notifyContent = ['', ''];
