@@ -31,7 +31,7 @@ const LastRecordSchema: Schema = new Schema({
 });
 
 //TODO: figure out why duplicate, maybe its because schedule job has overlap
-const findAndRemoveDuplicateIds = async () => {
+const findAndRemoveDuplicateIds = async (doRemove: boolean = false) => {
   try {
     const duplicateIds = await PostInfoModel.aggregate([
       { $group: { _id: '$id', count: { $sum: 1 } } },
@@ -42,8 +42,9 @@ const findAndRemoveDuplicateIds = async () => {
     console.log('Duplicate IDs:');
     console.log(duplicateIds);
     console.log('size:', duplicateIds.length);
-
-    //  await PostInfoModel.deleteMany({ id: { $in: duplicateIds.map((x) => x.id) } });
+    if (doRemove) {
+      await PostInfoModel.deleteMany({ id: { $in: duplicateIds.map((x) => x.id) } });
+    }
     return duplicateIds;
   } catch (err) {
     console.error('Error finding duplicate IDs:', err);
@@ -52,4 +53,4 @@ const findAndRemoveDuplicateIds = async () => {
 
 const LastRecordModel: Model<any> = model('LastRecord', LastRecordSchema);
 
-export { IPostInfo, PostInfoModel, LastRecordModel };
+export { IPostInfo, PostInfoModel, LastRecordModel, findAndRemoveDuplicateIds };
