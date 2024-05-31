@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { VerifyErrors } from 'jsonwebtoken';
 import config from './config';
 
-interface UserPayload {
+interface IUserPayload {
   id: string;
   // Add other properties as needed
 }
 
-interface AuthRequest extends Request {
-  user?: UserPayload;
+interface IAuthRequest extends Request {
+  user?: IUserPayload;
 }
 
 /**
@@ -18,7 +18,7 @@ interface AuthRequest extends Request {
  * @param next
  * @returns
  */
-function authentication(req: AuthRequest, res: Response, next: NextFunction): void {
+function authentication(req: IAuthRequest, res: Response, next: NextFunction): void {
   // Gather the jwt access token from the request header
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -27,18 +27,18 @@ function authentication(req: AuthRequest, res: Response, next: NextFunction): vo
     return;
   }
 
-  jwt.verify(token, config.TOKEN_SECRET, (err, user) => {
+  jwt.verify(token, config.TOKEN_SECRET, (err: jwt.VerifyErrors | null, user: any) => {
     if (err) {
       console.log(err);
       res.sendStatus(403);
       return;
     }
-    req.user = user as UserPayload;
+    req.user = user as IUserPayload;
     next(); // pass the execution off to whatever request the client intended
   });
 }
 
-function sign(data: UserPayload): string {
+function sign(data: IUserPayload): string {
   const token = jwt.sign(data, config.TOKEN_SECRET);
   return token;
 }
@@ -52,4 +52,4 @@ function verify(token: string): boolean {
   }
 }
 
-export { authentication, sign, verify };
+export { authentication, sign, verify, IUserPayload };
