@@ -13,6 +13,8 @@ interface ILineToken {
   updateDate: string;
   notifyEnabled: boolean;
   tokenLevel: TokenLevel[]; // 類型為陣列
+  verifyCode?: string | null;
+  verifyCodeExpires?: Date | null;
 }
 
 // Schema
@@ -33,6 +35,8 @@ const LineTokenSchema: Schema = new Schema({
     enum: Object.values(TokenLevel),
     default: [TokenLevel.Basic],
   },
+  verifyCode: { type: String, default: null },
+  verifyCodeExpires: { type: Date, default: null },
 });
 
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);
