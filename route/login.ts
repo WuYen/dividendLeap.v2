@@ -10,7 +10,7 @@ router.post('/account', async (req: Request, res: Response) => {
     res.json({ message });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ success: false, message: (error as Error).message });
   }
 });
 
@@ -21,7 +21,7 @@ router.post('/verify', async (req: Request, res: Response) => {
     res.json({ message: '登入成功', token });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: (error as Error).message });
+    res.status(500).json({ success: false, message: (error as Error).message });
   }
 });
 
