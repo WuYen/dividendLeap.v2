@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { VerifyErrors } from 'jsonwebtoken';
+import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import config from './config';
 
 interface IUserPayload {
@@ -29,9 +29,12 @@ function authentication(req: IAuthRequest, res: Response, next: NextFunction): v
 
   jwt.verify(token, config.TOKEN_SECRET, (err: jwt.VerifyErrors | null, user: any) => {
     if (err) {
-      console.log(err);
-      res.sendStatus(403);
-      return;
+      if (err instanceof TokenExpiredError) {
+        res.status(403).json({ success: false, message: 'Token expired', token: null });
+      } else {
+        console.error(err);
+        res.status(403).json({ success: false, message: 'Token invalid', token: null });
+      }
     }
     req.user = user as IUserPayload;
     next(); // pass the execution off to whatever request the client intended
@@ -39,17 +42,17 @@ function authentication(req: IAuthRequest, res: Response, next: NextFunction): v
 }
 
 function sign(data: IUserPayload): string {
-  const token = jwt.sign(data, config.TOKEN_SECRET);
+  const token = jwt.sign(data, config.TOKEN_SECRET, { expiresIn: '30d' });
   return token;
 }
 
-function verify(token: string): boolean {
-  try {
-    jwt.verify(token, config.TOKEN_SECRET);
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
+// function verify(token: string): boolean {
+//   try {
+//     jwt.verify(token, config.TOKEN_SECRET);
+//     return true;
+//   } catch (err) {
+//     return false;
+//   }
+// }
 
-export { authentication, sign, verify, IUserPayload };
+export { authentication, sign, IUserPayload };
