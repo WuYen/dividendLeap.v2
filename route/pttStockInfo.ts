@@ -16,7 +16,7 @@ const router: Router = express.Router();
 
 router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   var savedPosts = await service.getLast50Posts();
-  res.json({ posts: savedPosts });
+  res.sendSuccess(200, { message: 'success', data: { posts: savedPosts } });
 });
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
@@ -63,7 +63,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  res.json({ message: `send notify success` });
+  res.sendSuccess(200, { message: 'send notify success' });
 });
 
 interface ResultItem extends AuthorService.PriceInfoResponse {
@@ -95,7 +95,7 @@ router.get('/author/list', async (req: Request, res: Response, next: NextFunctio
   //   console.error(err);
   // }
 
-  res.json(result);
+  res.sendSuccess(200, { message: 'success', data: result });
 });
 
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -104,7 +104,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
   const existingResult = await AuthorHistoricalCache.findOne({ authorId }).lean().exec();
   // Check if there is an existing result and if it's not expired
   if (!refresh && existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
-    res.json(existingResult.data);
+    res.sendSuccess(200, { message: 'success', data: existingResult.data });
   } else {
     const result: ResultItem[] = [];
     const $ = await AuthorService.getHtmlSource(authorId);
@@ -160,7 +160,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     };
     await new AuthorHistoricalCache(newResult).save();
 
-    res.json(result);
+    res.sendSuccess(200, { message: 'success', data: result });
   }
 });
 
@@ -181,10 +181,10 @@ router.get('/author/:id/like', authentication, async (req: Request, res: Respons
 
     await authorInfo.save();
 
-    res.json('Liked!');
+    res.sendSuccess(200, { message: 'Liked' });
   } catch (error) {
     console.error('Error while liking author:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.sendError(500, { message: 'Internal server error' });
   }
 });
 

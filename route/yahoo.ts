@@ -57,14 +57,14 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
     res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
   } else {
-    res.json({ message: messageBuilder.join('\n') });
+    res.sendSuccess(200, { message: messageBuilder.join('\n') });
   }
 });
 
 router.get('/raw/:symbol', async (req: Request, res: Response, next: NextFunction) => {
   const symbol = req.params.symbol;
   const result = await getHistoricalPrices(symbol);
-  res.json(result);
+  res.sendSuccess(200, { data: result });
 });
 
 // 美股大盤當日趨勢:

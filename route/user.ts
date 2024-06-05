@@ -11,7 +11,7 @@ router.use(authentication);
 
 router.get('/watch/post/:id', async (req: Request, res: Response, next: NextFunction) => {
   const postId = req.params.id;
-  res.json({ message: 'hello' });
+  res.sendSuccess(200, { message: 'hello' });
 });
 
 export default router;

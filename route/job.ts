@@ -9,7 +9,7 @@ const router: Router = express.Router();
 
 router.get('/dayinfo', async (req: Request, res: Response, next: NextFunction) => {
   await updateDayInfo();
-  res.json({ msg: 'success' });
+  return res.sendSuccess(200, { message: 'success' });
 });
 
 export default router;

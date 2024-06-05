@@ -23,7 +23,7 @@ let cacheTimestamp: number = 0;
 router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   if (cache.length > 0) {
     if (+new Date() < cacheTimestamp + 600000) {
-      res.json({ schedule: cache });
+      res.sendSuccess(200, { message: 'success', data: cache });
       return;
     } else {
       console.log('cache expire');
@@ -70,7 +70,7 @@ router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   });
   cache = result;
   cacheTimestamp = +new Date();
-  res.json({ schedule: result });
+  res.sendSuccess(200, { message: 'success', data: schedule });
 });
 
 export default router;
