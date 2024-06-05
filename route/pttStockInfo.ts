@@ -10,6 +10,7 @@ import { todayDate, today } from '../utility/dateTime';
 import config from '../utility/config';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
 import { getStockNoFromTitle } from '../service/pttStockAuthor';
+import { authentication } from '../utility/auth';
 
 const router: Router = express.Router();
 
@@ -62,7 +63,7 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
     }
   }
 
-  res.json({ msg: `send notify success` });
+  res.json({ message: `send notify success` });
 });
 
 interface ResultItem extends AuthorService.PriceInfoResponse {
@@ -163,7 +164,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
   }
 });
 
-router.get('/author/:id/like', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/author/:id/like', authentication, async (req: Request, res: Response, next: NextFunction) => {
   const authorId = req.params.id;
   try {
     let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
@@ -199,12 +200,12 @@ async function retrieveTokenInfo(channel: string, channels: string) {
     }
     tokenInfos.push(token);
   } else if (channels) {
-    const splitedChannel = channels.split(',');
-    const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
-    if (retrivedTokens == null || retrivedTokens.length < 1) {
+    const splittedChannel = channels.split(',');
+    const savedTokens = await lineService.getTokensByChannels(splittedChannel);
+    if (savedTokens == null || savedTokens.length < 1) {
       throw new Error('No match tokens for ' + channels);
     }
-    tokenInfos = retrivedTokens;
+    tokenInfos = savedTokens;
   } else {
     const retrivedTokens = await lineService.getAllEnabledChannel();
     if (retrivedTokens == null || retrivedTokens.length < 1) {

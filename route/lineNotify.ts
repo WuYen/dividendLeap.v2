@@ -17,18 +17,6 @@ const {
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
 } = config;
 
-// router.get('/', async (req: Request, res: Response, next: NextFunction) => {
-//   //導去註冊line token
-//   const channel = req.query.channel;
-//   if (channel == undefined || channel?.length == 0) {
-//     return res.json({ error: 'need channel as query parameter' });
-//   } else {
-//     return res.redirect(
-//       `${LINE_NOTIFY_AUTH_URL}?response_type=code&client_id=${LINE_NOTIFY_CLIENT_ID}&redirect_uri=${LINE_NOTIFY_CALL_BACK_URL}&scope=notify&state=${channel}`
-//     );
-//   }
-// });
-
 router.get('/regis', async (req: Request, res: Response, next: NextFunction) => {
   //回傳註冊line token的 url
   const channel = req.query.channel as string;
@@ -142,7 +130,7 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
       tokens.push(token);
     } else if (channels) {
       const splitedChannel = channels.split(',');
-      const retrivedTokens = await lineService.getTokensBychannels(splitedChannel);
+      const retrivedTokens = await lineService.getTokensByChannels(splitedChannel);
       if (retrivedTokens == null || retrivedTokens.length < 1) {
         throw new Error('No match tokens for ' + channels);
       }

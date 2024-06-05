@@ -23,17 +23,17 @@ function authentication(req: IAuthRequest, res: Response, next: NextFunction): v
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (token == null) {
-    res.status(401).send({ success: false, message: '沒登入', token: null }); // if there isn't any token
+    res.status(401).send({ success: false, message: '沒登入' }); // if there isn't any token
     return;
   }
 
   jwt.verify(token, config.TOKEN_SECRET, (err: jwt.VerifyErrors | null, user: any) => {
     if (err) {
       if (err instanceof TokenExpiredError) {
-        res.status(403).json({ success: false, message: 'Token expired', token: null });
+        res.status(403).json({ success: false, message: '登入過期' });
       } else {
         console.error(err);
-        res.status(403).json({ success: false, message: 'Token invalid', token: null });
+        res.status(403).json({ success: false, message: '登入錯誤' });
       }
     }
     req.user = user as IUserPayload;
