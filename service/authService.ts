@@ -13,7 +13,7 @@ export const sendVerificationCode = async (account: string): Promise<string> => 
   const user = await LineTokenModel.findOne({ channel: account });
 
   if (!user) {
-    throw new Error('User not found');
+    throw new Error('使用者不存在');
   }
 
   const verifyCode = generateVerifyCode();
