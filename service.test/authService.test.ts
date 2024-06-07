@@ -1,6 +1,4 @@
 import { generateVerifyCode, sendVerificationCode, verifyCodeAndGenerateToken } from '../service/authService';
-import { LineTokenModel } from '../model/lineToken';
-import lineService from '../service/lineService';
 
 // Mock the modules
 jest.mock('../model/lineToken', () => ({
@@ -60,7 +58,7 @@ describe('Authentication Utility Functions', () => {
       const account = 'nonexistent_user';
       LineTokenModel.findOne.mockResolvedValue(null);
 
-      await expect(sendVerificationCode(account)).rejects.toThrow('User not found');
+      await expect(sendVerificationCode(account)).rejects.toThrow('使用者不存在');
       expect(LineTokenModel.findOne).toHaveBeenCalledWith({ channel: account });
     });
   });

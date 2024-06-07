@@ -1,5 +1,4 @@
-import service, { parsePostTest, fetchNewPosts } from '../service/pttStockPostService'; // Replace with the correct path to your file
-import { IPostInfo } from '../model/PostInfo';
+import { fetchNewPosts } from '../service/pttStockPostService'; // Replace with the correct path to your file
 import cheerio from 'cheerio';
 
 const mockIndex6965Html = `<!DOCTYPE html>

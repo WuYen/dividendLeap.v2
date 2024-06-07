@@ -1,8 +1,9 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
+import config from '../utility/config';
 
-const domain = 'https://www.ptt.cc';
+export const PTT_DOMAIN = 'https://www.ptt.cc';
 
 export async function retrieveLastBatchPosts(): Promise<IPostInfo[]> {
   try {
@@ -44,7 +45,7 @@ export async function getNewPosts(): Promise<PostInfo.IPostInfo[] | null> {
   const previousSavedPosts = await PostInfoModel.find({}).sort({ id: -1 }).limit(25).lean();
   const previousSavedPostIds: Set<number> = new Set(previousSavedPosts.map((article) => article.id));
   const batchNo = +new Date(); //timestamp in ms
-  const newPosts = await fetchNewPosts(domain, batchNo, previousSavedPostIds);
+  const newPosts = await fetchNewPosts(PTT_DOMAIN, batchNo, previousSavedPostIds);
 
   try {
     if (newPosts.length > 0) {
@@ -104,7 +105,7 @@ export async function fetchNewPosts(
 }
 
 export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
-  let url = `${domain}/bbs/Stock/index.html`;
+  let url = `${PTT_DOMAIN}/bbs/Stock/index.html`;
   console.log(`process url ${url}`);
   let $ = await getHTML(url);
   let res = parsePosts($, 123);
@@ -195,8 +196,6 @@ export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolea
   }
   messageBuilder.push(`[${post.tag}] ${post.title}`);
   messageBuilder.push(`作者: ${post.author}`);
-  messageBuilder.push(`${domain}/${post.href}`);
-  messageBuilder.push('');
   return messageBuilder;
 }
 
