@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { LineTokenModel } from '../model/lineToken';
+import { LineTokenModel, TokenLevel } from '../model/lineToken';
 import { IUserPayload, sign } from '../utility/auth';
 import lineService from '../service/lineService';
 
@@ -14,6 +14,10 @@ export const sendVerificationCode = async (account: string): Promise<string> => 
 
   if (!user) {
     throw new Error('使用者不存在');
+  }
+
+  if (!user.tokenLevel.includes(TokenLevel.Premium)) {
+    throw new Error('權限未開啟');
   }
 
   const verifyCode = generateVerifyCode();
