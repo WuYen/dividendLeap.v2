@@ -55,4 +55,4 @@ function sign(data: IUserPayload): string {
 //   }
 // }
 
-export { authentication, sign, IUserPayload };
+export { authentication, sign, IUserPayload, IAuthRequest };

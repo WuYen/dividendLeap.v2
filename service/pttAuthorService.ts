@@ -1,6 +1,6 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-import { isRePosts } from './pttStockInfo';
+import { isRePosts } from './pttStockPostService';
 import fugleService, { HistoricalDataInfo } from './fugleService';
 import { toDateString } from '../utility/dateTime';
 
@@ -200,4 +200,26 @@ function findNearestHistoricalInfo(
       return closest;
     }
   }, undefined);
+}
+
+function getAuthorWithRecentPostList() {
+  // try {
+  //   // 根据作者名查找作者及其帖子
+  //   const authorNames = ['uzgo', 'kobekid']; // 假设这里是你的作者名数组
+  //   const authorsWithPosts = await AuthorModel.aggregate([
+  //     { $match: { name: { $in: authorNames } } },
+  //     {
+  //       $lookup: {
+  //         from: 'postinfos', // 假设这是帖子集合的名称
+  //         localField: 'name', // 使用作者的名字进行匹配
+  //         foreignField: 'author', // 假设这是帖子中作者的字段名
+  //         as: 'posts',
+  //       },
+  //     },
+  //     { $project: { name: 1, posts: { $slice: ['$posts', 5] } } }, // 限制每个作者的帖子数量为 5 条
+  //   ]);
+  //   console.log(JSON.stringify(authorsWithPosts));
+  // } catch (err) {
+  //   console.error(err);
+  // }
 }

@@ -1,22 +1,28 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import service, { isRePosts, processSinglePostToMessage, parsePosts } from '../service/pttStockInfo';
-import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
-import { ILineToken, TokenLevel } from '../model/lineToken';
-import { AuthorModel, IAuthor } from '../model/Author';
-import * as AuthorService from '../service/pttStockAuthor';
-import { IPostInfo, PostInfoModel } from '../model/PostInfo';
-import { todayDate, today } from '../utility/dateTime';
 import config from '../utility/config';
+import { todayDate, today } from '../utility/dateTime';
+
+import { AuthorModel, IAuthor } from '../model/Author';
+import { ILineToken, TokenLevel } from '../model/lineToken';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
-import { getStockNoFromTitle } from '../service/pttStockAuthor';
-import { authentication } from '../utility/auth';
+
+import lineService from '../service/lineService';
+import * as AuthorService from '../service/pttAuthorService';
+import { getStockNoFromTitle } from '../service/pttAuthorService';
+import service, { isRePosts, processSinglePostToMessage, parsePosts } from '../service/pttStockPostService';
 
 const router: Router = express.Router();
 
 router.get('/list', async (req: Request, res: Response, next: NextFunction) => {
   var savedPosts = await service.getLast50Posts();
   res.sendSuccess(200, { message: 'success', data: { posts: savedPosts } });
+});
+
+router.get('/list/author', async (req: Request, res: Response, next: NextFunction) => {
+  const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
+  res.sendSuccess(200, { message: 'success', data: result });
 });
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
@@ -70,33 +76,6 @@ interface ResultItem extends AuthorService.PriceInfoResponse {
   post: IPostInfo;
   isRecentPost: boolean;
 }
-
-router.get('/author/list', async (req: Request, res: Response, next: NextFunction) => {
-  const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
-
-  // try {
-  //   // 根据作者名查找作者及其帖子
-  //   const authorNames = ['uzgo', 'kobekid']; // 假设这里是你的作者名数组
-  //   const authorsWithPosts = await AuthorModel.aggregate([
-  //     { $match: { name: { $in: authorNames } } },
-  //     {
-  //       $lookup: {
-  //         from: 'postinfos', // 假设这是帖子集合的名称
-  //         localField: 'name', // 使用作者的名字进行匹配
-  //         foreignField: 'author', // 假设这是帖子中作者的字段名
-  //         as: 'posts',
-  //       },
-  //     },
-  //     { $project: { name: 1, posts: { $slice: ['$posts', 5] } } }, // 限制每个作者的帖子数量为 5 条
-  //   ]);
-
-  //   console.log(JSON.stringify(authorsWithPosts));
-  // } catch (err) {
-  //   console.error(err);
-  // }
-
-  res.sendSuccess(200, { message: 'success', data: result });
-});
 
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
   const authorId = req.params.id;
@@ -161,30 +140,6 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
     await new AuthorHistoricalCache(newResult).save();
 
     res.sendSuccess(200, { message: 'success', data: result });
-  }
-});
-
-router.get('/author/:id/like', authentication, async (req: Request, res: Response, next: NextFunction) => {
-  const authorId = req.params.id;
-  try {
-    let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
-
-    if (!authorInfo) {
-      authorInfo = new AuthorModel({
-        name: authorId,
-        likes: 0,
-        dislikes: 0,
-      });
-    }
-
-    authorInfo.likes += 1;
-
-    await authorInfo.save();
-
-    res.sendSuccess(200, { message: 'Liked' });
-  } catch (error) {
-    console.error('Error while liking author:', error);
-    res.sendError(500, { message: 'Internal server error' });
   }
 });
 

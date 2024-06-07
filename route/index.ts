@@ -1,12 +1,12 @@
 import express, { Router } from 'express';
-import stockRouter from './stock';
 import jobRouter from './job';
 import lineRouter from './lineNotify';
 import lineMessageRouter from './lineMessage';
 import yahooRouter from './yahoo';
-import pttStockInfoRouter from './pttStockInfo';
+import pttStockRouter from './pttStock';
 import toolRouter from './tool';
 import loginRouter from './login';
+import myRouter from './my';
 
 const router = express.Router();
 
@@ -16,14 +16,14 @@ interface IRoute {
 }
 
 const defaultIRoute: IRoute[] = [
-  { path: '/stock', route: stockRouter },
-  { path: '/job', route: jobRouter },
+  { path: '/ptt', route: pttStockRouter },
+  { path: '/my', route: myRouter },
   { path: ['/line/notify', '/line'], route: lineRouter },
   { path: '/line/message', route: lineMessageRouter },
   { path: '/yahoo', route: yahooRouter },
-  { path: '/ptt', route: pttStockInfoRouter },
-  { path: '/tool', route: toolRouter },
   { path: '/login', route: loginRouter },
+  { path: '/job', route: jobRouter },
+  { path: '/tool', route: toolRouter },
 ];
 
 defaultIRoute.forEach((route) => {

@@ -1,9 +1,9 @@
-import * as service from '../service/pttStockAuthor';
-import * as StockBoardService from '../service/pttStockInfo';
+import * as service from '../service/pttAuthorService';
+import * as StockBoardService from '../service/pttStockPostService';
 import cheerio from 'cheerio';
 import { IPostInfo } from '../model/PostInfo';
 import fugleService, { HistoricalDataInfo } from '../service/fugleService';
-import { PriceInfoResponse, getHighestPoint, processRecentPost } from '../service/pttStockAuthor';
+import { PriceInfoResponse, getHighestPoint, processRecentPost } from '../service/pttAuthorService';
 
 jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
