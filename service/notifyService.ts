@@ -3,6 +3,7 @@ import { delay } from '../utility/delay';
 
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { AuthorModel, IAuthor } from '../model/Author';
+import { IPostInfo } from '../model/PostInfo';
 
 import lineService from './lineService';
 import { getStockNoFromTitle } from './pttAuthorService';
@@ -20,7 +21,7 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   }
 }
 
-export async function notifyUsers(tokenInfos: ILineToken[], newPosts: any[], subscribeAuthors: IAuthor[]) {
+export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[], subscribeAuthors: IAuthor[]) {
   for (const tokenInfo of tokenInfos) {
     for (const post of newPosts) {
       const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
@@ -28,8 +29,10 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: any[], sub
       if (post.tag === '標的' && !isRePosts(post)) {
         let notifyContent: string[] = processSinglePostToMessage(post, isSubscribed);
         if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+          notifyContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
           notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
         } else {
+          notifyContent.push(`作者: ${post.author}`);
           notifyContent.push(`${PTT_DOMAIN}/${post.href}`);
           if (getStockNoFromTitle(post)) {
             notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);

@@ -5,6 +5,11 @@ jest.mock('../model/lineToken', () => ({
   LineTokenModel: {
     findOne: jest.fn(),
   },
+  TokenLevel: {
+    Basic: 'basic',
+    Premium: 'premium',
+    Test: 'test',
+  },
 }));
 
 jest.mock('../service/lineService', () => ({
@@ -37,6 +42,7 @@ describe('Authentication Utility Functions', () => {
       const mockUser = {
         channel: account,
         token: 'mock_token',
+        tokenLevel: ['premium'],
         save: jest.fn(),
       };
       LineTokenModel.findOne.mockResolvedValue(mockUser);

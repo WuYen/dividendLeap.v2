@@ -32,7 +32,7 @@ export async function retrieveLastBatchPosts(): Promise<IPostInfo[]> {
 
 export async function getLast50Posts(): Promise<PostInfo.IPostInfo[] | null> {
   try {
-    const latestPosts = await PostInfoModel.find({}).sort({ id: -1 }).limit(50).lean();
+    const latestPosts = await PostInfoModel.find({}).sort({ id: -1 }).select('-_id -__v').limit(50).lean();
     return latestPosts;
   } catch (error) {
     console.error(error);
@@ -195,7 +195,6 @@ export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolea
     messageBuilder.push(`【✨✨大神來囉✨✨】`);
   }
   messageBuilder.push(`[${post.tag}] ${post.title}`);
-  messageBuilder.push(`作者: ${post.author}`);
   return messageBuilder;
 }
 
