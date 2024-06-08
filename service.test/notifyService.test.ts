@@ -20,6 +20,7 @@ describe('verify notify shold be sent', () => {
           updateDate: '2023-05-01',
           notifyEnabled: true,
           tokenLevel: [TokenLevel.Test],
+          favoritePosts: [],
         },
         {
           channel: 'channel2',
@@ -27,6 +28,7 @@ describe('verify notify shold be sent', () => {
           updateDate: '2023-05-01',
           notifyEnabled: true,
           tokenLevel: [TokenLevel.Basic],
+          favoritePosts: [],
         },
       ];
 
