@@ -1,6 +1,6 @@
-import service, { isRePosts } from '../service/pttStockInfo'; // Replace with the correct path to your file
+import { isRePosts } from '../service/pttStockPostService'; // Replace with the correct path to your file
 import { IPostInfo } from '../model/PostInfo';
-import { fastFindNewPosts, parseId, processSinglePostToMessage } from '../service/pttStockInfo';
+import { fastFindNewPosts, parseId, processSinglePostToMessage } from '../service/pttStockPostService';
 import { TokenLevel } from '../model/lineToken';
 
 describe('test utility', () => {

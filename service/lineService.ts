@@ -8,7 +8,7 @@ async function getTokenByChannel(channel: string): Promise<ILineToken | null> {
   return tokenInfo;
 }
 
-async function getTokensBychannels(channels: string[]): Promise<ILineToken[] | null> {
+async function getTokensByChannels(channels: string[]): Promise<ILineToken[] | null> {
   const tokenInfo = await LineTokenModel.find({ channel: { $in: channels } }).lean();
   if (!tokenInfo || tokenInfo.length === 0) {
     return null;
@@ -34,4 +34,4 @@ async function sendMessage(token: string, message: string): Promise<AxiosRespons
   return response;
 }
 
-export default { sendMessage, getTokenByChannel, getTokensBychannels, getAllEnabledChannel };
+export default { sendMessage, getTokenByChannel, getTokensByChannels, getAllEnabledChannel };

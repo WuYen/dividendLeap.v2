@@ -45,11 +45,8 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
   });
 };
 
-router.get('/', async (req: Request, res: Response): Promise<Response> => {
-  return res.status(200).json({
-    status: 'success',
-    message: 'Connected successfully!',
-  });
+router.get('/', async (req: Request, res: Response) => {
+  return res.sendSuccess(200, { message: 'Connected successfully!' });
 });
 
 router.get('/send/to/me', async (req: Request, res: Response) => {
@@ -71,10 +68,7 @@ router.get('/send/to/me', async (req: Request, res: Response) => {
       messages: [imageMessage],
     });
   }
-  return res.status(200).json({
-    status: 'success',
-    message: 'send message successfully!',
-  });
+  return res.sendSuccess(200, { message: 'send message successfully!' });
 });
 
 function verifyLineSignature(req: Request, res: Response, next: NextFunction) {
@@ -88,9 +82,7 @@ function verifyLineSignature(req: Request, res: Response, next: NextFunction) {
 
   // 比较签名是否匹配
   if (sign !== signature) {
-    return res.status(500).json({
-      status: 'signature validation failed',
-    });
+    return res.sendError(500, { message: 'signature validation failed' });
   }
 
   // 如果签名匹配，继续处理下一个中间件或路由处理程序
@@ -98,7 +90,7 @@ function verifyLineSignature(req: Request, res: Response, next: NextFunction) {
 }
 
 // This route is used for the Webhook.    , middleware(middlewareConfig)
-router.post('/callback', verifyLineSignature, async (req: Request, res: Response): Promise<Response> => {
+router.post('/callback', verifyLineSignature, async (req: Request, res: Response) => {
   const callbackRequest: webhook.CallbackRequest = req.body;
   const events: webhook.Event[] = callbackRequest.events!;
   const results = await Promise.all(
@@ -114,19 +106,12 @@ router.post('/callback', verifyLineSignature, async (req: Request, res: Response
           console.error(err);
         }
 
-        // Return an error message.
-        return res.status(500).json({
-          status: 'error',
-        });
+        return res.sendError(500, { message: 'callback error' });
       }
     })
   );
 
-  // Return a successful message.
-  return res.status(200).json({
-    status: 'success',
-    results,
-  });
+  return res.sendSuccess(200, { data: results });
 });
 
 export default router;

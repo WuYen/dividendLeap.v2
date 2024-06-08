@@ -1,4 +1,5 @@
-import mongoose, { Model, Schema } from 'mongoose';
+import mongoose, { Model, PopulatedDoc, Schema } from 'mongoose';
+import { IPostInfo } from './PostInfo';
 
 enum TokenLevel {
   Basic = 'basic',
@@ -13,6 +14,9 @@ interface ILineToken {
   updateDate: string;
   notifyEnabled: boolean;
   tokenLevel: TokenLevel[]; // 類型為陣列
+  verifyCode?: string | null;
+  verifyCodeExpires?: Date | null;
+  favoritePosts: mongoose.Types.ObjectId[] | PopulatedDoc<IPostInfo>[]; // 新增字段
 }
 
 // Schema
@@ -32,6 +36,13 @@ const LineTokenSchema: Schema = new Schema({
     type: [String],
     enum: Object.values(TokenLevel),
     default: [TokenLevel.Basic],
+  },
+  verifyCode: { type: String, default: null },
+  verifyCodeExpires: { type: Date, default: null },
+  favoritePosts: {
+    type: [Schema.Types.ObjectId],
+    ref: 'PostInfo',
+    default: [],
   },
 });
 
