@@ -20,7 +20,7 @@ export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null>
   return authorInfo.toObject();
 }
 
-export async function addFavoritePost(userId: string, postId: string): Promise<any> {
+export async function toggleFavoritePost(userId: string, postId: string): Promise<any> {
   // 更新用户的 favoritePosts
   const user = await LineTokenModel.findOne({ channel: userId });
 
@@ -34,13 +34,30 @@ export async function addFavoritePost(userId: string, postId: string): Promise<a
     throw new Error('文章不存在');
   }
 
-  user.favoritePosts.push(post._id);
+  const postIndex = user.favoritePosts.indexOf(post._id);
+  if (postIndex !== -1) {
+    user.favoritePosts.splice(postIndex, 1);
+  } else {
+    user.favoritePosts.push(post._id);
+  }
+
   await user.save();
 }
 
-export async function getFavoritePosts(userId: string): Promise<any> {
-  const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts', '-_id -__v').lean();
-  return rawData?.favoritePosts as IPostInfo[];
+interface IFavoritePostInfo extends IPostInfo {
+  isFavorite: boolean;
 }
 
-export default { addLikeToAuthor };
+export async function getFavoritePosts(userId: string): Promise<IFavoritePostInfo[]> {
+  const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts', '-_id -__v').lean();
+
+  const favoritePosts =
+    rawData?.favoritePosts?.map((post) => {
+      return {
+        ...post,
+        isFavorite: true, // 正確拼寫並確保它是 IFavoritePostInfo 的一部分
+      } as IFavoritePostInfo;
+    }) || [];
+
+  return favoritePosts;
+}
