@@ -135,7 +135,7 @@ export function getHighestPoint(data: HistoricalDataInfo[]): HistoricalDataInfo 
   return highestPoint;
 }
 
-function roundToDecimal(value: number, decimalPlaces: number): number {
+export function roundToDecimal(value: number, decimalPlaces: number): number {
   const factor = Math.pow(10, decimalPlaces);
   return Math.round(value * factor) / factor;
 }
@@ -145,6 +145,7 @@ export interface DiffInfo {
   diff: number;
   diffPercent: number;
   price: number;
+  type?: string;
 }
 
 export interface PriceInfoResponse {
@@ -226,19 +227,16 @@ function getAuthorWithRecentPostList() {
   // }
 }
 
-export interface ResultItem extends PriceInfoResponse {
-  post: IPostInfo;
+export interface AuthorHistoricalResponse extends PriceInfoResponse, IPostInfo {
   isRecentPost: boolean;
 }
 
 export async function getAuthorHistoryPosts(authorId: string) {
-  const result: ResultItem[] = [];
   const $ = await getHtmlSource(authorId);
   const posts = parsePosts($, +new Date());
-
   const storedPosts = await PostInfo.PostInfoModel.find({ author: authorId })
     .sort({ id: -1 }) // 按 id 降序排列
-    .limit(8) // 只返回最近的五篇
+    .limit(8) // 限定返回數量
     .lean()
     .exec();
 
@@ -246,33 +244,14 @@ export async function getAuthorHistoryPosts(authorId: string) {
     (postInfo, index, self) => index === self.findIndex((item) => item.id === postInfo.id)
   );
   combinedPosts.sort((a, b) => b.id - a.id);
-  //const targetPosts: IPostInfo[] = AuthorService.getTargetPosts(posts);
   console.log(`posts.length:${combinedPosts.length}`);
+
+  const result: AuthorHistoricalResponse[] = [];
   for (let i = 0; i < Math.min(combinedPosts.length, 8); i++) {
-    const info = combinedPosts[i];
-    const stockNo = getStockNoFromTitle(info);
-
-    const postDate = new Date(info.id * 1000);
-    const isRecentPost = isPostedInOneWeek(postDate, todayDate());
-    var target: ResultItem = {
-      stockNo,
-      historicalInfo: [],
-      processedData: [],
-      post: info,
-      isRecentPost,
-    };
-    if (stockNo) {
-      const targetDates = getDateRangeBaseOnPostedDate(postDate, todayDate());
-      const resultInfo: PriceInfoResponse | null = await getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
-      if (resultInfo) {
-        isRecentPost && processRecentPost(postDate, resultInfo);
-        target.historicalInfo = resultInfo.historicalInfo;
-        target.processedData = resultInfo.processedData;
-      }
-    }
-
+    const target: AuthorHistoricalResponse = await processHistoricalInfo(combinedPosts[i]);
     result.push(target);
   }
+
   // Delete any existing result for the authorId
   await AuthorHistoricalCache.deleteMany({ authorId }).exec();
   const newResult: IHistoricalCache = {
@@ -282,4 +261,27 @@ export async function getAuthorHistoryPosts(authorId: string) {
   };
   await new AuthorHistoricalCache(newResult).save();
   return result;
+}
+
+export async function processHistoricalInfo(postInfo: PostInfo.IPostInfo) {
+  const stockNo = getStockNoFromTitle(postInfo);
+  const postDate = new Date(postInfo.id * 1000);
+  const isRecentPost = isPostedInOneWeek(postDate, todayDate());
+  var target: AuthorHistoricalResponse = {
+    ...postInfo,
+    stockNo,
+    historicalInfo: [],
+    processedData: [],
+    isRecentPost,
+  };
+  if (stockNo) {
+    const targetDates = getDateRangeBaseOnPostedDate(postDate, todayDate());
+    const resultInfo: PriceInfoResponse | null = await getPriceInfoByDates(stockNo, targetDates[0], targetDates[1]);
+    if (resultInfo) {
+      isRecentPost && processRecentPost(postDate, resultInfo);
+      target.historicalInfo = resultInfo.historicalInfo;
+      target.processedData = resultInfo.processedData;
+    }
+  }
+  return target;
 }
