@@ -26,7 +26,7 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
     for (const post of newPosts) {
       const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
       const isSubscribed = !!authorInfo;
-      if (post.tag === '標的' && !isRePosts(post)) {
+      if ((post.tag === '標的' && !isRePosts(post)) || (isSubscribed && post.tag === '標的')) {
         let notifyContent: string[] = processSinglePostToMessage(post, isSubscribed);
         if (tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
           notifyContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
