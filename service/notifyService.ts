@@ -9,16 +9,19 @@ import lineService from './lineService';
 import { getStockNoFromTitle } from './pttAuthorService';
 import { PTT_DOMAIN, getNewPosts, isRePosts, processSinglePostToMessage } from './pttStockPostService';
 
-export async function getNewPostAndSendLineNotify(channel: string, channels: string) {
-  const newPosts = await getNewPosts();
+export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
+  let notifyCount = 0;
+  let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {
     const subscribeAuthor: IAuthor[] = await AuthorModel.find({}).lean();
     const tokenInfos: ILineToken[] | null = await retrieveUserLineToken(channel, channels);
     if (tokenInfos != null && tokenInfos.length > 0) {
+      notifyCount++;
       await notifyUsers(tokenInfos, newPosts, subscribeAuthor);
     }
     console.log(`new post: ${newPosts?.length}`);
   }
+  return { notifyCount: notifyCount, postCount: newPosts?.length };
 }
 
 export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[], subscribeAuthors: IAuthor[]) {
@@ -35,6 +38,7 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
           notifyContent.push(`作者: ${post.author}`);
           notifyContent.push(`${PTT_DOMAIN}/${post.href}`);
           if (getStockNoFromTitle(post)) {
+            notifyContent.push('');
             notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
           }
           notifyContent.push('');
