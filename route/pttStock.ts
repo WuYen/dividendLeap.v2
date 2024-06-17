@@ -34,8 +34,13 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await getNewPostAndSendLineNotify(req.query.channel as string, req.query.channels as string);
-    return res.sendSuccess(200, { message: 'send notify success' });
+    var { notifyCount, postCount } = await getNewPostAndSendLineNotify(
+      req.query.channel as string,
+      req.query.channels as string
+    );
+    return res.sendSuccess(200, {
+      message: `send notify success, postCount: ${postCount}, notifyCount:${notifyCount}`,
+    });
   } catch (error) {
     console.log('send notify fail', error);
     return res.sendSuccess(500, { message: 'send notify fail' });
