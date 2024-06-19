@@ -26,6 +26,7 @@ const LINE_CHANNEL_ID: string = process.env.LINE_CHANNEL_ID || '';
 const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
 const LINE_CHANNEL_ACCESS_TOKEN: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
 const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
+const GEMINI_KEY: string = process.env.GEMINI_KEY || '';
 
 export default {
   NODE_ENV,
@@ -47,4 +48,5 @@ export default {
   LINE_CHANNEL_SECRET,
   LINE_CHANNEL_ACCESS_TOKEN,
   LINE_USER_ID,
+  GEMINI_KEY,
 };
