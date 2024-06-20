@@ -2,6 +2,7 @@ import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import config from '../utility/config';
+import * as geminiAIService from './geminiAIService';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -104,14 +105,6 @@ export async function fetchNewPosts(
   return posts.sort((a, b) => b.id - a.id);
 }
 
-export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
-  let url = `${PTT_DOMAIN}/bbs/Stock/index.html`;
-  console.log(`process url ${url}`);
-  let $ = await getHTML(url);
-  let res = parsePosts($, 123);
-  return res;
-}
-
 export function parsePosts($: cheerio.Root, batchNo: number): PostInfo.IPostInfo[] {
   const posts: PostInfo.IPostInfo[] = [];
 
@@ -204,6 +197,45 @@ export function isRePosts(post: IPostInfo): boolean {
     post.title && // 确保标题存在
       title.includes('re:')
   );
+}
+
+export async function fetchPostDetail(url: string): Promise<string> {
+  const $ = await getHTML(url);
+
+  const mainContent = $('#main-content');
+  // Remove richcontent items
+  mainContent.find('.richcontent').remove();
+
+  // Remove <a> elements with href starting with "https://i.imgur.com/"
+  mainContent.find('a[href^="https://i.imgur.com/"]').remove();
+
+  mainContent.find('.f2').each((index, element) => {
+    $(element).nextAll().remove();
+    $(element).remove();
+  });
+
+  const text = mainContent.text().trim();
+
+  return text;
+}
+
+export async function processSinglePostDetailToMessage(url: string): Promise<string> {
+  url = url || 'https://www.ptt.cc/bbs/Stock/M.1718714778.A.27E.html';
+
+  console.log(`process url ${url}`);
+
+  var postContent = await fetchPostDetail(url);
+
+  var promptWrod =
+    '幫我分析文章\n' +
+    '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
+    '如果文章中沒特別說明則該項顯示無\n' +
+    '接著列出原文重點摘要盡量簡短\n' +
+    '文章內容如下\n\n';
+
+  var promptResult = await geminiAIService.generateWithText(promptWrod + postContent);
+
+  return promptResult;
 }
 
 export default {
