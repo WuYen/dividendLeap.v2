@@ -3,6 +3,7 @@ import { IPostInfo } from './PostInfo';
 
 enum TokenLevel {
   Basic = 'basic',
+  Standard = 'standard',
   Premium = 'premium',
   Test = 'test',
 }

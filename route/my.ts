@@ -1,10 +1,6 @@
-import express, { Router, NextFunction, Request, Response } from 'express';
-import { today } from '../utility/dateTime';
+import express, { Router, NextFunction, Response } from 'express';
 import { IAuthRequest, authentication } from '../utility/auth';
 
-import { ScheduleModel, ISchedule } from '../model/schedule';
-import { DayInfoModel, IDayInfo } from '../model/dayInfo';
-import { AuthorModel } from '../model/Author';
 import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts } from '../service/myService';
 import { getLast50Posts } from '../service/pttStockPostService';
 

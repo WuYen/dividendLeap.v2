@@ -189,32 +189,9 @@ export async function generateWithTunedModel(prompt: string) {
   // return result.response.text();
 }
 
-export async function generateTextTest(prompt: string) {
-  const customHeaders = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer AIzaSyADehs4ITgHHZ_hhnfKPapFbkvzRx_Vlfg`,
-    'x-goog-user-project': 'monneey',
-  };
-
-  const option: RequestOptions = { customHeaders };
-  const model = genAI.getGenerativeModel(
-    {
-      model: 'tunedModels/post-analysis-tuned-model-irb8jhkw2khe',
-    },
-    option
-  );
-
-  //  AIzaSyADehs4ITgHHZ_hhnfKPapFbkvzRx_Vlfg
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
-  return text;
-}
-
 export async function generateWithImage(filePath: string): Promise<string | null> {
   try {
     // Read image file
-    //const filePath = 'some-image.jpeg';
     const imageFile = await fs.readFile(filePath);
     const imageBase64 = imageFile.toString('base64');
 
