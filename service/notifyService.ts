@@ -30,7 +30,13 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
 
   for (const tokenInfo of tokenInfos) {
     for (const message of messages) {
-      if (tokenInfo.tokenLevel.includes(TokenLevel.Standard)) {
+      if (message.isSubscribed && tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+        prepareMessageByAI(message.post.href as string).then((content) => {
+          if (content?.length > 0) {
+            lineService.sendMessage(tokenInfo.token, message.standard);
+          }
+        });
+      } else if (tokenInfo.tokenLevel.includes(TokenLevel.Standard)) {
         await lineService.sendMessage(tokenInfo.token, message.standard);
       } else {
         await lineService.sendMessage(tokenInfo.token, message.basic);
@@ -43,7 +49,7 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
 export function prepareMessage(
   newPosts: IPostInfo[],
   subscribeAuthors: IAuthor[]
-): { standard: string; basic: string }[] {
+): { standard: string; basic: string; post: IPostInfo; isSubscribed: boolean }[] {
   return newPosts
     .filter((post) => {
       const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
@@ -75,7 +81,7 @@ export function prepareMessage(
       standardContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
       standardContent.push('');
 
-      return { standard: standardContent.join('\n'), basic: baseContent.join('\n') };
+      return { isSubscribed, post, standard: standardContent.join('\n'), basic: baseContent.join('\n') };
     });
 }
 
@@ -105,21 +111,33 @@ async function retrieveUserLineToken(channel: string, channels: string) {
   return tokenInfos;
 }
 
-export async function prepareMessageByAI(url: string): Promise<string> {
-  url = url || 'https://www.ptt.cc/bbs/Stock/M.1718714778.A.27E.html';
+export async function prepareMessageByAI(href: string): Promise<string> {
+  href = `https://www.ptt.cc/${href}`;
 
-  console.log(`process url ${url}`);
+  if (href == null || !href.length) {
+    return '';
+  }
+  console.log(`process url ${href}`);
 
-  var postContent = await fetchPostDetail(url);
+  var postContent = '';
+  try {
+    var postContent = await fetchPostDetail(href);
 
-  var promptWrod =
-    '幫我分析文章\n' +
-    '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
-    '如果文章中沒特別說明則該項顯示無\n' +
-    '接著列出原文重點摘要盡量簡短\n' +
-    '文章內容如下\n\n';
+    if (postContent == null || !href.length) {
+      return '';
+    }
 
-  var promptResult = await geminiAIService.generateWithText(promptWrod + postContent);
-
-  return promptResult;
+    var promptWrod =
+      '幫我分析文章\n' +
+      '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
+      '如果文章中沒特別說明則該項顯示無\n' +
+      '接著列出原文重點摘要盡量簡短\n' +
+      '文章內容如下\n\n';
+    console.log(`start prompt`);
+    var promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
+    console.log(`end prompt`);
+    return promptResult;
+  } catch (error) {
+    return '';
+  }
 }
