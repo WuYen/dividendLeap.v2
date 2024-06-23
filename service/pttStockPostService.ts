@@ -1,7 +1,6 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
-import config from '../utility/config';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -104,14 +103,6 @@ export async function fetchNewPosts(
   return posts.sort((a, b) => b.id - a.id);
 }
 
-export async function parsePostTest(): Promise<PostInfo.IPostInfo[]> {
-  let url = `${PTT_DOMAIN}/bbs/Stock/index.html`;
-  console.log(`process url ${url}`);
-  let $ = await getHTML(url);
-  let res = parsePosts($, 123);
-  return res;
-}
-
 export function parsePosts($: cheerio.Root, batchNo: number): PostInfo.IPostInfo[] {
   const posts: PostInfo.IPostInfo[] = [];
 
@@ -161,21 +152,6 @@ export function getPreviousPageIndex($: cheerio.Root): string {
   return index as string;
 }
 
-export function fastFindNewPosts(onlinePosts: IPostInfo[], savedPosts: IPostInfo[]): IPostInfo[] {
-  const newPosts: IPostInfo[] = [];
-
-  // Create a Set to store the IDs of the saved articles
-  const savedPostsIds: Set<number> = new Set(savedPosts.map((article) => article.id));
-
-  for (const onlinePost of onlinePosts) {
-    if (!savedPostsIds.has(onlinePost.id)) {
-      newPosts.push(onlinePost);
-    }
-  }
-
-  return newPosts;
-}
-
 export function parseId(link: string): number {
   const reg = new RegExp('(?:https?://(?:www\\.)?ptt\\.cc)?/bbs/.*/[GM]\\.(\\d+)\\..*');
   const strs = link.match(reg);
@@ -189,21 +165,32 @@ export function parseId(link: string): number {
   return id;
 }
 
-export function processSinglePostToMessage(post: IPostInfo, isSubscribed: boolean): string[] {
-  const messageBuilder: string[] = ['', ''];
-  if (isSubscribed && post.tag == '標的') {
-    messageBuilder.push(`【✨✨大神來囉✨✨】`);
-  }
-  messageBuilder.push(`[${post.tag}] ${post.title}`);
-  return messageBuilder;
-}
-
 export function isRePosts(post: IPostInfo): boolean {
   const title = post.title.toLowerCase(); // 将标题转换为小写以进行不区分大小写的比较
   return Boolean(
     post.title && // 确保标题存在
       title.includes('re:')
   );
+}
+
+export async function fetchPostDetail(url: string): Promise<string> {
+  const $ = await getHTML(url);
+
+  const mainContent = $('#main-content');
+  // Remove richcontent items
+  mainContent.find('.richcontent').remove();
+
+  // Remove <a> elements with href starting with "https://i.imgur.com/"
+  mainContent.find('a[href^="https://i.imgur.com/"]').remove();
+
+  mainContent.find('.f2').each((index, element) => {
+    $(element).nextAll().remove();
+    $(element).remove();
+  });
+
+  const text = mainContent.text().trim();
+
+  return text;
 }
 
 export default {

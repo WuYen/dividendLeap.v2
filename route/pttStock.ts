@@ -4,8 +4,8 @@ import { AuthorModel } from '../model/Author';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 
 import { AuthorHistoricalResponse, getAuthorHistoryPosts } from '../service/pttAuthorService';
-import { getLast50Posts } from '../service/pttStockPostService';
-import { getNewPostAndSendLineNotify } from '../service/notifyService';
+import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
+import { getNewPostAndSendLineNotify, prepareMessageByAI } from '../service/notifyService';
 
 const router: Router = express.Router();
 
@@ -46,5 +46,43 @@ router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
     return res.sendSuccess(500, { message: 'send notify fail' });
   }
 });
+
+router.get('/post/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const postId = req.params.id;
+    if (!postId) {
+      return res.sendError(500, { message: 'no postId' });
+    }
+
+    var postContent = await fetchPostDetail(`https://www.ptt.cc/bbs/Stock/${postId}`);
+
+    return res.sendSuccess(200, {
+      message: `send notify success`,
+      data: postContent,
+    });
+  } catch (error) {
+    console.log('send notify fail', error);
+    return res.sendError(500, { message: 'send notify fail' });
+  }
+});
+
+// router.get('/post/summary/:id', async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const postId = req.params.id;
+//     if (!postId) {
+//       return res.sendError(500, { message: 'no postId' });
+//     }
+
+//     var postContent = await prepareMessageByAI(`/bbs/Stock/${postId}`);
+
+//     return res.sendSuccess(200, {
+//       message: `send notify success`,
+//       data: postContent,
+//     });
+//   } catch (error) {
+//     console.log('send notify fail', error);
+//     return res.sendError(500, { message: 'send notify fail' });
+//   }
+// });
 
 export default router;
