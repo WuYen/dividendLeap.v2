@@ -5,7 +5,7 @@ import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 
 import { AuthorHistoricalResponse, getAuthorHistoryPosts } from '../service/pttAuthorService';
 import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
-import { getNewPostAndSendLineNotify, prepareMessageByAI } from '../service/notifyService';
+import { getNewPostAndSendLineNotify } from '../service/notifyService';
 
 const router: Router = express.Router();
 
@@ -34,12 +34,9 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    var { notifyCount, postCount } = await getNewPostAndSendLineNotify(
-      req.query.channel as string,
-      req.query.channels as string
-    );
+    var { postCount } = await getNewPostAndSendLineNotify(req.query.channel as string, req.query.channels as string);
     return res.sendSuccess(200, {
-      message: `send notify success, postCount: ${postCount}, notifyCount:${notifyCount}`,
+      message: `send notify success, postCount: ${postCount}`,
     });
   } catch (error) {
     console.log('send notify fail', error);

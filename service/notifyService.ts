@@ -9,20 +9,19 @@ import lineService from './lineService';
 import { getStockNoFromTitle } from './pttAuthorService';
 import { PTT_DOMAIN, fetchPostDetail, getNewPosts, isRePosts } from './pttStockPostService';
 import * as geminiAIService from './geminiAIService';
+import { mainProcess } from './notifyQueueService';
 
 export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
-  let notifyCount = 0;
   let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {
     const subscribeAuthor: IAuthor[] = await AuthorModel.find({}).lean();
     const tokenInfos: ILineToken[] | null = await retrieveUserLineToken(channel, channels);
     if (tokenInfos != null && tokenInfos.length > 0) {
-      notifyCount++;
       await notifyUsers(tokenInfos, newPosts, subscribeAuthor);
     }
     console.log(`new post: ${newPosts?.length}`);
   }
-  return { notifyCount: notifyCount, postCount: newPosts?.length };
+  return { postCount: newPosts?.length };
 }
 
 export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[], subscribeAuthors: IAuthor[]) {
@@ -30,13 +29,7 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
 
   for (const tokenInfo of tokenInfos) {
     for (const message of messages) {
-      if (message.isSubscribed && tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
-        prepareMessageByAI(message.post.href as string).then((content) => {
-          if (content?.length > 0) {
-            lineService.sendMessage(tokenInfo.token, message.standard);
-          }
-        });
-      } else if (tokenInfo.tokenLevel.includes(TokenLevel.Standard)) {
+      if (tokenInfo.tokenLevel.includes(TokenLevel.Standard)) {
         await lineService.sendMessage(tokenInfo.token, message.standard);
       } else {
         await lineService.sendMessage(tokenInfo.token, message.basic);
@@ -44,6 +37,12 @@ export async function notifyUsers(tokenInfos: ILineToken[], newPosts: IPostInfo[
       await delay(25);
     }
   }
+
+  await mainProcess(
+    messages.filter((x) => x.isSubscribed).map((x) => x.post),
+    tokenInfos.filter((x) => x.tokenLevel.includes(TokenLevel.Test)),
+    subscribeAuthors
+  );
 }
 
 export function prepareMessage(
