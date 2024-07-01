@@ -1,12 +1,12 @@
 import Queue from 'better-queue';
 import config from '../utility/config';
-import { IAuthor } from '../model/Author';
+import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { prepareMessageByAI } from './notifyService';
 import { getStockNoFromTitle } from './pttAuthorService';
-import { PTT_DOMAIN } from './pttStockPostService';
+import { PTT_DOMAIN, fetchPostDetail, getNewPosts, isRePosts } from './pttStockPostService';
 import lineService from './lineService';
+import geminiAIService from './geminiAIService';
 
 interface GeneratedContent {
   post: IPostInfo;
@@ -18,6 +18,158 @@ interface GeneratedContent {
 interface NotifyEnvelop {
   user: ILineToken;
   payload: GeneratedContent;
+}
+
+// 創建隊列
+export const notifyQueue = new Queue(
+  async (job: NotifyEnvelop, done: Function) => {
+    try {
+      console.log(`Sending notification ${job.payload.content} to ${job.user.channel}`);
+      await lineService.sendMessage(job.user.token, job.payload.content);
+      console.log(`Finish notifyQueue job \n`);
+      done(null, job);
+    } catch (error) {
+      console.error(`Error processing notifyQueue job`, error);
+      done(error);
+    }
+  },
+  { afterProcessDelay: 25 }
+);
+
+export const testQueue = new Queue(async (job: any, done: Function) => {
+  try {
+    const { post, authorInfo, level, isSubscribedAuthor, users } = job;
+    const result = await generateContent(post, authorInfo, level, isSubscribedAuthor);
+    console.log(`Finish testQueue job ${post.title}\n`);
+    done(null, { users, content: result });
+  } catch (error) {
+    console.error(`Error testQueue job ${job.id}:`, error);
+    done(error);
+  }
+});
+
+// 監聽完成和失敗事件
+testQueue.on('task_finish', (taskId: number, result: any) => {
+  const { users, content } = result;
+  for (const tokenInfo of users as ILineToken[]) {
+    console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
+    notifyQueue.push({ user: tokenInfo, payload: content });
+  }
+});
+
+testQueue.on('task_failed', (taskId: number, error: Error) => {
+  console.error(`Job ${taskId} failed with error: ${error}`);
+});
+
+export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
+  let newPosts = await getNewPosts();
+  if (newPosts && newPosts.length) {
+    const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
+    const targetPosts = newPosts.filter((post) => {
+      const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
+      return (post.tag === '標的' && !isRePosts(post)) || (!!authorInfo && post.tag === '標的');
+    });
+    if (targetPosts.length > 0) {
+      const tokenInfos: ILineToken[] | null = await retrieveUserLineToken(channel, channels);
+      if (tokenInfos != null && tokenInfos.length > 0) {
+        await mainProcess(targetPosts, tokenInfos, subscribeAuthors);
+      }
+      console.log(`finish sending notify count:${tokenInfos.length}, post count:${targetPosts.length}`);
+    }
+  }
+  return { postCount: newPosts?.length };
+}
+
+export async function mainProcess(
+  newPosts: IPostInfo[],
+  users: ILineToken[],
+  subscribeAuthors: IAuthor[]
+): Promise<void> {
+  for (const post of newPosts) {
+    try {
+      const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
+      const isSubscribedAuthor = !!authorInfo;
+      const basicContent = await generateContent(post, authorInfo, TokenLevel.Basic, isSubscribedAuthor);
+      const standardContent = await generateContent(post, authorInfo, TokenLevel.Standard, isSubscribedAuthor);
+      const delayNotifyUsers = [];
+
+      for (const tokenInfo of users) {
+        if (isSubscribedAuthor && tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+          delayNotifyUsers.push(tokenInfo);
+        } else {
+          console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
+          notifyQueue.push({
+            user: tokenInfo,
+            payload: tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? standardContent : basicContent,
+          });
+        }
+      }
+
+      if (isSubscribedAuthor) {
+        console.log('=> add job to testQueue ' + post.id);
+        testQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
+      }
+    } catch (error) {
+      console.error(`Error processing post ${post.id}:`, error);
+    }
+  }
+}
+
+export async function prepareMessageByAI(href: string): Promise<string> {
+  href = `https://www.ptt.cc/${href}`;
+
+  if (href == null || !href.length) {
+    return '';
+  }
+  console.log(`process url ${href}`);
+
+  var postContent = '';
+  try {
+    var postContent = await fetchPostDetail(href);
+
+    if (postContent == null || !href.length) {
+      return '';
+    }
+
+    var promptWrod =
+      '幫我分析文章\n' +
+      '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
+      '如果文章中沒特別說明則該項顯示無\n' +
+      '接著列出原文重點摘要盡量簡短\n' +
+      '文章內容如下\n\n';
+    console.log(`start prompt`);
+    var promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
+    console.log(`end prompt`);
+    return promptResult;
+  } catch (error) {
+    return '';
+  }
+}
+
+async function retrieveUserLineToken(channel: string, channels: string) {
+  let tokenInfos: ILineToken[] | null = [];
+
+  if (channel) {
+    const token = await lineService.getTokenByChannel(channel);
+    if (token == null) {
+      throw new Error('No match token for ' + channel);
+    }
+    tokenInfos.push(token);
+  } else if (channels) {
+    const splittedChannel = channels.split(',');
+    const savedTokens = await lineService.getTokensByChannels(splittedChannel);
+    if (savedTokens == null || savedTokens.length < 1) {
+      throw new Error('No match tokens for ' + channels);
+    }
+    tokenInfos = savedTokens;
+  } else {
+    const retrivedTokens = await lineService.getAllEnabledChannel();
+    if (retrivedTokens == null || retrivedTokens.length < 1) {
+      throw new Error('No match tokens for ' + channels);
+    }
+    tokenInfos = retrivedTokens;
+  }
+  return tokenInfos;
 }
 
 function generateBasicContent(post: IPostInfo, notifyContent: string[]): string {
@@ -67,135 +219,3 @@ async function generateContent(
 
   return { post, content: textContent, level, isSubscribedAuthor };
 }
-
-// 創建隊列
-const notifyQueue = new Queue(
-  async (job: NotifyEnvelop, done: Function) => {
-    try {
-      console.log(`Sending notification ${job.payload.content} to ${job.user.channel}`);
-      await lineService.sendMessage(job.user.token, job.payload.content);
-      console.log(`Finish notifyQueue job \n`);
-      done(null, job);
-    } catch (error) {
-      console.error(`Error processing notifyQueue job`, error);
-      done(error);
-    }
-  },
-  { afterProcessDelay: 25 }
-);
-
-const testQueue = new Queue(async (job: any, done: Function) => {
-  try {
-    const { post, authorInfo, level, isSubscribedAuthor, users } = job;
-    const result = await generateContent(post, authorInfo, level, isSubscribedAuthor);
-    console.log(`Finish testQueue job ${post.title}\n`);
-    done(null, { users, content: result });
-  } catch (error) {
-    console.error(`Error testQueue job ${job.id}:`, error);
-    done(error);
-  }
-});
-
-// 監聽完成和失敗事件
-testQueue.on('task_finish', (taskId: number, result: any) => {
-  const { users, content } = result;
-  for (const tokenInfo of users as ILineToken[]) {
-    console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
-    notifyQueue.push({ user: tokenInfo, payload: content });
-  }
-});
-
-testQueue.on('task_failed', (taskId: number, error: Error) => {
-  console.error(`Job ${taskId} failed with error: ${error}`);
-});
-
-export async function mainProcess(
-  newPosts: IPostInfo[],
-  users: ILineToken[],
-  subscribeAuthors: IAuthor[]
-): Promise<void> {
-  for (const post of newPosts) {
-    try {
-      const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
-      const isSubscribedAuthor = !!authorInfo;
-      const basicContent = await generateContent(post, authorInfo, TokenLevel.Basic, isSubscribedAuthor);
-      const standardContent = await generateContent(post, authorInfo, TokenLevel.Standard, isSubscribedAuthor);
-      const delayNotifyUsers = [];
-
-      for (const tokenInfo of users) {
-        if (isSubscribedAuthor && tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
-          delayNotifyUsers.push(tokenInfo);
-        } else {
-          console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
-          notifyQueue.push({
-            user: tokenInfo,
-            payload: tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? standardContent : basicContent,
-          });
-        }
-      }
-
-      if (isSubscribedAuthor) {
-        console.log('=> add job to testQueue ' + post.id);
-        testQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
-      }
-    } catch (error) {
-      console.error(`Error processing post ${post.id}:`, error);
-    }
-  }
-}
-
-// export const newPosts: IPostInfo[] = [
-//   {
-//     tag: 'stock',
-//     title: '1 台積電漲停！散戶嗨翻：護盤有功',
-//     href: 'stock/M.1672225269.A.102',
-//     author: 'pttTestAuthor',
-//     date: '2023-10-04 23:54:09',
-//     batchNo: 12345,
-//     id: 123456,
-//   },
-//   {
-//     tag: 'stock',
-//     title: '2 鴻海大跌！郭台銘：護盤沒用，要靠自身努力',
-//     href: 'stock/M.1672225269.A.103',
-//     author: 'anotherAuthor',
-//     date: '2023-10-04 23:55:09',
-//     batchNo: 12346,
-//     id: 123457,
-//   },
-// ];
-
-// export const subscribeAuthors: IAuthor[] = [
-//   {
-//     name: 'pttTestAuthor',
-//     likes: 100,
-//     dislikes: 50,
-//   },
-// ];
-
-// export const users: ILineToken[] = [
-//   {
-//     channel: 'A-TEST+STAND',
-//     token: 'myToken1',
-//     updateDate: '2023-10-05 00:00:00',
-//     notifyEnabled: true,
-//     tokenLevel: [TokenLevel.Test, TokenLevel.Standard],
-//     favoritePosts: [],
-//   },
-//   {
-//     channel: 'B-STAND',
-//     token: 'myToken2',
-//     updateDate: '2023-10-05 00:00:00',
-//     notifyEnabled: true,
-//     tokenLevel: [TokenLevel.Standard],
-//     favoritePosts: [],
-//   },
-//   {
-//     channel: 'C-BASIC',
-//     token: 'myToken3',
-//     updateDate: '2023-10-05 00:00:00',
-//     notifyEnabled: true,
-//     tokenLevel: [TokenLevel.Basic],
-//     favoritePosts: [],
-//   },
-// ];

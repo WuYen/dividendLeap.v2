@@ -7,8 +7,7 @@ import { IPostInfo } from '../model/PostInfo';
 
 import lineService from './lineService';
 import { getStockNoFromTitle } from './pttAuthorService';
-import { PTT_DOMAIN, fetchPostDetail, getNewPosts, isRePosts } from './pttStockPostService';
-import * as geminiAIService from './geminiAIService';
+import { PTT_DOMAIN, getNewPosts, isRePosts } from './pttStockPostService';
 import { mainProcess } from './notifyQueueService';
 
 export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
@@ -108,35 +107,4 @@ async function retrieveUserLineToken(channel: string, channels: string) {
     tokenInfos = retrivedTokens;
   }
   return tokenInfos;
-}
-
-export async function prepareMessageByAI(href: string): Promise<string> {
-  href = `https://www.ptt.cc/${href}`;
-
-  if (href == null || !href.length) {
-    return '';
-  }
-  console.log(`process url ${href}`);
-
-  var postContent = '';
-  try {
-    var postContent = await fetchPostDetail(href);
-
-    if (postContent == null || !href.length) {
-      return '';
-    }
-
-    var promptWrod =
-      '幫我分析文章\n' +
-      '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
-      '如果文章中沒特別說明則該項顯示無\n' +
-      '接著列出原文重點摘要盡量簡短\n' +
-      '文章內容如下\n\n';
-    console.log(`start prompt`);
-    var promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
-    console.log(`end prompt`);
-    return promptResult;
-  } catch (error) {
-    return '';
-  }
 }

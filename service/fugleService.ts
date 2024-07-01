@@ -61,7 +61,7 @@ export interface HistoricalDataInfo {
   turnover: number;
   change: number;
 }
-//TODO: move this caller to utility, and make historical/candles to something like channel
+
 async function fugleCaller(stockNo: string, query: string) {
   console.log(`call fugle historical/candles/${stockNo}?${query}`);
   return await axios.get(`https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/${stockNo}?${query}`, {
