@@ -106,7 +106,7 @@ export async function getPriceInfoByDates(
   const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0 };
   const targetDayInfo = data.find((x) => x.date === highestPoint.date);
   if (targetDayInfo) {
-    highest.type = 'highest';
+    highest.type = DiffType.HIGHEST;
     highest.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
     highest.price = targetDayInfo.close;
     highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
@@ -132,12 +132,18 @@ export function roundToDecimal(value: number, decimalPlaces: number): number {
   return Math.round(value * factor) / factor;
 }
 
+export enum DiffType {
+  HIGHEST = 'highest',
+  LATEST = 'latest',
+  BASE = 'base',
+}
+
 export interface DiffInfo {
   date: string;
   diff: number;
   diffPercent: number;
   price: number;
-  type?: string;
+  type?: DiffType;
 }
 
 export interface PriceInfoResponse {
@@ -157,11 +163,17 @@ export function processRecentPost(postDate: Date, info: PriceInfoResponse) {
   if (nearestDay) {
     const baseClose = nearestDay.close;
     const lastElement = info.historicalInfo[info.historicalInfo.length - 1]; //supposed to be today
-    const processLastElement: DiffInfo = { date: lastElement.date || '', diff: 0, diffPercent: 0, price: 0 };
+    const processLastElement: DiffInfo = {
+      date: lastElement.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.LATEST,
+    };
     processLastElement.diff = roundToDecimal(lastElement.close - baseClose, 2);
     processLastElement.price = lastElement.close;
     processLastElement.diffPercent = parseFloat(((processLastElement.diff / baseClose) * 100).toFixed(2));
-    info.historicalInfo = [nearestDay];
+    info.historicalInfo = [nearestDay]; // 會往在發文日前抓很多天, 去找到離發文日最近的一天
     info.processedData = [processLastElement];
   }
 }

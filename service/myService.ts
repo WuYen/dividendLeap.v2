@@ -4,7 +4,7 @@ import { LineTokenModel } from '../model/lineToken';
 import { toDateString, todayDate } from '../utility/dateTime';
 import { getStockNoFromTitle, isPostedInOneWeek } from '../utility/stockPostHelper';
 import fugleService, { HistoricalDataInfo } from './fugleService';
-import { AuthorHistoricalResponse, DiffInfo, getHighestPoint, roundToDecimal } from './pttAuthorService';
+import { AuthorHistoricalResponse, DiffInfo, DiffType, getHighestPoint, roundToDecimal } from './pttAuthorService';
 
 export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null> {
   let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
@@ -62,7 +62,7 @@ export async function getFavoritePosts(userId: string): Promise<AuthorHistorical
   return favoritePosts;
 }
 
-export async function processPost(postInfo: IPostInfo) {
+export async function processPost(postInfo: IPostInfo): Promise<AuthorHistoricalResponse> {
   const stockNo = getStockNoFromTitle(postInfo);
   const postDate = new Date(postInfo.id * 1000);
   const historicalPostInfo: AuthorHistoricalResponse = {
@@ -88,19 +88,31 @@ export async function processPost(postInfo: IPostInfo) {
       diff: 0,
       diffPercent: 0,
       price: basePoint.close,
-      type: 'base',
+      type: DiffType.BASE,
     };
 
     //找到資料區間內最高點
     const highestPoint: HistoricalDataInfo = getHighestPoint(data);
-    const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0, type: 'highest' };
+    const highest: DiffInfo = {
+      date: highestPoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.HIGHEST,
+    };
     highest.diff = roundToDecimal(highestPoint.close - baseClose, 2);
     highest.price = highestPoint.close;
     highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
 
     //找到最靠近今天的股價
     const lastestTradePoint = data[data.length - 1];
-    const latest: DiffInfo = { date: lastestTradePoint.date || '', diff: 0, diffPercent: 0, price: 0, type: 'latest' };
+    const latest: DiffInfo = {
+      date: lastestTradePoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.LATEST,
+    };
     latest.diff = roundToDecimal(lastestTradePoint.close - baseClose, 2);
     latest.price = lastestTradePoint.close;
     latest.diffPercent = parseFloat(((latest.diff / baseClose) * 100).toFixed(2));
