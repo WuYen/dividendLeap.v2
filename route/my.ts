@@ -1,6 +1,7 @@
 import express, { Router, NextFunction, Response } from 'express';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { IAuthRequest, authentication } from '../utility/auth';
-
 import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts } from '../service/myService';
 import { getLast50Posts } from '../service/pttStockPostService';
 
@@ -43,4 +44,14 @@ router.get('/author/:id/like', async (req: IAuthRequest, res: Response, next: Ne
   }
 });
 
+router.get('/author/rank', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const filePath = path.join(__dirname, '..', '/resource/filtered_combined_ranked_authors.json');
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    res.sendSuccess(200, { data: JSON.parse(fileContent) });
+  } catch (error) {
+    console.error('Error while liking author:', error);
+    res.sendError(500, { message: 'Internal server error' });
+  }
+});
 export default router;

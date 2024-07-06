@@ -3,10 +3,11 @@ import config from '../utility/config';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle } from './pttAuthorService';
-import { PTT_DOMAIN, fetchPostDetail, getNewPosts, isRePosts } from './pttStockPostService';
+import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { PTT_DOMAIN, fetchPostDetail, getNewPosts } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
+import { isRePosts } from '../utility/stockPostHelper';
 
 interface GeneratedContent {
   post: IPostInfo;

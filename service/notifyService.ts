@@ -6,9 +6,10 @@ import { AuthorModel, IAuthor } from '../model/Author';
 import { IPostInfo } from '../model/PostInfo';
 
 import lineService from './lineService';
-import { getStockNoFromTitle } from './pttAuthorService';
-import { PTT_DOMAIN, getNewPosts, isRePosts } from './pttStockPostService';
+import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { PTT_DOMAIN, getNewPosts } from './pttStockPostService';
 import { mainProcess } from './notifyQueueService';
+import { isRePosts } from '../utility/stockPostHelper';
 
 export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
   let newPosts = await getNewPosts();

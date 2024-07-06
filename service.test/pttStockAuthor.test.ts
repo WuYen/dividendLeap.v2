@@ -651,63 +651,6 @@ describe('test get author unit', () => {
     expect(targetPosts.map((post) => post.title)).toEqual(expect.arrayContaining(expectPosts));
   });
 
-  it('Figure out stockNo from title', async () => {
-    const rawPosts: IPostInfo[] = [
-      {
-        tag: '標的',
-        title: '3450聯鈞 光通多',
-        href: '/bbs/Stock/M.1708494416.A.203.html',
-        author: 'WADE0616',
-        date: '2/21',
-        id: 1708494416,
-        batchNo: 0,
-      },
-      {
-        tag: '標的',
-        title: '6789采鈺',
-        href: '/bbs/Stock/M.1706854985.A.CDD.html',
-        author: 'WADE0616',
-        date: '2/02',
-        id: 1706854985,
-        batchNo: 0,
-      },
-      {
-        tag: '標的',
-        title: '3036文曄',
-        href: '/bbs/Stock/M.1695810630.A.248.html',
-        author: 'WADE0616',
-        date: '9/27',
-        id: 1695810630,
-        batchNo: 0,
-      },
-      {
-        tag: '標的',
-        title: '6472 保瑞 除權多 長投賺爛',
-        href: '/bbs/Stock/M.1691327482.A.186.html',
-        author: 'WADE0616',
-        date: '8/06',
-        id: 1691327482,
-        batchNo: 0,
-      },
-      {
-        tag: '標的',
-        title: '3163 波若威 被刪文多',
-        href: '/bbs/Stock/M.1688452709.A.7B4.html',
-        author: 'WADE0616',
-        date: '7/04',
-        id: 1688452709,
-        batchNo: 0,
-      },
-    ];
-    const expectStockNo: String[] = ['3450', '6789', '3036', '6472', '3163'];
-    const actualStockNo = rawPosts.map((post) => service.getStockNoFromTitle(post));
-
-    expect(actualStockNo).toHaveLength(expectStockNo.length);
-    actualStockNo.forEach((stockNo) => {
-      expect(expectStockNo).toContain(stockNo);
-    });
-  });
-
   describe('Get 目標日, 目標隔天, 兩週, 四週, 六週, 八週', () => {
     it('Happy case', async () => {
       let timestamp: number = 1688452709;

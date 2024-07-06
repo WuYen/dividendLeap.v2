@@ -68,3 +68,35 @@ export function isValidStockPost(post: IPostInfo): boolean {
 
   return true;
 }
+
+export function isRePosts(post: IPostInfo): boolean {
+  const title = post.title.toLowerCase(); // 将标题转换为小写以进行不区分大小写的比较
+  return Boolean(
+    post.title && // 确保标题存在
+      title.includes('re:')
+  );
+}
+
+export function parseId(link: string): number {
+  const reg = new RegExp('(?:https?://(?:www\\.)?ptt\\.cc)?/bbs/.*/[GM]\\.(\\d+)\\..*');
+  const strs = link.match(reg);
+  if (!strs || strs.length < 2) {
+    return 0;
+  }
+  const id = parseInt(strs[1]);
+  if (isNaN(id)) {
+    return 0;
+  }
+  return id;
+}
+
+export function getStockNoFromTitle(post: IPostInfo) {
+  const match = post.title.match(/\d{4,5}/);
+  return match ? match[0] : '';
+}
+
+export function isPostedInOneWeek(baseDate: Date, today: Date): boolean {
+  const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+  const diffFromToday = today.getTime() - baseDate.getTime();
+  return diffFromToday < oneWeekInMilliseconds;
+}
