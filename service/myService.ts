@@ -2,15 +2,9 @@ import { AuthorModel, IAuthor } from '../model/Author';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { LineTokenModel } from '../model/lineToken';
 import { toDateString, todayDate } from '../utility/dateTime';
+import { getStockNoFromTitle, isPostedInOneWeek } from '../utility/stockPostHelper';
 import fugleService, { HistoricalDataInfo } from './fugleService';
-import {
-  AuthorHistoricalResponse,
-  DiffInfo,
-  getHighestPoint,
-  getStockNoFromTitle,
-  isPostedInOneWeek,
-  roundToDecimal,
-} from './pttAuthorService';
+import { AuthorHistoricalResponse, DiffInfo, DiffType, getHighestPoint, roundToDecimal } from './pttAuthorService';
 
 export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null> {
   let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
@@ -54,67 +48,78 @@ export async function toggleFavoritePost(userId: string, postId: string): Promis
   await user.save();
 }
 
-interface IFavoritePostInfo extends AuthorHistoricalResponse {
-  isFavorite: boolean;
-}
-
-export async function getFavoritePosts(userId: string): Promise<IFavoritePostInfo[]> {
+export async function getFavoritePosts(userId: string): Promise<AuthorHistoricalResponse[]> {
   const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts', '-_id -__v').lean();
-  const favoritePosts: IFavoritePostInfo[] = [];
+  const favoritePosts: AuthorHistoricalResponse[] = [];
 
   if (rawData?.favoritePosts) {
     for (const postInfo of rawData.favoritePosts as IPostInfo[]) {
-      const stockNo = getStockNoFromTitle(postInfo);
-      const postDate = new Date(postInfo.id * 1000);
-      const historicalPostInfo: AuthorHistoricalResponse = {
-        ...postInfo,
-        stockNo: '',
-        historicalInfo: [],
-        processedData: [],
-        isRecentPost: isPostedInOneWeek(postDate, todayDate()),
-      };
-
-      if (stockNo) {
-        historicalPostInfo.stockNo = stockNo;
-        //發文日 > 今天
-        const result = await fugleService.getStockPriceByDates(
-          stockNo,
-          toDateString(postDate),
-          toDateString(todayDate())
-        );
-
-        if (result && result.data.length > 0) {
-          const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
-          const baseClose = data[0].close; // 已發文日為基準
-
-          //找到資料區間內最高點
-          const highestPoint: HistoricalDataInfo = getHighestPoint(data);
-          const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0 };
-          highest.type = 'highest';
-          highest.diff = roundToDecimal(highestPoint.close - baseClose, 2);
-          highest.price = highestPoint.close;
-          highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
-
-          //找到最靠近今天的股價
-          const lastestTradePoint = data[data.length - 1];
-          const latest: DiffInfo = { date: lastestTradePoint.date || '', diff: 0, diffPercent: 0, price: 0 };
-          latest.type = 'latest';
-          latest.diff = roundToDecimal(lastestTradePoint.close - baseClose, 2);
-          latest.price = lastestTradePoint.close;
-          latest.diffPercent = parseFloat(((latest.diff / baseClose) * 100).toFixed(2));
-
-          historicalPostInfo.historicalInfo = data;
-          historicalPostInfo.processedData = [highest, latest];
-        }
-
-        // const historicalPostInfo = await processHistoricalInfo(postInfo as IPostInfo);
-        favoritePosts.push({
-          ...historicalPostInfo,
-          isFavorite: true, // 确保这是 IFavoritePostInfo 的一部分
-        } as IFavoritePostInfo);
-      }
+      const data = await processPost(postInfo);
+      favoritePosts.push(data);
     }
   }
 
   return favoritePosts;
+}
+
+export async function processPost(postInfo: IPostInfo): Promise<AuthorHistoricalResponse> {
+  const stockNo = getStockNoFromTitle(postInfo);
+  const postDate = new Date(postInfo.id * 1000);
+  const historicalPostInfo: AuthorHistoricalResponse = {
+    ...postInfo,
+    stockNo: stockNo,
+    isFavorite: true,
+    historicalInfo: [],
+    processedData: [],
+    isRecentPost: isPostedInOneWeek(postDate, todayDate()),
+  };
+
+  //發文日 -> 今天
+  const result = await fugleService.getStockPriceByDates(stockNo, toDateString(postDate), toDateString(todayDate()));
+
+  if (result && result.data.length > 0) {
+    const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
+
+    // 已發文日為基準
+    const basePoint = data[0];
+    const baseClose = basePoint.close;
+    const base: DiffInfo = {
+      date: basePoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: basePoint.close,
+      type: DiffType.BASE,
+    };
+
+    //找到資料區間內最高點
+    const highestPoint: HistoricalDataInfo = getHighestPoint(data);
+    const highest: DiffInfo = {
+      date: highestPoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.HIGHEST,
+    };
+    highest.diff = roundToDecimal(highestPoint.close - baseClose, 2);
+    highest.price = highestPoint.close;
+    highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
+
+    //找到最靠近今天的股價
+    const lastestTradePoint = data[data.length - 1];
+    const latest: DiffInfo = {
+      date: lastestTradePoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.LATEST,
+    };
+    latest.diff = roundToDecimal(lastestTradePoint.close - baseClose, 2);
+    latest.price = lastestTradePoint.close;
+    latest.diffPercent = parseFloat(((latest.diff / baseClose) * 100).toFixed(2));
+
+    historicalPostInfo.historicalInfo = data;
+    historicalPostInfo.processedData = [highest, latest, base];
+  }
+
+  return historicalPostInfo;
 }

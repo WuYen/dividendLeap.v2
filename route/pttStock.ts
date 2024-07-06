@@ -5,7 +5,7 @@ import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 
 import { AuthorHistoricalResponse, getAuthorHistoryPosts } from '../service/pttAuthorService';
 import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
-import { getNewPostAndSendLineNotify } from '../service/notifyService';
+import { getNewPostAndSendLineNotify } from '../service/notifyQueueService';
 
 const router: Router = express.Router();
 

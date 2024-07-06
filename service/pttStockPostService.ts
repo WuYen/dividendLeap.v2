@@ -1,6 +1,7 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
+import { parseId } from '../utility/stockPostHelper';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -152,27 +153,6 @@ export function getPreviousPageIndex($: cheerio.Root): string {
   return index as string;
 }
 
-export function parseId(link: string): number {
-  const reg = new RegExp('(?:https?://(?:www\\.)?ptt\\.cc)?/bbs/.*/[GM]\\.(\\d+)\\..*');
-  const strs = link.match(reg);
-  if (!strs || strs.length < 2) {
-    return 0;
-  }
-  const id = parseInt(strs[1]);
-  if (isNaN(id)) {
-    return 0;
-  }
-  return id;
-}
-
-export function isRePosts(post: IPostInfo): boolean {
-  const title = post.title.toLowerCase(); // 将标题转换为小写以进行不区分大小写的比较
-  return Boolean(
-    post.title && // 确保标题存在
-      title.includes('re:')
-  );
-}
-
 export async function fetchPostDetail(url: string): Promise<string> {
   const $ = await getHTML(url);
 
@@ -191,6 +171,20 @@ export async function fetchPostDetail(url: string): Promise<string> {
   const text = mainContent.text().trim();
 
   return text;
+}
+
+export async function getPostsWithInDays(days: number = 120): Promise<IPostInfo[]> {
+  const oneHundredTwentyDaysAgo = new Date();
+  oneHundredTwentyDaysAgo.setDate(oneHundredTwentyDaysAgo.getDate() - days);
+  const unixTimestamp = Math.floor(oneHundredTwentyDaysAgo.getTime() / 1000);
+
+  // 假設使用 mongoose 的 model 名為 Post
+  const posts = await PostInfoModel.find({
+    batchNo: { $gte: unixTimestamp },
+    tag: '標的',
+  }).lean();
+
+  return posts;
 }
 
 export default {

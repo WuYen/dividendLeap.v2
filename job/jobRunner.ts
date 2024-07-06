@@ -1,13 +1,8 @@
 import mongoose from 'mongoose';
 import config from '../utility/config';
-
-import updateDayInfo from './updateDayInfo';
-import updateSchedule from './updateSchedule';
+import { filterPositive, getDataAndProcessToResult } from '../service/rankingService';
 
 mongoose.connect(config.MONGODB_URI).then(async () => {
-  var rawData = [];
-
-  //await updateSchedule(rawData);
-  //await updateDayInfo();
+  //await filterPositive();
   mongoose.disconnect();
 });

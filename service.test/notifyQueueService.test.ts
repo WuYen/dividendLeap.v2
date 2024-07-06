@@ -1,32 +1,36 @@
-import { IAuthor } from "../model/Author";
-import { ILineToken, TokenLevel } from "../model/lineToken";
-import { IPostInfo } from "../model/PostInfo";
-import { mainProcess } from "../service/notifyQueueService"; // Adjust the import according to your module structure
+import { IAuthor } from '../model/Author';
+import { ILineToken, TokenLevel } from '../model/lineToken';
+import { IPostInfo } from '../model/PostInfo';
+import { mainProcess, notifyQueue, testQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
+import * as geminiAIService from '../service/geminiAIService';
 
-jest.mock("../service/queueTestRun", () => {
-  return {
-    ...jest.requireActual("../service/queueTestRun"),
-    sendNotificationWithDelay: jest.fn(),
-  };
-});
+jest.mock('../service/lineService', () => ({
+  sendMessage: jest.fn(),
+}));
 
-describe("mainProcess", () => {
+jest.mock('../service/geminiAIService', () => ({
+  generateWithTunedModel: jest.fn(),
+}));
+
+jest.mock('../service/pttStockPostService');
+
+describe('mainProcess', () => {
   const newPosts: IPostInfo[] = [
     {
-      tag: "stock",
-      title: "1 台積電漲停！散戶嗨翻：護盤有功",
-      href: "stock/M.1672225269.A.102",
-      author: "pttTestAuthor",
-      date: "2023-10-04 23:54:09",
+      tag: 'stock',
+      title: '1 台積電漲停！散戶嗨翻：護盤有功',
+      href: 'stock/M.1672225269.A.102',
+      author: 'pttTestAuthor',
+      date: '2023-10-04 23:54:09',
       batchNo: 12345,
       id: 123456,
     },
     {
-      tag: "stock",
-      title: "2 鴻海大跌！郭台銘：護盤沒用，要靠自身努力",
-      href: "stock/M.1672225269.A.103",
-      author: "anotherAuthor",
-      date: "2023-10-04 23:55:09",
+      tag: 'stock',
+      title: '2 鴻海大跌！郭台銘：護盤沒用，要靠自身努力',
+      href: 'stock/M.1672225269.A.103',
+      author: 'anotherAuthor',
+      date: '2023-10-04 23:55:09',
       batchNo: 12346,
       id: 123457,
     },
@@ -34,7 +38,7 @@ describe("mainProcess", () => {
 
   const subscribeAuthors: IAuthor[] = [
     {
-      name: "pttTestAuthor",
+      name: 'pttTestAuthor',
       likes: 100,
       dislikes: 50,
     },
@@ -42,25 +46,25 @@ describe("mainProcess", () => {
 
   const users: ILineToken[] = [
     {
-      channel: "A-TEST+STAND",
-      token: "myToken1",
-      updateDate: "2023-10-05 00:00:00",
+      channel: 'A-TEST+STAND',
+      token: 'myToken1',
+      updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Test, TokenLevel.Standard],
       favoritePosts: [],
     },
     {
-      channel: "B-STAND",
-      token: "myToken2",
-      updateDate: "2023-10-05 00:00:00",
+      channel: 'B-STAND',
+      token: 'myToken2',
+      updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Standard],
       favoritePosts: [],
     },
     {
-      channel: "C-BASIC",
-      token: "myToken3",
-      updateDate: "2023-10-05 00:00:00",
+      channel: 'C-BASIC',
+      token: 'myToken3',
+      updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Basic],
       favoritePosts: [],
@@ -71,54 +75,46 @@ describe("mainProcess", () => {
     jest.clearAllMocks();
   });
 
-  it("should call sendNotificationWithDelay the correct number of times", async () => {
+  it('should call sendMessage the correct number of times', async () => {
+    const { sendMessage } = jest.requireMock('../service/lineService');
+    const { generateWithTunedModel } = jest.requireMock('../service/geminiAIService');
+    generateWithTunedModel.mockResolvedValue('台積電漲停 ai message');
+    const mockPttStockPostService = jest.requireMock('../service/pttStockPostService');
+
+    mockPttStockPostService.fetchPostDetail.mockResolvedValue('台積電漲停！散戶嗨翻：護盤有功 mock');
+
     await mainProcess(newPosts, users, subscribeAuthors);
 
-    const sendNotificationWithDelay = require("../service/queueTestRun").sendNotificationWithDelay;
+    await new Promise((resolve) => {
+      testQueue.on('drain', resolve);
+    });
+    await new Promise((resolve) => {
+      notifyQueue.on('drain', resolve);
+    });
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('done');
+      }, 100);
+    });
 
-    // Verify that sendNotificationWithDelay was called 6 times
-    expect(sendNotificationWithDelay).toHaveBeenCalledTimes(6);
+    expect(testQueue.getStats().total).toEqual(1);
+    expect(geminiAIService.generateWithTunedModel).toHaveBeenCalledTimes(1);
+    expect(notifyQueue.getStats().total).toEqual(6);
+    expect(sendMessage).toHaveBeenCalledTimes(6);
 
     // Verify the calls for user A (test + standard)
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "A-TEST+STAND" }),
-        payload: expect.objectContaining({ level: TokenLevel.Test }),
-      })
-    );
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "A-TEST+STAND" }),
-        payload: expect.objectContaining({ level: TokenLevel.Standard }),
-      })
-    );
+    expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('鴻海大跌'));
+    expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('台積電漲停 ai message'));
 
     // Verify the calls for user B (standard)
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "B-STAND" }),
-        payload: expect.objectContaining({ level: TokenLevel.Standard }),
-      })
+    expect(sendMessage).toHaveBeenCalledWith(
+      'myToken2',
+      expect.stringContaining('👍:100') && expect.stringContaining('台積電漲停')
     );
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "B-STAND" }),
-        payload: expect.objectContaining({ level: TokenLevel.Standard }),
-      })
-    );
+    expect(sendMessage).toHaveBeenCalledWith('myToken2', expect.stringContaining('鴻海大跌'));
 
     // Verify the calls for user C (basic)
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "C-BASIC" }),
-        payload: expect.objectContaining({ level: TokenLevel.Basic }),
-      })
-    );
-    expect(sendNotificationWithDelay).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user: expect.objectContaining({ channel: "C-BASIC" }),
-        payload: expect.objectContaining({ level: TokenLevel.Basic }),
-      })
-    );
+    expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('台積電漲停'));
+    expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('鴻海大跌'));
   });
 });

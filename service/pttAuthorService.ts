@@ -1,10 +1,12 @@
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
-import { isRePosts, parsePosts } from './pttStockPostService';
+import { parsePosts } from './pttStockPostService';
 import fugleService, { HistoricalDataInfo } from './fugleService';
 import { toDateString, todayDate } from '../utility/dateTime';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
 import { IPostInfo } from '../model/PostInfo';
+import { getStockNoFromTitle, isPostedInOneWeek, isRePosts } from '../utility/stockPostHelper';
+import { delay } from '../utility/delay';
 
 const domain = 'https://www.ptt.cc';
 
@@ -16,11 +18,6 @@ export async function getHtmlSource(author: string): Promise<cheerio.Root> {
 
 export function getTargetPosts(posts: PostInfo.IPostInfo[]): PostInfo.IPostInfo[] {
   return posts.filter((post) => post.tag == '標的' && !isRePosts(post));
-}
-
-export function getStockNoFromTitle(post: PostInfo.IPostInfo) {
-  const match = post.title.match(/\d{4,5}/);
-  return match ? match[0] : '';
 }
 
 export function getTargetDates(timestamp: number, closeDays: String[]) {
@@ -91,12 +88,6 @@ export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): strin
   return [toDateString(baseDate), toDateString(finalDate)];
 }
 
-export function isPostedInOneWeek(baseDate: Date, today: Date): boolean {
-  const oneWeekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-  const diffFromToday = today.getTime() - baseDate.getTime();
-  return diffFromToday < oneWeekInMilliseconds;
-}
-
 export async function getPriceInfoByDates(
   stockNo: string,
   startDate: string,
@@ -115,6 +106,7 @@ export async function getPriceInfoByDates(
   const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0 };
   const targetDayInfo = data.find((x) => x.date === highestPoint.date);
   if (targetDayInfo) {
+    highest.type = DiffType.HIGHEST;
     highest.diff = roundToDecimal(targetDayInfo.close - baseClose, 2);
     highest.price = targetDayInfo.close;
     highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
@@ -140,12 +132,18 @@ export function roundToDecimal(value: number, decimalPlaces: number): number {
   return Math.round(value * factor) / factor;
 }
 
+export enum DiffType {
+  HIGHEST = 'highest',
+  LATEST = 'latest',
+  BASE = 'base',
+}
+
 export interface DiffInfo {
   date: string;
   diff: number;
   diffPercent: number;
   price: number;
-  type?: string;
+  type?: DiffType;
 }
 
 export interface PriceInfoResponse {
@@ -154,17 +152,28 @@ export interface PriceInfoResponse {
   historicalInfo: HistoricalDataInfo[];
 }
 
+export interface AuthorHistoricalResponse extends PriceInfoResponse, IPostInfo {
+  isRecentPost?: boolean;
+  isFavorite?: boolean;
+}
+
 export function processRecentPost(postDate: Date, info: PriceInfoResponse) {
   // info.historicalInfo 裡面找到最靠近 postDate 的  跟 today 的股價
   const nearestDay = findNearestHistoricalInfo(info.historicalInfo, postDate);
   if (nearestDay) {
     const baseClose = nearestDay.close;
     const lastElement = info.historicalInfo[info.historicalInfo.length - 1]; //supposed to be today
-    const processLastElement: DiffInfo = { date: lastElement.date || '', diff: 0, diffPercent: 0, price: 0 };
+    const processLastElement: DiffInfo = {
+      date: lastElement.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: 0,
+      type: DiffType.LATEST,
+    };
     processLastElement.diff = roundToDecimal(lastElement.close - baseClose, 2);
     processLastElement.price = lastElement.close;
     processLastElement.diffPercent = parseFloat(((processLastElement.diff / baseClose) * 100).toFixed(2));
-    info.historicalInfo = [nearestDay];
+    info.historicalInfo = [nearestDay]; // 會往在發文日前抓很多天, 去找到離發文日最近的一天
     info.processedData = [processLastElement];
   }
 }
@@ -227,10 +236,6 @@ function getAuthorWithRecentPostList() {
   // }
 }
 
-export interface AuthorHistoricalResponse extends PriceInfoResponse, IPostInfo {
-  isRecentPost: boolean;
-}
-
 export async function getAuthorHistoryPosts(authorId: string) {
   const $ = await getHtmlSource(authorId);
   const posts = parsePosts($, +new Date());
@@ -263,7 +268,7 @@ export async function getAuthorHistoryPosts(authorId: string) {
   return result;
 }
 
-export async function processHistoricalInfo(postInfo: PostInfo.IPostInfo) {
+export async function processHistoricalInfo(postInfo: PostInfo.IPostInfo): Promise<AuthorHistoricalResponse> {
   const stockNo = getStockNoFromTitle(postInfo);
   const postDate = new Date(postInfo.id * 1000);
   const isRecentPost = isPostedInOneWeek(postDate, todayDate());
@@ -283,5 +288,11 @@ export async function processHistoricalInfo(postInfo: PostInfo.IPostInfo) {
       target.processedData = resultInfo.processedData;
     }
   }
+  return target;
+}
+
+export async function processHistoricalInfoWithDelay(postInfo: PostInfo.IPostInfo): Promise<AuthorHistoricalResponse> {
+  const target = await processHistoricalInfo(postInfo);
+  await delay(1500);
   return target;
 }
