@@ -10,7 +10,7 @@
         "href": "/bbs/Stock/M.1710842093.A.2DB.html",
         "date": "20240319",
         "id": 1710842093,
-        "highes": {
+        "highest": {
           "date": "20240603",
           "diff": 135.1,
           "diffPercent": 300.89,
@@ -23,7 +23,7 @@
         "href": "/bbs/Stock/M.1710935457.A.031.html",
         "date": "20240320",
         "id": 1710935457,
-        "highes": {
+        "highest": {
           "date": "20240527",
           "diff": 8.45,
           "diffPercent": 23.77,
@@ -36,7 +36,7 @@
         "href": "/bbs/Stock/M.1712846271.A.63C.html",
         "date": "20240411",
         "id": 1712846271,
-        "highes": {
+        "highest": {
           "date": "20240624",
           "diff": 1,
           "diffPercent": 1.91,
@@ -59,7 +59,7 @@
         "href": "/bbs/Stock/M.1710343045.A.326.html",
         "date": "20240313",
         "id": 1710343045,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 30.7,
           "diffPercent": 91.37,
@@ -72,7 +72,7 @@
         "href": "/bbs/Stock/M.1711339050.A.4B3.html",
         "date": "20240325",
         "id": 1711339050,
-        "highes": {
+        "highest": {
           "date": "20240626",
           "diff": 6.25,
           "diffPercent": 25,
@@ -85,7 +85,7 @@
         "href": "/bbs/Stock/M.1713714491.A.2A5.html",
         "date": "20240421",
         "id": 1713714491,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 1.6,
           "diffPercent": 12.5,
@@ -98,7 +98,7 @@
         "href": "/bbs/Stock/M.1717051489.A.432.html",
         "date": "20240530",
         "id": 1717051489,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 18.2,
           "diffPercent": 149.79,
@@ -121,7 +121,7 @@
         "href": "/bbs/Stock/M.1711995317.A.E6C.html",
         "date": "20240402",
         "id": 1711995317,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 38.45,
           "diffPercent": 80.86,
@@ -134,7 +134,7 @@
         "href": "/bbs/Stock/M.1712676476.A.A46.html",
         "date": "20240409",
         "id": 1712676476,
-        "highes": {
+        "highest": {
           "date": "20240528",
           "diff": 79.7,
           "diffPercent": 101.79,
@@ -147,7 +147,7 @@
         "href": "/bbs/Stock/M.1713323414.A.4A6.html",
         "date": "20240417",
         "id": 1713323414,
-        "highes": {
+        "highest": {
           "date": "20240417",
           "diff": 0,
           "diffPercent": 0,
@@ -170,7 +170,7 @@
         "href": "/bbs/Stock/M.1709781824.A.CF9.html",
         "date": "20240307",
         "id": 1709781824,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 110,
           "diffPercent": 102.33,
@@ -183,7 +183,7 @@
         "href": "/bbs/Stock/M.1710213880.A.70A.html",
         "date": "20240312",
         "id": 1710213880,
-        "highes": {
+        "highest": {
           "date": "20240702",
           "diff": 34,
           "diffPercent": 16.5,
@@ -196,7 +196,7 @@
         "href": "/bbs/Stock/M.1711086269.A.B10.html",
         "date": "20240322",
         "id": 1711086269,
-        "highes": {
+        "highest": {
           "date": "20240619",
           "diff": 20,
           "diffPercent": 12.58,
@@ -219,7 +219,7 @@
         "href": "/bbs/Stock/M.1709795318.A.2D1.html",
         "date": "20240307",
         "id": 1709795318,
-        "highes": {
+        "highest": {
           "date": "20240412",
           "diff": 190.5,
           "diffPercent": 108.55,
@@ -232,7 +232,7 @@
         "href": "/bbs/Stock/M.1709870208.A.218.html",
         "date": "20240308",
         "id": 1709870208,
-        "highes": {
+        "highest": {
           "date": "20240318",
           "diff": 10,
           "diffPercent": 6.76,
@@ -245,7 +245,7 @@
         "href": "/bbs/Stock/M.1710476007.A.8C1.html",
         "date": "20240315",
         "id": 1710476007,
-        "highes": {
+        "highest": {
           "date": "20240401",
           "diff": 23,
           "diffPercent": 20.54,
@@ -258,7 +258,7 @@
         "href": "/bbs/Stock/M.1711462430.A.316.html",
         "date": "20240326",
         "id": 1711462430,
-        "highes": {
+        "highest": {
           "date": "20240702",
           "diff": 67,
           "diffPercent": 28.76,
@@ -271,7 +271,7 @@
         "href": "/bbs/Stock/M.1711939256.A.B36.html",
         "date": "20240401",
         "id": 1711939256,
-        "highes": {
+        "highest": {
           "date": "20240418",
           "diff": 57.5,
           "diffPercent": 24.47,
@@ -284,7 +284,7 @@
         "href": "/bbs/Stock/M.1712543862.A.378.html",
         "date": "20240408",
         "id": 1712543862,
-        "highes": {
+        "highest": {
           "date": "20240521",
           "diff": 6.1,
           "diffPercent": 9.31,
@@ -297,7 +297,7 @@
         "href": "/bbs/Stock/M.1713411490.A.C27.html",
         "date": "20240418",
         "id": 1713411490,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 22.2,
           "diffPercent": 25,
@@ -310,7 +310,7 @@
         "href": "/bbs/Stock/M.1716950585.A.35D.html",
         "date": "20240529",
         "id": 1716950585,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 2.35,
           "diffPercent": 6.47,
@@ -323,7 +323,7 @@
         "href": "/bbs/Stock/M.1719543345.A.1A6.html",
         "date": "20240628",
         "id": 1719543345,
-        "highes": {
+        "highest": {
           "date": "20240628",
           "diff": 0,
           "diffPercent": 0,
@@ -346,7 +346,7 @@
         "href": "/bbs/Stock/M.1709333583.A.31B.html",
         "date": "20240302",
         "id": 1709333583,
-        "highes": {
+        "highest": {
           "date": "20240408",
           "diff": 15.5,
           "diffPercent": 13.3,
@@ -359,7 +359,7 @@
         "href": "/bbs/Stock/M.1709693265.A.7CC.html",
         "date": "20240306",
         "id": 1709693265,
-        "highes": {
+        "highest": {
           "date": "20240603",
           "diff": 71.7,
           "diffPercent": 83.57,
@@ -372,7 +372,7 @@
         "href": "/bbs/Stock/M.1713501870.A.4E5.html",
         "date": "20240419",
         "id": 1713501870,
-        "highes": {
+        "highest": {
           "date": "20240614",
           "diff": 21.1,
           "diffPercent": 28.51,
@@ -385,7 +385,7 @@
         "href": "/bbs/Stock/M.1715008077.A.113.html",
         "date": "20240506",
         "id": 1715008077,
-        "highes": {
+        "highest": {
           "date": "20240529",
           "diff": 149,
           "diffPercent": 22.51,
@@ -398,7 +398,7 @@
         "href": "/bbs/Stock/M.1716343615.A.564.html",
         "date": "20240522",
         "id": 1716343615,
-        "highes": {
+        "highest": {
           "date": "20240603",
           "diff": 47.5,
           "diffPercent": 43.18,
@@ -421,7 +421,7 @@
         "href": "/bbs/Stock/M.1711685913.A.E6C.html",
         "date": "20240329",
         "id": 1711685913,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 67.5,
           "diffPercent": 45,
@@ -434,7 +434,7 @@
         "href": "/bbs/Stock/M.1713501801.A.E11.html",
         "date": "20240419",
         "id": 1713501801,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 74.5,
           "diffPercent": 52.1,
@@ -447,7 +447,7 @@
         "href": "/bbs/Stock/M.1715745045.A.200.html",
         "date": "20240515",
         "id": 1715745045,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 47,
           "diffPercent": 27.57,
@@ -470,7 +470,7 @@
         "href": "/bbs/Stock/M.1718599080.A.DE0.html",
         "date": "20240617",
         "id": 1718599080,
-        "highes": {
+        "highest": {
           "date": "20240618",
           "diff": 9.1,
           "diffPercent": 9.8,
@@ -483,7 +483,7 @@
         "href": "/bbs/Stock/M.1718759248.A.7B3.html",
         "date": "20240619",
         "id": 1718759248,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 28.2,
           "diffPercent": 43.38,
@@ -496,7 +496,7 @@
         "href": "/bbs/Stock/M.1718933078.A.791.html",
         "date": "20240621",
         "id": 1718933078,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 7.45,
           "diffPercent": 15.6,
@@ -509,7 +509,7 @@
         "href": "/bbs/Stock/M.1719370718.A.689.html",
         "date": "20240626",
         "id": 1719370718,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 19.5,
           "diffPercent": 48.87,
@@ -532,7 +532,7 @@
         "href": "/bbs/Stock/M.1709262770.A.35C.html",
         "date": "20240301",
         "id": 1709262770,
-        "highes": {
+        "highest": {
           "date": "20240701",
           "diff": 35.6,
           "diffPercent": 67.04,
@@ -545,7 +545,7 @@
         "href": "/bbs/Stock/M.1710996895.A.A7A.html",
         "date": "20240321",
         "id": 1710996895,
-        "highes": {
+        "highest": {
           "date": "20240401",
           "diff": 14,
           "diffPercent": 11.67,
@@ -558,7 +558,7 @@
         "href": "/bbs/Stock/M.1719199270.A.2E2.html",
         "date": "20240624",
         "id": 1719199270,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 2.7,
           "diffPercent": 3.45,
@@ -581,7 +581,7 @@
         "href": "/bbs/Stock/M.1709796793.A.CAC.html",
         "date": "20240307",
         "id": 1709796793,
-        "highes": {
+        "highest": {
           "date": "20240506",
           "diff": 9,
           "diffPercent": 43.27,
@@ -594,7 +594,7 @@
         "href": "/bbs/Stock/M.1712664877.A.B17.html",
         "date": "20240409",
         "id": 1712664877,
-        "highes": {
+        "highest": {
           "date": "20240429",
           "diff": 3.2,
           "diffPercent": 30.33,
@@ -607,7 +607,7 @@
         "href": "/bbs/Stock/M.1713502288.A.41C.html",
         "date": "20240419",
         "id": 1713502288,
-        "highes": {
+        "highest": {
           "date": "20240503",
           "diff": 0.45,
           "diffPercent": 3.72,
@@ -630,7 +630,7 @@
         "href": "/bbs/Stock/M.1709742949.A.7B0.html",
         "date": "20240307",
         "id": 1709742949,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 4.4,
           "diffPercent": 27.41,
@@ -643,7 +643,7 @@
         "href": "/bbs/Stock/M.1712220722.A.F0D.html",
         "date": "20240404",
         "id": 1712220722,
-        "highes": {
+        "highest": {
           "date": "20240522",
           "diff": 14.55,
           "diffPercent": 32.15,
@@ -656,7 +656,7 @@
         "href": "/bbs/Stock/M.1717604823.A.CE8.html",
         "date": "20240606",
         "id": 1717604823,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 47,
           "diffPercent": 43.72,
@@ -669,7 +669,7 @@
         "href": "/bbs/Stock/M.1719842953.A.043.html",
         "date": "20240701",
         "id": 1719842953,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": -0.15,
           "diffPercent": -0.83,
@@ -691,7 +691,7 @@
         "href": "/bbs/Stock/M.1712452190.A.8C3.html",
         "date": "20240407",
         "id": 1712452190,
-        "highes": {
+        "highest": {
           "date": "20240415",
           "diff": 5.5,
           "diffPercent": 4.2,
@@ -704,7 +704,7 @@
         "href": "/bbs/Stock/M.1716797443.A.669.html",
         "date": "20240527",
         "id": 1716797443,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 56.5,
           "diffPercent": 38.31,
@@ -717,7 +717,7 @@
         "href": "/bbs/Stock/M.1717636353.A.D39.html",
         "date": "20240606",
         "id": 1717636353,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 13.25,
           "diffPercent": 33.67,
@@ -740,7 +740,7 @@
         "href": "/bbs/Stock/M.1713270478.A.D51.html",
         "date": "20240416",
         "id": 1713270478,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 76.5,
           "diffPercent": 54.26,
@@ -753,7 +753,7 @@
         "href": "/bbs/Stock/M.1715528178.A.591.html",
         "date": "20240512",
         "id": 1715528178,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 0.5,
           "diffPercent": 2.66,
@@ -766,7 +766,7 @@
         "href": "/bbs/Stock/M.1716127301.A.95F.html",
         "date": "20240519",
         "id": 1716127301,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 50,
           "diffPercent": 29.85,
@@ -779,7 +779,7 @@
         "href": "/bbs/Stock/M.1716772675.A.7CD.html",
         "date": "20240527",
         "id": 1716772675,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 32.5,
           "diffPercent": 17.57,
@@ -792,7 +792,7 @@
         "href": "/bbs/Stock/M.1716857552.A.2C4.html",
         "date": "20240528",
         "id": 1716857552,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 140,
           "diffPercent": 16.18,
@@ -815,7 +815,7 @@
         "href": "/bbs/Stock/M.1709774762.A.CFA.html",
         "date": "20240307",
         "id": 1709774762,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 25.6,
           "diffPercent": 48.12,
@@ -828,7 +828,7 @@
         "href": "/bbs/Stock/M.1713885197.A.E08.html",
         "date": "20240423",
         "id": 1713885197,
-        "highes": {
+        "highest": {
           "date": "20240529",
           "diff": 51,
           "diffPercent": 18.15,
@@ -841,7 +841,7 @@
         "href": "/bbs/Stock/M.1714366046.A.54C.html",
         "date": "20240429",
         "id": 1714366046,
-        "highes": {
+        "highest": {
           "date": "20240701",
           "diff": 5.9,
           "diffPercent": 8.53,
@@ -854,7 +854,7 @@
         "href": "/bbs/Stock/M.1716772990.A.32E.html",
         "date": "20240527",
         "id": 1716772990,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 36.5,
           "diffPercent": 12.44,
@@ -867,7 +867,7 @@
         "href": "/bbs/Stock/M.1718110601.A.E1C.html",
         "date": "20240611",
         "id": 1718110601,
-        "highes": {
+        "highest": {
           "date": "20240702",
           "diff": 19.5,
           "diffPercent": 10.74,
@@ -880,7 +880,7 @@
         "href": "/bbs/Stock/M.1720056810.A.9AA.html",
         "date": "20240704",
         "id": 1720056810,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 0.95,
           "diffPercent": 3,
@@ -902,7 +902,7 @@
         "href": "/bbs/Stock/M.1711531376.A.368.html",
         "date": "20240327",
         "id": 1711531376,
-        "highes": {
+        "highest": {
           "date": "20240527",
           "diff": 8.5,
           "diffPercent": 7.56,
@@ -915,7 +915,7 @@
         "href": "/bbs/Stock/M.1712725262.A.0D3.html",
         "date": "20240410",
         "id": 1712725262,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 102.5,
           "diffPercent": 25.28,
@@ -928,7 +928,7 @@
         "href": "/bbs/Stock/M.1713246138.A.01A.html",
         "date": "20240416",
         "id": 1713246138,
-        "highes": {
+        "highest": {
           "date": "20240527",
           "diff": 25.7,
           "diffPercent": 26.97,
@@ -951,7 +951,7 @@
         "href": "/bbs/Stock/M.1711382875.A.70C.html",
         "date": "20240326",
         "id": 1711382875,
-        "highes": {
+        "highest": {
           "date": "20240408",
           "diff": 15,
           "diffPercent": 12.82,
@@ -964,7 +964,7 @@
         "href": "/bbs/Stock/M.1715001288.A.E3E.html",
         "date": "20240506",
         "id": 1715001288,
-        "highes": {
+        "highest": {
           "date": "20240620",
           "diff": 68,
           "diffPercent": 25.95,
@@ -977,7 +977,7 @@
         "href": "/bbs/Stock/M.1718288730.A.5D0.html",
         "date": "20240613",
         "id": 1718288730,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 61.5,
           "diffPercent": 22.91,
@@ -1000,7 +1000,7 @@
         "href": "/bbs/Stock/M.1711733212.A.4A5.html",
         "date": "20240330",
         "id": 1711733212,
-        "highes": {
+        "highest": {
           "date": "20240410",
           "diff": 2.2,
           "diffPercent": 3.06,
@@ -1013,7 +1013,7 @@
         "href": "/bbs/Stock/M.1713280342.A.575.html",
         "date": "20240416",
         "id": 1713280342,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 217,
           "diffPercent": 27.54,
@@ -1026,7 +1026,7 @@
         "href": "/bbs/Stock/M.1713528771.A.263.html",
         "date": "20240419",
         "id": 1713528771,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 255,
           "diffPercent": 34,
@@ -1039,7 +1039,7 @@
         "href": "/bbs/Stock/M.1716616971.A.B22.html",
         "date": "20240525",
         "id": 1716616971,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 136,
           "diffPercent": 15.65,
@@ -1052,7 +1052,7 @@
         "href": "/bbs/Stock/M.1718764158.A.15E.html",
         "date": "20240619",
         "id": 1718764158,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 24,
           "diffPercent": 2.45,
@@ -1075,7 +1075,7 @@
         "href": "/bbs/Stock/M.1710238176.A.9CB.html",
         "date": "20240312",
         "id": 1710238176,
-        "highes": {
+        "highest": {
           "date": "20240627",
           "diff": 6.25,
           "diffPercent": 19.14,
@@ -1088,7 +1088,7 @@
         "href": "/bbs/Stock/M.1715172538.A.E23.html",
         "date": "20240508",
         "id": 1715172538,
-        "highes": {
+        "highest": {
           "date": "20240517",
           "diff": 38,
           "diffPercent": 27.14,
@@ -1101,7 +1101,7 @@
         "href": "/bbs/Stock/M.1717818396.A.0FE.html",
         "date": "20240608",
         "id": 1717818396,
-        "highes": {
+        "highest": {
           "date": "20240702",
           "diff": 1.6,
           "diffPercent": 6.91,
@@ -1124,7 +1124,7 @@
         "href": "/bbs/Stock/M.1709609514.A.F7B.html",
         "date": "20240305",
         "id": 1709609514,
-        "highes": {
+        "highest": {
           "date": "20240621",
           "diff": 57,
           "diffPercent": 33.24,
@@ -1137,7 +1137,7 @@
         "href": "/bbs/Stock/M.1717387200.A.5C8.html",
         "date": "20240603",
         "id": 1717387200,
-        "highes": {
+        "highest": {
           "date": "20240613",
           "diff": 52,
           "diffPercent": 14.21,
@@ -1150,7 +1150,7 @@
         "href": "/bbs/Stock/M.1720158813.A.7FF.html",
         "date": "20240705",
         "id": 1720158813,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 0,
           "diffPercent": 0,
@@ -1172,7 +1172,7 @@
         "href": "/bbs/Stock/M.1712635032.A.9C0.html",
         "date": "20240409",
         "id": 1712635032,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 53.5,
           "diffPercent": 24.43,
@@ -1185,7 +1185,7 @@
         "href": "/bbs/Stock/M.1717589309.A.B5E.html",
         "date": "20240605",
         "id": 1717589309,
-        "highes": {
+        "highest": {
           "date": "20240607",
           "diff": 20,
           "diffPercent": 14.81,
@@ -1198,7 +1198,7 @@
         "href": "/bbs/Stock/M.1717854312.A.745.html",
         "date": "20240608",
         "id": 1717854312,
-        "highes": {
+        "highest": {
           "date": "20240701",
           "diff": 15,
           "diffPercent": 13.22,
@@ -1221,7 +1221,7 @@
         "href": "/bbs/Stock/M.1711038689.A.D91.html",
         "date": "20240322",
         "id": 1711038689,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 3.25,
           "diffPercent": 20.63,
@@ -1234,7 +1234,7 @@
         "href": "/bbs/Stock/M.1713966632.A.B5F.html",
         "date": "20240424",
         "id": 1713966632,
-        "highes": {
+        "highest": {
           "date": "20240430",
           "diff": 5.65,
           "diffPercent": 13.48,
@@ -1247,7 +1247,7 @@
         "href": "/bbs/Stock/M.1714020442.A.2E3.html",
         "date": "20240425",
         "id": 1714020442,
-        "highes": {
+        "highest": {
           "date": "20240604",
           "diff": 10.7,
           "diffPercent": 13.75,
@@ -1270,7 +1270,7 @@
         "href": "/bbs/Stock/M.1717134209.A.7FD.html",
         "date": "20240531",
         "id": 1717134209,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 184,
           "diffPercent": 22.41,
@@ -1283,7 +1283,7 @@
         "href": "/bbs/Stock/M.1717594898.A.17D.html",
         "date": "20240605",
         "id": 1717594898,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 151,
           "diffPercent": 17.68,
@@ -1296,7 +1296,7 @@
         "href": "/bbs/Stock/M.1718164601.A.50B.html",
         "date": "20240612",
         "id": 1718164601,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 96,
           "diffPercent": 10.56,
@@ -1309,7 +1309,7 @@
         "href": "/bbs/Stock/M.1719482080.A.1F4.html",
         "date": "20240627",
         "id": 1719482080,
-        "highes": {
+        "highest": {
           "date": "20240704",
           "diff": 45,
           "diffPercent": 4.69,
@@ -1322,7 +1322,7 @@
         "href": "/bbs/Stock/M.1719568017.A.ED9.html",
         "date": "20240628",
         "id": 1719568017,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 19,
           "diffPercent": 10.56,
@@ -1345,7 +1345,7 @@
         "href": "/bbs/Stock/M.1710573113.A.C57.html",
         "date": "20240316",
         "id": 1710573113,
-        "highes": {
+        "highest": {
           "date": "20240327",
           "diff": 40.5,
           "diffPercent": 16.63,
@@ -1358,7 +1358,7 @@
         "href": "/bbs/Stock/M.1710928498.A.8C0.html",
         "date": "20240320",
         "id": 1710928498,
-        "highes": {
+        "highest": {
           "date": "20240409",
           "diff": 5,
           "diffPercent": 9.33,
@@ -1371,7 +1371,7 @@
         "href": "/bbs/Stock/M.1715937414.A.B13.html",
         "date": "20240517",
         "id": 1715937414,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 63,
           "diffPercent": 12.14,
@@ -1394,7 +1394,7 @@
         "href": "/bbs/Stock/M.1710740042.A.F28.html",
         "date": "20240318",
         "id": 1710740042,
-        "highes": {
+        "highest": {
           "date": "20240624",
           "diff": 5.15,
           "diffPercent": 17.55,
@@ -1407,7 +1407,7 @@
         "href": "/bbs/Stock/M.1712631280.A.557.html",
         "date": "20240409",
         "id": 1712631280,
-        "highes": {
+        "highest": {
           "date": "20240624",
           "diff": 3.6,
           "diffPercent": 11.65,
@@ -1420,7 +1420,7 @@
         "href": "/bbs/Stock/M.1713504851.A.8D1.html",
         "date": "20240419",
         "id": 1713504851,
-        "highes": {
+        "highest": {
           "date": "20240624",
           "diff": 4.6,
           "diffPercent": 15.38,
@@ -1433,7 +1433,7 @@
         "href": "/bbs/Stock/M.1715152039.A.472.html",
         "date": "20240508",
         "id": 1715152039,
-        "highes": {
+        "highest": {
           "date": "20240624",
           "diff": 2.7,
           "diffPercent": 8.49,
@@ -1446,7 +1446,7 @@
         "href": "/bbs/Stock/M.1720157409.A.041.html",
         "date": "20240705",
         "id": 1720157409,
-        "highes": {
+        "highest": {
           "date": "20240705",
           "diff": 0,
           "diffPercent": 0,

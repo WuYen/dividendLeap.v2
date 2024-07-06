@@ -79,26 +79,34 @@ export async function processPost(postInfo: IPostInfo) {
 
   if (result && result.data.length > 0) {
     const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
-    const baseClose = data[0].close; // 已發文日為基準
+
+    // 已發文日為基準
+    const basePoint = data[0];
+    const baseClose = basePoint.close;
+    const base: DiffInfo = {
+      date: basePoint.date || '',
+      diff: 0,
+      diffPercent: 0,
+      price: basePoint.close,
+      type: 'base',
+    };
 
     //找到資料區間內最高點
     const highestPoint: HistoricalDataInfo = getHighestPoint(data);
-    const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0 };
-    highest.type = 'highest';
+    const highest: DiffInfo = { date: highestPoint.date || '', diff: 0, diffPercent: 0, price: 0, type: 'highest' };
     highest.diff = roundToDecimal(highestPoint.close - baseClose, 2);
     highest.price = highestPoint.close;
     highest.diffPercent = parseFloat(((highest.diff / baseClose) * 100).toFixed(2));
 
     //找到最靠近今天的股價
     const lastestTradePoint = data[data.length - 1];
-    const latest: DiffInfo = { date: lastestTradePoint.date || '', diff: 0, diffPercent: 0, price: 0 };
-    latest.type = 'latest';
+    const latest: DiffInfo = { date: lastestTradePoint.date || '', diff: 0, diffPercent: 0, price: 0, type: 'latest' };
     latest.diff = roundToDecimal(lastestTradePoint.close - baseClose, 2);
     latest.price = lastestTradePoint.close;
     latest.diffPercent = parseFloat(((latest.diff / baseClose) * 100).toFixed(2));
 
     historicalPostInfo.historicalInfo = data;
-    historicalPostInfo.processedData = [highest, latest];
+    historicalPostInfo.processedData = [highest, latest, base];
   }
 
   return historicalPostInfo;

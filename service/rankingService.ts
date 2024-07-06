@@ -28,7 +28,7 @@ interface SimplePost {
   href: string;
   date: string;
   id: number;
-  highes: DiffInfo;
+  highest: DiffInfo;
 }
 
 export async function getDataAndProcessToResult() {
@@ -63,7 +63,7 @@ export function multipleRanking(jsonData: AuthorHistoricalResponse[]) {
           href: item.href as string,
           date: formatDate,
           id: item.id,
-          highes: highest,
+          highest: highest,
         });
       }
     });

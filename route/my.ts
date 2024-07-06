@@ -44,7 +44,7 @@ router.get('/author/:id/like', async (req: IAuthRequest, res: Response, next: Ne
   }
 });
 
-router.get('/author/rank', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+router.get('/authors/rank', async (req: IAuthRequest, res: Response, next: NextFunction) => {
   try {
     const filePath = path.join(__dirname, '..', '/resource/filtered_combined_ranked_authors.json');
     const fileContent = await fs.readFile(filePath, 'utf-8');
