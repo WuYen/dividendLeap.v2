@@ -116,8 +116,8 @@ export async function mainProcess(
   }
 }
 
-export async function prepareMessageByAI(href: string): Promise<string> {
-  href = `https://www.ptt.cc/${href}`;
+export async function prepareMessageByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
+  const href = `https://www.ptt.cc/${post.href}`;
 
   if (href == null || !href.length) {
     return '';
@@ -139,9 +139,13 @@ export async function prepareMessageByAI(href: string): Promise<string> {
       '接著列出原文重點摘要盡量簡短\n' +
       '文章內容如下\n\n';
     console.log(`start prompt`);
-    var promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
+    let promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
+    let textArray = ['【✨✨大神來囉✨✨】'];
+    textArray.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
+    textArray.push(promptResult);
+    textArray.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
     console.log(`end prompt`);
-    return promptResult;
+    return textArray.join('\n');
   } catch (error) {
     return '';
   }
@@ -214,7 +218,7 @@ async function generateContent(
       textContent = generateStandardContent(post, authorInfo, notifyContent);
       break;
     case TokenLevel.Test:
-      textContent = await prepareMessageByAI(post.href as string);
+      textContent = await prepareMessageByAI(post, authorInfo);
       break;
   }
 
