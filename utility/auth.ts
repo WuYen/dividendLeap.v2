@@ -31,9 +31,11 @@ function authentication(req: IAuthRequest, res: Response, next: NextFunction): v
     if (err) {
       if (err instanceof TokenExpiredError) {
         res.sendError(403, { message: '登入過期' });
+        return;
       } else {
         console.error(err);
         res.sendError(403, { message: '登入錯誤' });
+        return;
       }
     }
     req.user = user as IUserPayload;
