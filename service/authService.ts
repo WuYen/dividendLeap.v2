@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { LineTokenModel, TokenLevel } from '../model/lineToken';
-import { IUserPayload, sign } from '../utility/auth';
+import { sign } from '../utility/auth';
 import lineService from '../service/lineService';
 
 export const generateVerifyCode = (): string => {

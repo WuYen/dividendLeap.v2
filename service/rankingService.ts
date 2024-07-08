@@ -1,7 +1,7 @@
 import { IPostInfo } from '../model/PostInfo';
 import fs from 'fs';
 import path from 'path';
-import { AuthorHistoricalResponse, DiffInfo, processHistoricalInfoWithDelay } from './pttAuthorService';
+import { PostHistoricalResponse, DiffInfo, processHistoricalInfoWithDelay } from './historicalService';
 import { getPostsWithInDays } from './pttStockPostService';
 import { isValidStockPost } from '../utility/stockPostHelper';
 import { toDateString } from '../utility/dateTime';
@@ -34,7 +34,7 @@ interface SimplePost {
 export async function getDataAndProcessToResult() {
   var posts = await getPostsWithInDays(120);
   var filterPost = posts.filter((x) => isValidStockPost(x));
-  var data: AuthorHistoricalResponse[] = [];
+  var data: PostHistoricalResponse[] = [];
   for (const post of filterPost) {
     const result = await processHistoricalInfoWithDelay(post);
     data.push(result);
@@ -42,7 +42,7 @@ export async function getDataAndProcessToResult() {
   multipleRanking(data);
 }
 
-export function multipleRanking(jsonData: AuthorHistoricalResponse[]) {
+export function multipleRanking(jsonData: PostHistoricalResponse[]) {
   try {
     // 计算每个作者的数据
     const authorStatsMap: Map<string, AuthorData> = new Map();

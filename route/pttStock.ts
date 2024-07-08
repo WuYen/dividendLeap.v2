@@ -2,10 +2,10 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 
 import { AuthorModel } from '../model/Author';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
-
-import { AuthorHistoricalResponse, getAuthorHistoryPosts } from '../service/pttAuthorService';
+import { PostHistoricalResponse } from '../service/historicalService';
 import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
 import { getNewPostAndSendLineNotify } from '../service/notifyQueueService';
+import { getAuthorHistoryPosts } from '../service/pttAuthorService';
 
 const router: Router = express.Router();
 
@@ -27,7 +27,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
   if (!refresh && existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
     res.sendSuccess(200, { message: 'success', data: existingResult.data });
   } else {
-    const result: AuthorHistoricalResponse[] = await getAuthorHistoryPosts(authorId);
+    const result: PostHistoricalResponse[] = await getAuthorHistoryPosts(authorId);
     res.sendSuccess(200, { message: 'success', data: result });
   }
 });
