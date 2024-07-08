@@ -11,12 +11,12 @@ const router: Router = express.Router();
 
 router.get('/posts', async (req: Request, res: Response, next: NextFunction) => {
   var savedPosts = await getLast50Posts();
-  res.sendSuccess(200, { message: 'success', data: { posts: savedPosts } });
+  return res.sendSuccess(200, { message: 'success', data: { posts: savedPosts } });
 });
 
 router.get('/authors', async (req: Request, res: Response, next: NextFunction) => {
   const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
-  res.sendSuccess(200, { message: 'success', data: result });
+  return res.sendSuccess(200, { message: 'success', data: result });
 });
 
 router.get('/author/:id', async (req: Request, res: Response, next: NextFunction) => {
@@ -25,10 +25,10 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
   const existingResult = await AuthorHistoricalCache.findOne({ authorId }).lean().exec();
 
   if (!refresh && existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
-    res.sendSuccess(200, { message: 'success', data: existingResult.data });
+    return res.sendSuccess(200, { message: 'success', data: existingResult.data });
   } else {
     const result: PostHistoricalResponse[] = await getAuthorHistoryPosts(authorId);
-    res.sendSuccess(200, { message: 'success', data: result });
+    return res.sendSuccess(200, { message: 'success', data: result });
   }
 });
 

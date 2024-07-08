@@ -57,16 +57,16 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   const channel = req.query.channel || '';
   if (channel?.length) {
     const encodeMsg = encodeURIComponent(messageBuilder.join('\n'));
-    res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
+    return res.redirect(`/line/send?msg=${encodeMsg}&channel=${channel}`);
   } else {
-    res.sendSuccess(200, { message: messageBuilder.join('\n') });
+    return res.sendSuccess(200, { message: messageBuilder.join('\n') });
   }
 });
 
 router.get('/raw/:symbol', async (req: Request, res: Response, next: NextFunction) => {
   const symbol = req.params.symbol;
   const result = await getHistoricalPrices(symbol);
-  res.sendSuccess(200, { data: result });
+  return res.sendSuccess(200, { data: result });
 });
 
 // 美股大盤當日趨勢:

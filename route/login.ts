@@ -7,10 +7,10 @@ router.post('/account', async (req: Request, res: Response) => {
   try {
     const { account } = req.body;
     const message = await sendVerificationCode(account);
-    res.sendSuccess(200, { message });
+    return res.sendSuccess(200, { message });
   } catch (error) {
     console.error(error);
-    res.sendError(500, { message: (error as Error).message });
+    return res.sendError(500, { message: (error as Error).message });
   }
 });
 
@@ -18,10 +18,10 @@ router.post('/verify', async (req: Request, res: Response) => {
   try {
     const { account, verifyCode } = req.body;
     const token = await verifyCodeAndGenerateToken(account, verifyCode);
-    res.sendSuccess(200, { message: '登入成功', data: token });
+    return res.sendSuccess(200, { message: '登入成功', data: token });
   } catch (error) {
     console.error(error);
-    res.sendError(500, { message: (error as Error).message });
+    return res.sendError(500, { message: (error as Error).message });
   }
 });
 
