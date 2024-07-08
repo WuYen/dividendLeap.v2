@@ -1,10 +1,10 @@
 import mongoose, { Model, Schema } from 'mongoose';
+
 interface IKeyValue {
   key: string;
   value: any;
 }
 
-// Interface
 interface ISchedule {
   stockNo: string;
   stockName: string;

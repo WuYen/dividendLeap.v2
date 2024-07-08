@@ -34,4 +34,30 @@ async function sendMessage(token: string, message: string): Promise<AxiosRespons
   return response;
 }
 
-export default { sendMessage, getTokenByChannel, getTokensByChannels, getAllEnabledChannel };
+async function retrieveUserLineToken(channel: string, channels: string) {
+  let tokenInfos: ILineToken[] | null = [];
+
+  if (channel) {
+    const token = await getTokenByChannel(channel);
+    if (token == null) {
+      throw new Error('No match token for ' + channel);
+    }
+    tokenInfos.push(token);
+  } else if (channels) {
+    const splittedChannel = channels.split(',');
+    const savedTokens = await getTokensByChannels(splittedChannel);
+    if (savedTokens == null || savedTokens.length < 1) {
+      throw new Error('No match tokens for ' + channels);
+    }
+    tokenInfos = savedTokens;
+  } else {
+    const retrivedTokens = await getAllEnabledChannel();
+    if (retrivedTokens == null || retrivedTokens.length < 1) {
+      throw new Error('No match tokens for ' + channels);
+    }
+    tokenInfos = retrivedTokens;
+  }
+  return tokenInfos;
+}
+
+export default { retrieveUserLineToken, sendMessage, getTokenByChannel, getTokensByChannels, getAllEnabledChannel };

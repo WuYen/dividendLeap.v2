@@ -67,19 +67,18 @@ export async function processHistoricalInfoWithDelay(postInfo: PostInfo.IPostInf
 
 export function findNearestHistoricalInfo(historicalInfo: HistoricalDataInfo[], postDate: Date): HistoricalDataInfo {
   // 找到與 postDate 最接近的日期
-
   return historicalInfo.reduce((closest: HistoricalDataInfo, current: HistoricalDataInfo) => {
     const currentDate = new Date(
       parseInt(current.date.substring(0, 4)), // 年份
       parseInt(current.date.substring(4, 6)) - 1, // 月份（要減 1 因為月份從 0 開始）
-      parseInt(current.date.substring(6))
-    ); // 日
+      parseInt(current.date.substring(6)) // 日
+    );
 
     const closestDate = new Date(
       parseInt(closest.date.substring(0, 4)), // 年份
       parseInt(closest.date.substring(4, 6)) - 1, // 月份
-      parseInt(closest.date.substring(6))
-    ); // 日
+      parseInt(closest.date.substring(6)) // 日
+    );
 
     // 計算當前日期與 postDate 之間的時間差
     const currentDiff = Math.abs(currentDate.getTime() - postDate.getTime());

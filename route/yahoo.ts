@@ -11,11 +11,13 @@ interface IDiff {
   diffRatio: number;
   close: number;
 }
+
 interface IndexMapping {
   key: string;
   value: string;
   query: string;
 }
+
 const indexMapping: IndexMapping[] = [
   { key: 'DJI', value: '道瓊工業指數', query: '%5EDJI' },
   { key: 'GSPC', value: '標普500指數', query: '%5EGSPC' },
