@@ -173,7 +173,7 @@ export function filterPositive() {
     try {
       var rank = JSON.parse(data) as AuthorStats[];
 
-      var filtered = rank.filter((x) => x.score && x.score > 5 && x.posts.length >= 3 && x.median > 10 && x.mean > 10);
+      var filtered = rank.filter((x) => x.score && x.score > 5 && x.median > 10 && x.mean > 10);
       filtered.forEach((authorData, index) => (authorData.combinedRank = index + 1));
       const filePath = path.join(__dirname, '..', '/resource');
       writeResultToJsonFile(`${filePath}/filtered_combined_ranked_authors.json`, filtered);
