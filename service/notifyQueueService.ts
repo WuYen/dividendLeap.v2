@@ -71,7 +71,7 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
       return (post.tag === '標的' && !isRePosts(post)) || (!!authorInfo && post.tag === '標的');
     });
     if (targetPosts.length > 0) {
-      const tokenInfos: ILineToken[] | null = await retrieveUserLineToken(channel, channels);
+      const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
       if (tokenInfos != null && tokenInfos.length > 0) {
         await mainProcess(targetPosts, tokenInfos, subscribeAuthors);
       }
@@ -149,32 +149,6 @@ export async function prepareMessageByAI(post: IPostInfo, authorInfo: IAuthor | 
   } catch (error) {
     return '';
   }
-}
-
-async function retrieveUserLineToken(channel: string, channels: string) {
-  let tokenInfos: ILineToken[] | null = [];
-
-  if (channel) {
-    const token = await lineService.getTokenByChannel(channel);
-    if (token == null) {
-      throw new Error('No match token for ' + channel);
-    }
-    tokenInfos.push(token);
-  } else if (channels) {
-    const splittedChannel = channels.split(',');
-    const savedTokens = await lineService.getTokensByChannels(splittedChannel);
-    if (savedTokens == null || savedTokens.length < 1) {
-      throw new Error('No match tokens for ' + channels);
-    }
-    tokenInfos = savedTokens;
-  } else {
-    const retrivedTokens = await lineService.getAllEnabledChannel();
-    if (retrivedTokens == null || retrivedTokens.length < 1) {
-      throw new Error('No match tokens for ' + channels);
-    }
-    tokenInfos = retrivedTokens;
-  }
-  return tokenInfos;
 }
 
 function generateBasicContent(post: IPostInfo, notifyContent: string[]): string {

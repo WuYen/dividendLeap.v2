@@ -2,10 +2,10 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 
 import { AuthorModel } from '../model/Author';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
-
-import { AuthorHistoricalResponse, getAuthorHistoryPosts } from '../service/pttAuthorService';
+import { PostHistoricalResponse } from '../service/historicalService';
 import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
 import { getNewPostAndSendLineNotify } from '../service/notifyQueueService';
+import { getAuthorHistoryPosts, getAuthors } from '../service/pttAuthorService';
 
 const router: Router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/posts', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 router.get('/authors', async (req: Request, res: Response, next: NextFunction) => {
-  const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
+  const result = await getAuthors();
   return res.sendSuccess(200, { message: 'success', data: result });
 });
 
@@ -27,7 +27,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
   if (!refresh && existingResult && Date.now() - existingResult.timestamp < 3 * 60 * 60 * 1000) {
     return res.sendSuccess(200, { message: 'success', data: existingResult.data });
   } else {
-    const result: AuthorHistoricalResponse[] = await getAuthorHistoryPosts(authorId);
+    const result: PostHistoricalResponse[] = await getAuthorHistoryPosts(authorId);
     return res.sendSuccess(200, { message: 'success', data: result });
   }
 });
@@ -62,24 +62,5 @@ router.get('/post/:id', async (req: Request, res: Response, next: NextFunction) 
     return res.sendError(500, { message: 'send notify fail' });
   }
 });
-
-// router.get('/post/summary/:id', async (req: Request, res: Response, next: NextFunction) => {
-//   try {
-//     const postId = req.params.id;
-//     if (!postId) {
-//       return res.sendError(500, { message: 'no postId' });
-//     }
-
-//     var postContent = await prepareMessageByAI(`/bbs/Stock/${postId}`);
-
-//     return res.sendSuccess(200, {
-//       message: `send notify success`,
-//       data: postContent,
-//     });
-//   } catch (error) {
-//     console.log('send notify fail', error);
-//     return res.sendError(500, { message: 'send notify fail' });
-//   }
-// });
 
 export default router;

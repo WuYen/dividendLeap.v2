@@ -1,6 +1,5 @@
 import mongoose, { Model, Schema } from 'mongoose';
 
-// Interface
 interface IStockList {
   stockNo: string;
   stockName: string;
