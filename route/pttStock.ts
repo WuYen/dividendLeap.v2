@@ -5,7 +5,7 @@ import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 import { PostHistoricalResponse } from '../service/historicalService';
 import { fetchPostDetail, getLast50Posts } from '../service/pttStockPostService';
 import { getNewPostAndSendLineNotify } from '../service/notifyQueueService';
-import { getAuthorHistoryPosts } from '../service/pttAuthorService';
+import { getAuthorHistoryPosts, getAuthors } from '../service/pttAuthorService';
 
 const router: Router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/posts', async (req: Request, res: Response, next: NextFunction) => 
 });
 
 router.get('/authors', async (req: Request, res: Response, next: NextFunction) => {
-  const result = await AuthorModel.find().sort({ likes: -1 }).lean().exec();
+  const result = await getAuthors();
   return res.sendSuccess(200, { message: 'success', data: result });
 });
 

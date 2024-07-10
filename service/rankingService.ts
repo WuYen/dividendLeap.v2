@@ -17,7 +17,7 @@ interface AuthorPosts {
   posts: SimplePost[];
 }
 
-interface AuthorStats extends IAuthor {
+export interface AuthorStats extends IAuthor {
   mean: number; //平均報酬率
   maxRate: number; //報酬率最高的一篇
   minRate: number; //報酬率最低的一篇
