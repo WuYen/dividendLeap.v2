@@ -1,5 +1,5 @@
 import { IPostInfo } from '../model/PostInfo';
-import fugleService, { HistoricalDataInfo } from '../service/fugleService';
+import stockPriceService, { HistoricalDataInfo } from '../service/stockPriceService';
 import {
   processHistoricalInfo,
   getDateRangeBaseOnPostedDate,
@@ -14,7 +14,7 @@ jest.mock('../utility/requestCore', () => ({
   getHTML: jest.fn(),
 }));
 
-jest.mock('../service/fugleService', () => ({
+jest.mock('../service/stockPriceService', () => ({
   getStockPriceByDates: jest.fn(),
 }));
 
@@ -27,11 +27,11 @@ describe('測試 processHistoricalInfo non recent post', () => {
     const stockNo: string = '3163';
     const mockPost = { id: 1688428800, title: 'Stock 3163', tag: '標的', batchNo: 1625097600 } as IPostInfo;
     await processHistoricalInfo(mockPost);
-    expect(fugleService.getStockPriceByDates).toHaveBeenCalledWith(stockNo, '20230704', '20231104');
+    expect(stockPriceService.getStockPriceByDates).toHaveBeenCalledWith(stockNo, '20230704', '20231104');
   });
 
   it('基準/高點/最新 都有資料', async () => {
-    const getStockPriceByDatesMock = jest.requireMock('../service/fugleService').getStockPriceByDates;
+    const getStockPriceByDatesMock = jest.requireMock('../service/stockPriceService').getStockPriceByDates;
     getStockPriceByDatesMock.mockResolvedValue({
       symbol: '3163',
       type: 'EQUITY',

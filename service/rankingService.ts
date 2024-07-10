@@ -1,12 +1,6 @@
-import { IPostInfo } from '../model/PostInfo';
 import fs from 'fs';
 import path from 'path';
-import {
-  PostHistoricalResponse,
-  DiffInfo,
-  processHistoricalInfoWithDelay,
-  getHighestPointInfo,
-} from './historicalService';
+import { PostHistoricalResponse, DiffInfo, processHistoricalInfoWithDelay } from './historicalService';
 import { getPostsWithInDays } from './pttStockPostService';
 import { isValidStockPost } from '../utility/stockPostHelper';
 import { toDateString } from '../utility/dateTime';
@@ -24,7 +18,7 @@ export interface AuthorStats extends IAuthor {
   totalRate: number; //所有貼文報酬率加總
   median: number; //報酬率中位數
   posts: SimplePost[]; //貼文
-  score: number; // (平均+中位數+最高)/3
+  score: number; // 用來衡量作者績效的分數
   combinedRank?: number;
 }
 

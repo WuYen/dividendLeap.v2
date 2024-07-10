@@ -132,14 +132,14 @@ export async function prepareMessageByAI(post: IPostInfo, authorInfo: IAuthor | 
       return '';
     }
 
-    var promptWrod =
+    var promptWords =
       '幫我分析文章\n' +
       '首先先抓出進退場機制, 用條列的方式列出 *進場 *停利 *停損\n' +
       '如果文章中沒特別說明則該項顯示無\n' +
       '接著列出原文重點摘要盡量簡短\n' +
       '文章內容如下\n\n';
     console.log(`start prompt`);
-    let promptResult = await geminiAIService.generateWithTunedModel(promptWrod + postContent);
+    let promptResult = await geminiAIService.generateWithTunedModel(promptWords + postContent);
     let textArray = ['', '【✨✨大神來囉✨✨】'];
     textArray.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
     textArray.push(promptResult);
