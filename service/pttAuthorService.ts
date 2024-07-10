@@ -60,7 +60,7 @@ export async function getAuthors(): Promise<IAuthor[]> {
 
 export async function getAuthorRankList() {
   const isProd = process.env.NODE_ENV === 'production';
-  const filePath = path.join(__dirname, isProd ? 'resource/ranked_authors.json' : '../resource/ranked_authors.json');
+  const filePath = path.join(__dirname, isProd ? '../resource/ranked_authors.json' : '../resource/ranked_authors.json');
   const fileContent = await fs.readFile(filePath, 'utf-8');
   const rankedAuthors = JSON.parse(fileContent) as AuthorStats[];
   const authors = await getAuthors();
