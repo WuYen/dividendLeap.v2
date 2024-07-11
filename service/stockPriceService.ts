@@ -56,13 +56,6 @@ export async function getStockPriceByDates(
   }
 }
 
-const CACHE_EXPIRATION_HOURS = 24;
-function isCacheExpired(lastUpdated: Date): boolean {
-  //TODO: 要考慮 盤前 盤後  關鍵時間點  還有是不是跨天
-  const expirationTime = new Date(lastUpdated.getTime() + CACHE_EXPIRATION_HOURS * 60 * 60 * 1000);
-  return new Date() > expirationTime;
-}
-
 export async function getCachedStockPriceByDates(
   stockNo: string,
   startDate: string,
@@ -70,8 +63,8 @@ export async function getCachedStockPriceByDates(
 ): Promise<FugleStockHistoricalResponse | null> {
   let cachedData = await StockHistoricalCache.findOne({ stockNo, startDate, endDate });
 
-  if (cachedData && !isCacheExpired(cachedData.lastUpdated)) {
-    console.log('Cache hit');
+  if (cachedData && !isCacheExpired(new Date(), cachedData.createdAt)) {
+    console.log(`Cache hit ${stockNo}`);
     return cachedData.data;
   }
 
@@ -79,18 +72,16 @@ export async function getCachedStockPriceByDates(
     const rawData = await getStockPriceByDates(stockNo, startDate, endDate);
 
     if (rawData) {
-      // 更新缓存
       await StockHistoricalCache.findOneAndUpdate(
         { stockNo, startDate, endDate },
         {
           $set: {
             data: rawData,
-            lastUpdated: new Date(),
+            createdAt: new Date(),
           },
         },
         { upsert: true, new: true }
       );
-
       console.log('Data fetched and cached');
       return rawData;
     }
@@ -102,9 +93,31 @@ export async function getCachedStockPriceByDates(
   }
 }
 
+// 定义关键时间点
+const MARKET_CLOSE_HOUR = 14; // 假设市场收盘时间是下午2点
+
+export function isCacheExpired(now: Date, createdAt: Date): boolean {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const cacheDate = new Date(createdAt);
+  const cacheDay = new Date(cacheDate.getFullYear(), cacheDate.getMonth(), cacheDate.getDate());
+  const marketCloseTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), MARKET_CLOSE_HOUR, 0, 0);
+
+  // 如果缓存是今天创建的
+  if (cacheDay.getTime() === today.getTime()) {
+    // 只有在当前时间是盘后，且缓存是在今天盘中或盘前创建的情况下，才视为过期
+    return now >= marketCloseTime && cacheDate < marketCloseTime;
+  }
+
+  // 如果缓存是昨天创建的
+  if (cacheDay.getTime() === today.getTime() - 86400000) {
+    return now >= marketCloseTime;
+  }
+
+  return true; // 如果缓存比昨天还早，视为过期（虽然实际上可能已经被 TTL 删除）
+}
+
 export default {
   getStockPriceByDates,
   getStockPrice,
+  getCachedStockPriceByDates,
 };
-
-//getStockPrice('1314', '20240319');

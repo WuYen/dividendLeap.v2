@@ -45,7 +45,7 @@ export async function processHistoricalInfo(
 
   //發文日 -> 今天
   const targetDates = getDateRangeBaseOnPostedDate(postDate, today);
-  const result = await stockPriceService.getStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
+  const result = await stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
 
   if (result && result.data.length > 0) {
     const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
