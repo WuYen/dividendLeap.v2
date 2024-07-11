@@ -174,9 +174,9 @@ export async function fetchPostDetail(url: string): Promise<string> {
 }
 
 export async function getPostsWithInDays(days: number = 120, tag: string = ''): Promise<IPostInfo[]> {
-  const oneHundredTwentyDaysAgo = new Date();
-  oneHundredTwentyDaysAgo.setDate(oneHundredTwentyDaysAgo.getDate() - days);
-  const unixTimestamp = Math.floor(oneHundredTwentyDaysAgo.getTime() / 1000);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  const unixTimestamp = Math.floor(startDate.getTime());
 
   const query = {
     batchNo: { $gte: unixTimestamp },
@@ -184,7 +184,7 @@ export async function getPostsWithInDays(days: number = 120, tag: string = ''): 
   };
 
   // 查找符合条件的帖子
-  const posts = await PostInfoModel.find(query).lean();
+  const posts = await PostInfoModel.find(query).sort({ id: -1 }).select('-_id -__v').lean();
   return posts;
 }
 
