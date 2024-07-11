@@ -3,11 +3,10 @@ import config from '../utility/config';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { getStockNoFromTitle, isValidStockPost } from '../utility/stockPostHelper';
 import { PTT_DOMAIN, fetchPostDetail, getNewPosts } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
-import { isRePosts } from '../utility/stockPostHelper';
 
 interface GeneratedContent {
   post: IPostInfo;
@@ -67,8 +66,8 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   if (newPosts && newPosts.length) {
     const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
     const targetPosts = newPosts.filter((post) => {
-      const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
-      return (post.tag === '標的' && !isRePosts(post)) || (!!authorInfo && post.tag === '標的');
+      const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
+      return isValidStockPost(post) || (isSubscribeAuthor && post.tag === '標的');
     });
     if (targetPosts.length > 0) {
       const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
