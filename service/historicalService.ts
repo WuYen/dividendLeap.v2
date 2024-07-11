@@ -1,5 +1,5 @@
 import * as PostInfo from '../model/PostInfo';
-import fugleService, { HistoricalDataInfo } from './fugleService';
+import stockPriceService, { HistoricalDataInfo } from './stockPriceService';
 import { toDateString, todayDate } from '../utility/dateTime';
 import { IPostInfo } from '../model/PostInfo';
 import { getStockNoFromTitle, isPostedInOneWeek } from '../utility/stockPostHelper';
@@ -45,7 +45,7 @@ export async function processHistoricalInfo(
 
   //發文日 -> 今天
   const targetDates = getDateRangeBaseOnPostedDate(postDate, today);
-  const result = await fugleService.getStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
+  const result = await stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
 
   if (result && result.data.length > 0) {
     const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();

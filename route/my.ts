@@ -1,9 +1,7 @@
 import express, { Router, NextFunction, Response } from 'express';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { IAuthRequest, authentication } from '../utility/auth';
 import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts } from '../service/myService';
-import { getLast50Posts } from '../service/pttStockPostService';
+import { getPostsWithInDays, searchPostsByTitle } from '../service/pttStockPostService';
 import { getAuthorRankList } from '../service/pttAuthorService';
 
 const router: Router = express.Router();
@@ -23,14 +21,19 @@ router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: 
 });
 
 router.get('/posts', async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  const userId = req.user?.id || '';
-  var result = await getLast50Posts();
+  var result = await getPostsWithInDays(2);
+  return res.sendSuccess(200, { data: result });
+});
+
+router.get('/posts/search', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  const keyword = req.query.search as string;
+  const result = await searchPostsByTitle(keyword);
   return res.sendSuccess(200, { data: result });
 });
 
 router.get('/posts/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
   const userId = req.user?.id || '';
-  var result = await getFavoritePosts(userId);
+  const result = await getFavoritePosts(userId);
   return res.sendSuccess(200, { data: result });
 });
 

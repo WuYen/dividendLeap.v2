@@ -173,17 +173,29 @@ export async function fetchPostDetail(url: string): Promise<string> {
   return text;
 }
 
-export async function getPostsWithInDays(days: number = 120): Promise<IPostInfo[]> {
-  const oneHundredTwentyDaysAgo = new Date();
-  oneHundredTwentyDaysAgo.setDate(oneHundredTwentyDaysAgo.getDate() - days);
-  const unixTimestamp = Math.floor(oneHundredTwentyDaysAgo.getTime() / 1000);
+export async function getPostsWithInDays(days: number = 120, tag: string = ''): Promise<IPostInfo[]> {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  const unixTimestamp = Math.floor(startDate.getTime());
 
-  // 假設使用 mongoose 的 model 名為 Post
-  const posts = await PostInfoModel.find({
+  const query = {
     batchNo: { $gte: unixTimestamp },
-    tag: '標的',
-  }).lean();
+    ...(tag && { tag }),
+  };
 
+  // 查找符合条件的帖子
+  const posts = await PostInfoModel.find(query).sort({ id: -1 }).select('-_id -__v').lean();
+  return posts;
+}
+
+export async function searchPostsByTitle(keyword: string): Promise<IPostInfo[]> {
+  // 构建查询条件
+  const query = {
+    title: { $regex: keyword, $options: 'i' }, // 'i' 选项表示不区分大小写
+  };
+
+  // 查找符合条件的帖子
+  const posts = await PostInfoModel.find(query).lean();
   return posts;
 }
 

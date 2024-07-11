@@ -1,7 +1,7 @@
 import { ScheduleModel, ISchedule } from '../model/schedule';
 import { DayInfoModel, IDayInfo } from '../model/dayInfo';
 import { getPureDate, latestTradeDate, today, getDateFragment } from '../utility/dateTime';
-import { getStockPrice } from '../service/finMindService';
+import { finMindCaller, FinMindDataset, QueryBuilder, StockPriceQuery } from '../utility/finMindCaller';
 import { delay } from '../utility/delay';
 
 async function process() {
@@ -18,7 +18,18 @@ async function process() {
   for (let index = 0; index < schedule.length; index++) {
     const stockNo = schedule[index].stockNo;
     console.log('Process:', index + 1, stockNo);
-    const stockPriceInfo = (await getStockPrice(stockNo, latestTradeDateStr))[0];
+
+    const { year, month, day } = getDateFragment(latestTradeDateStr);
+    const dt = year + '-' + month + '-' + day;
+    const stockPriceQueryString = new QueryBuilder(FinMindDataset.TaiwanStockPrice)
+      .setParam({
+        data_id: stockNo,
+        start_date: dt,
+        end_date: dt,
+      } as StockPriceQuery)
+      .toQueryString();
+
+    const stockPriceInfo = (await finMindCaller(stockPriceQueryString))[0];
     if (stockPriceInfo != undefined) {
       const pureDate = getPureDate(stockPriceInfo.date);
       const dateTimeFragment = getDateFragment(pureDate);
