@@ -31,7 +31,7 @@ interface SimplePost {
 }
 
 export async function getDataAndProcessToResult() {
-  var posts = await getPostsWithInDays(120);
+  var posts = await getPostsWithInDays(120, '標的');
   var filterPost = posts.filter((x) => isValidStockPost(x));
   var data: PostHistoricalResponse[] = [];
   for (const post of filterPost) {
