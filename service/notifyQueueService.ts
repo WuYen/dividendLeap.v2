@@ -67,7 +67,7 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
     const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
     const targetPosts = newPosts.filter((post) => {
       const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
-      return isValidStockPost(post) || (isSubscribeAuthor && post.tag === '標的');
+      return post.tag === '標的' && (isValidStockPost(post) || isSubscribeAuthor);
     });
     if (targetPosts.length > 0) {
       const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
