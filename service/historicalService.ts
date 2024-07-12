@@ -52,7 +52,7 @@ export async function processHistoricalInfo(
     const base = getBasePointInfo(data, postDate, isRecentPost); // 發文日為基準
     const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
     const latest = getLatestPointInfo(data, base.price); //找到最靠近今天的股價
-    historicalPostInfo.historicalInfo = data;
+    historicalPostInfo.historicalInfo = isRecentPost ? [data[data.length - 1]] : data;
     historicalPostInfo.processedData = [highest, latest, base];
   }
 
