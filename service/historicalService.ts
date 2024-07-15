@@ -44,16 +44,22 @@ export async function processHistoricalInfo(
   };
 
   //發文日 -> 今天
-  const targetDates = getDateRangeBaseOnPostedDate(postDate, today);
-  const result = await stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
+  if (stockNo) {
+    const targetDates = getDateRangeBaseOnPostedDate(postDate, today);
+    const result = await stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
 
-  if (result && result.data.length > 0) {
-    const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
-    const base = getBasePointInfo(data, postDate, isRecentPost); // 發文日為基準
-    const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
-    const latest = getLatestPointInfo(data, base.price); //找到最靠近今天的股價
-    historicalPostInfo.historicalInfo = isRecentPost ? [data[data.length - 1]] : data;
-    historicalPostInfo.processedData = [highest, latest, base];
+    if (result && result.data.length > 0) {
+      const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
+      const base = getBasePointInfo(data, postDate, isRecentPost); // 發文日為基準
+      const latest = getLatestPointInfo(data, base.price); //找到最靠近今天的股價
+      historicalPostInfo.historicalInfo = isRecentPost ? [data[data.length - 1]] : data;
+      if (isRecentPost) {
+        historicalPostInfo.processedData = [latest, base];
+      } else {
+        const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
+        historicalPostInfo.processedData = [highest, latest, base];
+      }
+    }
   }
 
   return historicalPostInfo;

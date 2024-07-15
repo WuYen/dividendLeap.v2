@@ -104,3 +104,26 @@ interface IDateFragement {
 export function getPureDate(str: string) {
   return str.replace(/\D/g, '');
 }
+
+export function formatTimestampToString(timestamp: number): string {
+  const date = new Date(timestamp / 1000); // 將微秒轉換為毫秒
+
+  // 手動調整到 GMT+8
+  const utcYear = date.getUTCFullYear();
+  const utcMonth = date.getUTCMonth();
+  const utcDay = date.getUTCDate();
+  const utcHours = date.getUTCHours();
+  const utcMinutes = date.getUTCMinutes();
+  const utcSeconds = date.getUTCSeconds();
+
+  const gmtPlus8Date = new Date(Date.UTC(utcYear, utcMonth, utcDay, utcHours + 8, utcMinutes, utcSeconds));
+
+  const year = gmtPlus8Date.getUTCFullYear();
+  const month = String(gmtPlus8Date.getUTCMonth() + 1).padStart(2, '0'); // 月份是從0開始的，所以要加1
+  const day = String(gmtPlus8Date.getUTCDate()).padStart(2, '0');
+  const hours = String(gmtPlus8Date.getUTCHours()).padStart(2, '0');
+  const minutes = String(gmtPlus8Date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(gmtPlus8Date.getUTCSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}

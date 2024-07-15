@@ -6,6 +6,7 @@ import config from '../utility/config';
 import { today } from '../utility/dateTime';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
+import { sendPremiumInvitation } from '../service/notifyService';
 
 const router: Router = express.Router();
 const {
@@ -154,4 +155,20 @@ router.get('/test/send', async (req: Request, res: Response, next: NextFunction)
   }
 });
 
+router.get('/send/invitation', async (req: Request, res: Response, next: NextFunction) => {
+  const channel = req.query.channel as string;
+  const channels = req.query.channels as string;
+
+  if (!channel && !channels) {
+    return res.sendError(200, { message: 'channel is empty' });
+  }
+
+  try {
+    await sendPremiumInvitation(channel, channels);
+    return res.sendSuccess(200, { message: 'send message success' });
+  } catch (error) {
+    console.log('send notify fail', error);
+    return res.sendError(200, { message: 'send message fail' });
+  }
+});
 export default router;

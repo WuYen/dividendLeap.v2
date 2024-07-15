@@ -1,7 +1,7 @@
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { mainProcess, notifyQueue, testQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
+import { mainProcess, notifyQueue, postQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
 import * as geminiAIService from '../service/geminiAIService';
 
 jest.mock('../service/lineService', () => ({
@@ -86,7 +86,7 @@ describe('mainProcess', () => {
     await mainProcess(newPosts, users, subscribeAuthors);
 
     await new Promise((resolve) => {
-      testQueue.on('drain', resolve);
+      postQueue.on('drain', resolve);
     });
     await new Promise((resolve) => {
       notifyQueue.on('drain', resolve);
@@ -97,7 +97,7 @@ describe('mainProcess', () => {
       }, 100);
     });
 
-    expect(testQueue.getStats().total).toEqual(1);
+    expect(postQueue.getStats().total).toEqual(1);
     expect(geminiAIService.generateWithTunedModel).toHaveBeenCalledTimes(1);
     expect(notifyQueue.getStats().total).toEqual(6);
     expect(sendMessage).toHaveBeenCalledTimes(6);
