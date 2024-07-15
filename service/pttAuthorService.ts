@@ -26,7 +26,7 @@ export async function getAuthorHistoryPosts(authorId: string) {
   const posts = parsePosts($, +new Date());
   const storedPosts = await PostInfo.PostInfoModel.find({ author: authorId })
     .sort({ id: -1 }) // 按 id 降序排列
-    .limit(15) // 限定返回數量
+    .limit(12) // 限定返回數量
     .lean()
     .exec();
 
@@ -37,7 +37,7 @@ export async function getAuthorHistoryPosts(authorId: string) {
   console.log(`posts.length:${combinedPosts.length}`);
 
   const result: PostHistoricalResponse[] = [];
-  for (let i = 0; i < Math.min(combinedPosts.length, 8); i++) {
+  for (let i = 0; i < Math.min(combinedPosts.length, 12); i++) {
     const target: PostHistoricalResponse = await processHistoricalInfo(combinedPosts[i]);
     result.push(target);
   }
