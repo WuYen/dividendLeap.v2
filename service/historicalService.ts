@@ -50,10 +50,14 @@ export async function processHistoricalInfo(
   if (result && result.data.length > 0) {
     const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
     const base = getBasePointInfo(data, postDate, isRecentPost); // 發文日為基準
-    const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
     const latest = getLatestPointInfo(data, base.price); //找到最靠近今天的股價
     historicalPostInfo.historicalInfo = isRecentPost ? [data[data.length - 1]] : data;
-    historicalPostInfo.processedData = [highest, latest, base];
+    if (isRecentPost) {
+      historicalPostInfo.processedData = [latest, base];
+    } else {
+      const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
+      historicalPostInfo.processedData = [highest, latest, base];
+    }
   }
 
   return historicalPostInfo;
