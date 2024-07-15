@@ -1,6 +1,7 @@
 import { StockHistoricalCache } from '../model/stockHistoricalCache';
-import { getDateFragment } from '../utility/dateTime';
-import { fugleCaller } from '../utility/fugleCaller';
+import { getDateFragment, toDateString } from '../utility/dateTime';
+import { FugleAPIBuilder, getHistoricalCandles } from '../utility/fugleCaller';
+import { FugleDataset, StockHistoricalResponse } from '../utility/fugleTypes';
 
 export interface FugleStockHistoricalResponse {
   symbol: string;
@@ -22,20 +23,6 @@ export interface HistoricalDataInfo {
   change: number;
 }
 
-export async function getStockPrice(stockNo: string, date: string): Promise<FugleStockHistoricalResponse | null> {
-  try {
-    const { year, month, day } = getDateFragment(date);
-    const dt = year + '-' + month + '-' + day;
-    const query = `fields=open,high,low,close,volume&from=${dt}&to=${dt}`;
-    const response = await fugleCaller(stockNo, query);
-    const rawData = response.data as FugleStockHistoricalResponse;
-    return rawData;
-  } catch (error) {
-    console.log('fugle dayInfo error', error);
-    return null;
-  }
-}
-
 export async function getStockPriceByDates(
   stockNo: string,
   startDate: string,
@@ -47,9 +34,29 @@ export async function getStockPriceByDates(
     const { ...endFragment } = getDateFragment(endDate);
     const end = endFragment.year + '-' + endFragment.month + '-' + endFragment.day;
     const query = `fields=open,high,low,close,volume&from=${start}&to=${end}`;
-    const response = await fugleCaller(stockNo, query);
+    const response = await getHistoricalCandles(stockNo, query);
     const rawData = response.data as FugleStockHistoricalResponse;
     return rawData;
+  } catch (error) {
+    console.log('fugle dayInfo error', error);
+    return null;
+  }
+}
+
+export async function getStockPriceByDatesNew(
+  stockNo: string,
+  startDate: string,
+  endDate: string
+): Promise<StockHistoricalResponse | null> {
+  try {
+    const historicalData = await new FugleAPIBuilder(FugleDataset.StockHistorical)
+      .setParam({
+        symbol: stockNo,
+        from: toDateString(startDate),
+        to: toDateString(endDate),
+      })
+      .get();
+    return historicalData;
   } catch (error) {
     console.log('fugle dayInfo error', error);
     return null;
@@ -118,6 +125,5 @@ export function isCacheExpired(now: Date, createdAt: Date): boolean {
 
 export default {
   getStockPriceByDates,
-  getStockPrice,
   getCachedStockPriceByDates,
 };
