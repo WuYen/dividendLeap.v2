@@ -7,6 +7,8 @@ import { getStockNoFromTitle, isValidStockPost } from '../utility/stockPostHelpe
 import { PTT_DOMAIN, fetchPostDetail, getNewPosts } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
+import stockPriceService from './stockPriceService';
+import { formatTimestampToString } from '../utility/dateTime';
 
 export interface PostContent {
   post: IPostInfo;
@@ -119,7 +121,7 @@ export async function mainProcess(
   }
 }
 
-export async function prepareMessageByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
+async function generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
   const href = `https://www.ptt.cc/${post.href}`;
 
   if (href == null || !href.length) {
@@ -143,8 +145,22 @@ export async function prepareMessageByAI(post: IPostInfo, authorInfo: IAuthor | 
       '文章內容如下\n\n';
     console.log(`start prompt`);
     let promptResult = await geminiAIService.generateWithTunedModel(promptWords + postContent);
+
     let textArray = ['', '【✨✨大神來囉✨✨】'];
+    //TODO: Get rank info, or update those info to author
     textArray.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
+    try {
+      var stockNo = getStockNoFromTitle(post);
+      if (stockNo) {
+        var intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
+        intradayInfo?.lastUpdated;
+        intradayInfo &&
+          textArray.push(`及時股價: ${intradayInfo.lastPrice} at:${formatTimestampToString(intradayInfo.lastUpdated)}`);
+      }
+    } catch (error) {
+      console.error('process message with getStockPriceIntraday fail', error);
+    }
+
     textArray.push(promptResult);
     textArray.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
     console.log(`end prompt`);
@@ -195,7 +211,7 @@ async function generateContent(
       textContent = generateStandardContent(post, authorInfo, notifyContent);
       break;
     case TokenLevel.Test:
-      textContent = await prepareMessageByAI(post, authorInfo);
+      textContent = await generateAdvanceMessage(post, authorInfo);
       break;
   }
 

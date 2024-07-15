@@ -54,3 +54,14 @@ describe('isCacheExpired', () => {
     expect(isCacheExpired(now, createdAt)).toBe(true);
   });
 });
+
+// describe('test call new fugle service', () => {
+//   it('get price by date ranges', async () => {
+//     const stockNo: string = '3163';
+//     const result = await stockPriceService.getStockPriceIntraday(stockNo);
+//     expect(result).not.toBeNull();
+//   });
+//   afterEach(() => {
+//     jest.resetAllMocks();
+//   });
+// });

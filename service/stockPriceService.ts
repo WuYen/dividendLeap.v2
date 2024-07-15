@@ -1,7 +1,26 @@
 import { StockHistoricalCache } from '../model/stockHistoricalCache';
 import { toDateString } from '../utility/dateTime';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
-import { FugleDataset, StockHistoricalResponse, HistoricalDataInfo } from '../utility/fugleTypes';
+import {
+  FugleDataset,
+  StockHistoricalResponse,
+  HistoricalDataInfo,
+  StockIntradayQuoteResponse,
+} from '../utility/fugleTypes';
+
+export async function getStockPriceIntraday(stockNo: string): Promise<StockIntradayQuoteResponse | null> {
+  try {
+    const data = await new FugleAPIBuilder(FugleDataset.StockIntradayQuote)
+      .setParam({
+        symbol: stockNo,
+      })
+      .get();
+    return data;
+  } catch (error) {
+    console.log('fugle StockIntradayQuote error', error);
+    return null;
+  }
+}
 
 export async function getStockPriceByDates(
   stockNo: string,
@@ -88,4 +107,5 @@ export function isCacheExpired(now: Date, createdAt: Date): boolean {
 export default {
   getStockPriceByDates,
   getCachedStockPriceByDates,
+  getStockPriceIntraday,
 };
