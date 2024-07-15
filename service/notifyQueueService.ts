@@ -8,16 +8,20 @@ import { PTT_DOMAIN, fetchPostDetail, getNewPosts } from './pttStockPostService'
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
 
-interface GeneratedContent {
+export interface PostContent {
   post: IPostInfo;
   content: string;
   level: TokenLevel;
   isSubscribedAuthor: boolean;
 }
 
-interface NotifyEnvelop {
+export interface MessageContent {
+  content: string;
+}
+
+export interface NotifyEnvelop {
   user: ILineToken;
-  payload: GeneratedContent;
+  payload: PostContent | MessageContent;
 }
 
 // 創建隊列
@@ -36,7 +40,7 @@ export const notifyQueue = new Queue(
   { afterProcessDelay: 25 }
 );
 
-export const testQueue = new Queue(async (job: any, done: Function) => {
+export const postQueue = new Queue(async (job: any, done: Function) => {
   try {
     const { post, authorInfo, level, isSubscribedAuthor, users } = job;
     const result = await generateContent(post, authorInfo, level, isSubscribedAuthor);
@@ -49,7 +53,7 @@ export const testQueue = new Queue(async (job: any, done: Function) => {
 });
 
 // 監聽完成和失敗事件
-testQueue.on('task_finish', (taskId: number, result: any) => {
+postQueue.on('task_finish', (taskId: number, result: any) => {
   const { users, content } = result;
   for (const tokenInfo of users as ILineToken[]) {
     console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
@@ -57,7 +61,7 @@ testQueue.on('task_finish', (taskId: number, result: any) => {
   }
 });
 
-testQueue.on('task_failed', (taskId: number, error: Error) => {
+postQueue.on('task_failed', (taskId: number, error: Error) => {
   console.error(`Job ${taskId} failed with error: ${error}`);
 });
 
@@ -107,7 +111,7 @@ export async function mainProcess(
 
       if (isSubscribedAuthor) {
         console.log('=> add job to testQueue ' + post.id);
-        testQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
+        postQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
       }
     } catch (error) {
       console.error(`Error processing post ${post.id}:`, error);
@@ -175,7 +179,7 @@ async function generateContent(
   authorInfo: IAuthor | undefined,
   level: TokenLevel,
   isSubscribedAuthor: boolean
-): Promise<GeneratedContent> {
+): Promise<PostContent> {
   const notifyContent: string[] = [];
   if (isSubscribedAuthor && post.tag === '標的') {
     notifyContent.push(`【✨✨大神來囉✨✨】`);
