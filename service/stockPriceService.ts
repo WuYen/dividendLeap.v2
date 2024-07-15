@@ -1,49 +1,9 @@
 import { StockHistoricalCache } from '../model/stockHistoricalCache';
-import { getDateFragment, toDateString } from '../utility/dateTime';
-import { FugleAPIBuilder, getHistoricalCandles } from '../utility/fugleCaller';
-import { FugleDataset, StockHistoricalResponse } from '../utility/fugleTypes';
-
-export interface FugleStockHistoricalResponse {
-  symbol: string;
-  type: string;
-  exchange: string;
-  market: string;
-  timeframe: string;
-  data: HistoricalDataInfo[];
-}
-
-export interface HistoricalDataInfo {
-  date: string; //原始"2024-03-19" or 處理過會是yyyyMMdd
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  turnover: number;
-  change: number;
-}
+import { toDateString } from '../utility/dateTime';
+import { FugleAPIBuilder } from '../utility/fugleCaller';
+import { FugleDataset, StockHistoricalResponse, HistoricalDataInfo } from '../utility/fugleTypes';
 
 export async function getStockPriceByDates(
-  stockNo: string,
-  startDate: string,
-  endDate: string
-): Promise<FugleStockHistoricalResponse | null> {
-  try {
-    const { ...startFragment } = getDateFragment(startDate);
-    const start = startFragment.year + '-' + startFragment.month + '-' + startFragment.day;
-    const { ...endFragment } = getDateFragment(endDate);
-    const end = endFragment.year + '-' + endFragment.month + '-' + endFragment.day;
-    const query = `fields=open,high,low,close,volume&from=${start}&to=${end}`;
-    const response = await getHistoricalCandles(stockNo, query);
-    const rawData = response.data as FugleStockHistoricalResponse;
-    return rawData;
-  } catch (error) {
-    console.log('fugle dayInfo error', error);
-    return null;
-  }
-}
-
-export async function getStockPriceByDatesNew(
   stockNo: string,
   startDate: string,
   endDate: string
@@ -52,8 +12,8 @@ export async function getStockPriceByDatesNew(
     const historicalData = await new FugleAPIBuilder(FugleDataset.StockHistorical)
       .setParam({
         symbol: stockNo,
-        from: toDateString(startDate),
-        to: toDateString(endDate),
+        from: toDateString(startDate, '-'),
+        to: toDateString(endDate, '-'),
       })
       .get();
     return historicalData;
@@ -67,7 +27,7 @@ export async function getCachedStockPriceByDates(
   stockNo: string,
   startDate: string,
   endDate: string
-): Promise<FugleStockHistoricalResponse | null> {
+): Promise<StockHistoricalResponse | null> {
   let cachedData = await StockHistoricalCache.findOne({ stockNo, startDate, endDate });
 
   if (cachedData && !isCacheExpired(new Date(), cachedData.createdAt)) {
@@ -99,6 +59,8 @@ export async function getCachedStockPriceByDates(
     return null;
   }
 }
+
+export { HistoricalDataInfo };
 
 // 定义关键时间点
 const MARKET_CLOSE_HOUR = 14; // 假设市场收盘时间是下午2点

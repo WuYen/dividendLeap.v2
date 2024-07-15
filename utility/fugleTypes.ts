@@ -29,16 +29,18 @@ export interface StockHistoricalResponse {
   exchange: string;
   market: string;
   timeframe: string;
-  data: Array<{
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-    turnover: number;
-    change: number;
-  }>;
+  data: HistoricalDataInfo[];
+}
+
+export interface HistoricalDataInfo {
+  date: string; //原始"2024-03-19" or 處理過會是yyyyMMdd
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  turnover: number;
+  change: number;
 }
 
 export interface StockIntradayQuoteResponse {

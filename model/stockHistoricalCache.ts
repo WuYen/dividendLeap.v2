@@ -1,12 +1,12 @@
 import mongoose, { Model, Schema } from 'mongoose';
-import { FugleStockHistoricalResponse } from '../service/stockPriceService';
+import { StockHistoricalResponse } from '../utility/fugleTypes';
 
 // 定义缓存结构
 interface ICacheEntry {
   stockNo: string;
   startDate: string;
   endDate: string;
-  data: FugleStockHistoricalResponse;
+  data: StockHistoricalResponse;
   createdAt: Date;
 }
 

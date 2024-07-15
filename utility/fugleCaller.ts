@@ -1,19 +1,9 @@
 import axios from 'axios';
-import config from '../utility/config';
+import config from './config';
 import { FugleDataset, QueryType, ResponseType, StockHistoricalQuery } from './fugleTypes';
 
-export async function getHistoricalCandles(stockNo: string, query: string) {
-  //TODO: should remove once new FugleAPIBuilder is ready
-  console.log(`call fugle historical/candles/${stockNo}?${query}`);
-  return await axios.get(`https://api.fugle.tw/marketdata/v1.0/stock/historical/candles/${stockNo}?${query}`, {
-    headers: {
-      'X-API-KEY': config.FUGLE_API_KEY,
-    },
-  });
-}
-
 async function fugleCaller(url: string) {
-  console.log(`Calling Fugle API: ${url}`);
+  console.log(`Calling Fugle: ${url}`);
   return await axios.get(url, {
     headers: {
       'X-API-KEY': config.FUGLE_API_KEY,
