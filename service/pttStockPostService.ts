@@ -2,6 +2,12 @@ import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
+import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
+import { isValidStockPost } from '../utility/stockPostHelper';
+import { AuthorModel, IAuthor } from '../model/Author';
+import { ILineToken } from '../model/lineToken';
+import lineService from './lineService';
+import { processPostAndSendNotify } from './notifyQueueService';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -197,6 +203,42 @@ export async function searchPostsByTitle(keyword: string): Promise<IPostInfo[]> 
   // 查找符合条件的帖子
   const posts = await PostInfoModel.find(query).lean();
   return posts;
+}
+
+export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
+  let newPosts = await getNewPosts();
+  if (newPosts && newPosts.length) {
+    const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
+    const targetPosts = newPosts.filter((post) => {
+      const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
+      return post.tag === '標的' && (isValidStockPost(post) || isSubscribeAuthor);
+    });
+    if (targetPosts.length > 0) {
+      const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
+      if (tokenInfos != null && tokenInfos.length > 0) {
+        await processPostAndSendNotify(targetPosts, tokenInfos, subscribeAuthors);
+      }
+      console.log(`finish sending notify count:${tokenInfos.length}, post count:${targetPosts.length}`);
+    }
+    // Invalidate cache for authors with new posts
+    const authorsWithNewPosts = [...new Set(targetPosts.map((post) => post.author))];
+    await invalidateAuthorCache(authorsWithNewPosts);
+  }
+  return { postCount: newPosts?.length };
+}
+
+async function invalidateAuthorCache(authors: (string | null)[]): Promise<void> {
+  // Filter out null authors
+  const validAuthors = authors.filter((author) => author !== null) as string[];
+
+  // Find which authors have existing cache entries
+  const existingCaches = await AuthorHistoricalCache.find({ authorId: { $in: validAuthors } }).exec();
+
+  if (existingCaches.length > 0) {
+    const authorIdsToInvalidate = existingCaches.map((cache) => cache.authorId);
+    await AuthorHistoricalCache.deleteMany({ authorId: { $in: authorIdsToInvalidate } }).exec();
+    console.log(`Cache invalidated for authors: ${authorIdsToInvalidate.join(', ')}`);
+  }
 }
 
 export default {

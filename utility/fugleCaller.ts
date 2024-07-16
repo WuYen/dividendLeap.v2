@@ -60,4 +60,11 @@ export class FugleAPIBuilder<T extends FugleDataset> {
     const response = await fugleCaller(fullUrl);
     return response.data as ResponseType<T>;
   }
+
+  getURL(): string {
+    const url = this.getUrl();
+    const queryString = this.getQueryString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    return fullUrl;
+  }
 }

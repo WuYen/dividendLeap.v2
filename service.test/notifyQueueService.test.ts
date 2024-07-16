@@ -1,7 +1,7 @@
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { mainProcess, notifyQueue, postQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
+import { processPostAndSendNotify, notifyQueue, postQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
 import * as geminiAIService from '../service/geminiAIService';
 
 jest.mock('../service/lineService', () => ({
@@ -14,7 +14,7 @@ jest.mock('../service/geminiAIService', () => ({
 
 jest.mock('../service/pttStockPostService');
 
-describe('mainProcess', () => {
+describe('processPostAndSendNotify', () => {
   const newPosts: IPostInfo[] = [
     {
       tag: 'stock',
@@ -83,7 +83,7 @@ describe('mainProcess', () => {
 
     mockPttStockPostService.fetchPostDetail.mockResolvedValue('台積電漲停！散戶嗨翻：護盤有功 mock');
 
-    await mainProcess(newPosts, users, subscribeAuthors);
+    await processPostAndSendNotify(newPosts, users, subscribeAuthors);
 
     await new Promise((resolve) => {
       postQueue.on('drain', resolve);
