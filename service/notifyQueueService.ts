@@ -1,10 +1,10 @@
 import Queue from 'better-queue';
 import config from '../utility/config';
-import { AuthorModel, IAuthor } from '../model/Author';
+import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle, isValidStockPost } from '../utility/stockPostHelper';
-import { PTT_DOMAIN, fetchPostDetail, getNewPosts } from './pttStockPostService';
+import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { PTT_DOMAIN, fetchPostDetail } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
 import stockPriceService from './stockPriceService';
@@ -67,26 +67,7 @@ postQueue.on('task_failed', (taskId: number, error: Error) => {
   console.error(`Job ${taskId} failed with error: ${error}`);
 });
 
-export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
-  let newPosts = await getNewPosts();
-  if (newPosts && newPosts.length) {
-    const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
-    const targetPosts = newPosts.filter((post) => {
-      const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
-      return post.tag === '標的' && (isValidStockPost(post) || isSubscribeAuthor);
-    });
-    if (targetPosts.length > 0) {
-      const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
-      if (tokenInfos != null && tokenInfos.length > 0) {
-        await mainProcess(targetPosts, tokenInfos, subscribeAuthors);
-      }
-      console.log(`finish sending notify count:${tokenInfos.length}, post count:${targetPosts.length}`);
-    }
-  }
-  return { postCount: newPosts?.length };
-}
-
-export async function mainProcess(
+export async function processPostAndSendNotify(
   newPosts: IPostInfo[],
   users: ILineToken[],
   subscribeAuthors: IAuthor[]
