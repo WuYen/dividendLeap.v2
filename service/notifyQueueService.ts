@@ -154,8 +154,10 @@ async function generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | und
       if (stockNo) {
         var intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
         intradayInfo?.lastUpdated;
-        intradayInfo &&
-          textArray.push(`及時股價: ${intradayInfo.lastPrice} at:${formatTimestampToString(intradayInfo.lastUpdated)}`);
+        if (intradayInfo) {
+          textArray.push(`${intradayInfo.name} 股價: ${intradayInfo.lastPrice}`);
+          textArray.push(`時間: ${formatTimestampToString(intradayInfo.lastUpdated)}`);
+        }
       }
     } catch (error) {
       console.error('process message with getStockPriceIntraday fail', error);
