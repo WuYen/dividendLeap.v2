@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["Fugle"]
+  "cSpell.words": ["Fugle"],
+  "jest.runMode": "on-demand"
 }
