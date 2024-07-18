@@ -201,7 +201,7 @@ export async function searchPostsByTitle(keyword: string): Promise<IPostInfo[]> 
   };
 
   // 查找符合条件的帖子
-  const posts = await PostInfoModel.find(query).lean();
+  const posts = await PostInfoModel.find(query).sort({ id: -1 }).select('-_id -__v').lean();
   return posts;
 }
 
