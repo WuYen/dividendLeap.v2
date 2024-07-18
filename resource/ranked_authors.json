@@ -129,7 +129,7 @@
     "maxRate": 101.79,
     "minRate": 0,
     "median": 80.86,
-    "stdDev": 43.890784403511816,
+    "stdDev": 43.89078440351181,
     "posts": [
       {
         "title": "雷科 6207",
@@ -179,6 +179,88 @@
     "__v": 0,
     "score": 69.97039429537328,
     "combinedRank": 3
+  },
+  {
+    "mean": 45.35,
+    "maxRate": 83.57,
+    "minRate": 13.3,
+    "median": 43.18,
+    "stdDev": 25.95877886188023,
+    "posts": [
+      {
+        "title": "3231.TW 緯創突破下降趨勢多",
+        "href": "/bbs/Stock/M.1709333583.A.31B.html",
+        "date": "20240302",
+        "id": 1709333583,
+        "highest": {
+          "date": "20240408",
+          "diff": 15.5,
+          "diffPercent": 13.3,
+          "price": 132,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "6117.TW 迎廣 盤整突破多",
+        "href": "/bbs/Stock/M.1709693265.A.7CC.html",
+        "date": "20240306",
+        "id": 1709693265,
+        "highest": {
+          "date": "20240603",
+          "diff": 71.7,
+          "diffPercent": 83.57,
+          "price": 157.5,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3013.TW 晟銘電 GB200供應鏈多",
+        "href": "/bbs/Stock/M.1713501870.A.4E5.html",
+        "date": "20240419",
+        "id": 1713501870,
+        "highest": {
+          "date": "20240716",
+          "diff": 47.5,
+          "diffPercent": 64.19,
+          "price": 121.5,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3017.TW 奇鋐散熱Future多",
+        "href": "/bbs/Stock/M.1715008077.A.113.html",
+        "date": "20240506",
+        "id": 1715008077,
+        "highest": {
+          "date": "20240529",
+          "diff": 149,
+          "diffPercent": 22.51,
+          "price": 811,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "6117.TW 迎廣上修目標價",
+        "href": "/bbs/Stock/M.1716343615.A.564.html",
+        "date": "20240522",
+        "id": 1716343615,
+        "highest": {
+          "date": "20240603",
+          "diff": 47.5,
+          "diffPercent": 43.18,
+          "price": 157.5,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 226.75,
+    "_id": "664c2b61454abad8f09ba325",
+    "name": "kace111512",
+    "likes": 1,
+    "dislikes": 0,
+    "__v": 0,
+    "score": 47.703209366826755,
+    "combinedRank": 4
   },
   {
     "mean": 47.410000000000004,
@@ -234,14 +316,14 @@
     "dislikes": 0,
     "__v": 0,
     "score": 46.13002137337126,
-    "combinedRank": 4
+    "combinedRank": 5
   },
   {
-    "mean": 44.01333333333333,
+    "mean": 46.843333333333334,
     "maxRate": 102.33,
-    "minRate": 13.21,
-    "median": 16.5,
-    "stdDev": 41.25797889163043,
+    "minRate": 16.5,
+    "median": 21.7,
+    "stdDev": 39.29238801034566,
     "posts": [
       {
         "title": "2317 鴻海  都萬九了還躺在地板",
@@ -275,111 +357,98 @@
         "date": "20240322",
         "id": 1711086269,
         "highest": {
-          "date": "20240709",
-          "diff": 21,
-          "diffPercent": 13.21,
-          "price": 180,
+          "date": "20240711",
+          "diff": 34.5,
+          "diffPercent": 21.7,
+          "price": 193.5,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 132.04,
+    "totalRate": 140.53,
     "_id": "6689578ba6acaa06088c48c7",
     "name": "Avandia",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 41.64803308367531,
-    "combinedRank": 5
+    "score": 44.45864852502597,
+    "combinedRank": 6
   },
   {
-    "mean": 38.214,
-    "maxRate": 83.57,
-    "minRate": 13.3,
-    "median": 28.51,
-    "stdDev": 24.67111071678776,
+    "mean": 41.13,
+    "maxRate": 95.74,
+    "minRate": 9.8,
+    "median": 29.490000000000002,
+    "stdDev": 33.9877345523352,
     "posts": [
       {
-        "title": "3231.TW 緯創突破下降趨勢多",
-        "href": "/bbs/Stock/M.1709333583.A.31B.html",
-        "date": "20240302",
-        "id": 1709333583,
+        "title": "8040九暘 達發入股多",
+        "href": "/bbs/Stock/M.1718599080.A.DE0.html",
+        "date": "20240617",
+        "id": 1718599080,
         "highest": {
-          "date": "20240408",
-          "diff": 15.5,
-          "diffPercent": 13.3,
-          "price": 132,
+          "date": "20240618",
+          "diff": 9.1,
+          "diffPercent": 9.8,
+          "price": 102,
           "type": "highest"
         }
       },
       {
-        "title": "6117.TW 迎廣 盤整突破多",
-        "href": "/bbs/Stock/M.1709693265.A.7CC.html",
-        "date": "20240306",
-        "id": 1709693265,
+        "title": "3580 友威科 B波多",
+        "href": "/bbs/Stock/M.1718759248.A.7B3.html",
+        "date": "20240619",
+        "id": 1718759248,
         "highest": {
-          "date": "20240603",
-          "diff": 71.7,
-          "diffPercent": 83.57,
-          "price": 157.5,
+          "date": "20240705",
+          "diff": 28.2,
+          "diffPercent": 43.38,
+          "price": 93.2,
           "type": "highest"
         }
       },
       {
-        "title": "3013.TW 晟銘電 GB200供應鏈多",
-        "href": "/bbs/Stock/M.1713501870.A.4E5.html",
-        "date": "20240419",
-        "id": 1713501870,
+        "title": "6217 中探針 底部用力多",
+        "href": "/bbs/Stock/M.1718933078.A.791.html",
+        "date": "20240621",
+        "id": 1718933078,
         "highest": {
-          "date": "20240614",
-          "diff": 21.1,
-          "diffPercent": 28.51,
-          "price": 95.1,
+          "date": "20240705",
+          "diff": 7.45,
+          "diffPercent": 15.6,
+          "price": 55.2,
           "type": "highest"
         }
       },
       {
-        "title": "3017.TW 奇鋐散熱Future多",
-        "href": "/bbs/Stock/M.1715008077.A.113.html",
-        "date": "20240506",
-        "id": 1715008077,
+        "title": "3535 晶彩科 東捷第二 多",
+        "href": "/bbs/Stock/M.1719370718.A.689.html",
+        "date": "20240626",
+        "id": 1719370718,
         "highest": {
-          "date": "20240529",
-          "diff": 149,
-          "diffPercent": 22.51,
-          "price": 811,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "6117.TW 迎廣上修目標價",
-        "href": "/bbs/Stock/M.1716343615.A.564.html",
-        "date": "20240522",
-        "id": 1716343615,
-        "highest": {
-          "date": "20240603",
-          "diff": 47.5,
-          "diffPercent": 43.18,
-          "price": 157.5,
+          "date": "20240716",
+          "diff": 38.2,
+          "diffPercent": 95.74,
+          "price": 78.1,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 191.07,
-    "_id": "664c2b61454abad8f09ba325",
-    "name": "kace111512",
-    "likes": 1,
+    "totalRate": 164.52,
+    "_id": "6689578ba6acaa06088c48c9",
+    "name": "jason0606",
+    "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 40.07129542942272,
-    "combinedRank": 6
+    "score": 43.867858144469174,
+    "combinedRank": 7
   },
   {
-    "mean": 28.138888888888886,
+    "mean": 30.265555555555554,
     "maxRate": 108.55,
     "minRate": 6.76,
-    "median": 20.54,
-    "stdDev": 29.28247008571831,
+    "median": 24.47,
+    "stdDev": 28.736647956963754,
     "posts": [
       {
         "title": "6139亞翔-預判再預判 正面迎接白馬王子多",
@@ -413,10 +482,10 @@
         "date": "20240315",
         "id": 1710476007,
         "highest": {
-          "date": "20240401",
-          "diff": 23,
-          "diffPercent": 20.54,
-          "price": 135,
+          "date": "20240715",
+          "diff": 37,
+          "diffPercent": 33.04,
+          "price": 149,
           "type": "highest"
         }
       },
@@ -452,10 +521,10 @@
         "date": "20240408",
         "id": 1712543862,
         "highest": {
-          "date": "20240521",
-          "diff": 6.1,
-          "diffPercent": 9.31,
-          "price": 71.6,
+          "date": "20240711",
+          "diff": 9.7,
+          "diffPercent": 14.81,
+          "price": 75.2,
           "type": "highest"
         }
       },
@@ -491,22 +560,22 @@
         "date": "20240628",
         "id": 1719543345,
         "highest": {
-          "date": "20240709",
-          "diff": 10.1,
-          "diffPercent": 12.78,
-          "price": 89.1,
+          "date": "20240710",
+          "diff": 11,
+          "diffPercent": 13.92,
+          "price": 90,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 253.24999999999997,
+    "totalRate": 272.39,
     "_id": "66554ff319babaccc5e44c6d",
     "name": "owen810829",
     "likes": 2,
     "dislikes": 0,
     "__v": 0,
-    "score": 38.75091335163895,
-    "combinedRank": 7
+    "score": 40.870807298258526,
+    "combinedRank": 8
   },
   {
     "mean": 30.926666666666666,
@@ -562,83 +631,161 @@
     "dislikes": 0,
     "__v": 0,
     "score": 34.79882897058316,
-    "combinedRank": 8
+    "combinedRank": 9
   },
   {
-    "mean": 29.6625,
-    "maxRate": 49.87,
-    "minRate": 9.8,
-    "median": 29.490000000000002,
-    "stdDev": 17.23938568366054,
+    "mean": 30.673999999999996,
+    "maxRate": 92.31,
+    "minRate": 0,
+    "median": 14.844999999999999,
+    "stdDev": 33.40334270698069,
     "posts": [
       {
-        "title": "8040九暘 達發入股多",
-        "href": "/bbs/Stock/M.1718599080.A.DE0.html",
-        "date": "20240617",
-        "id": 1718599080,
+        "title": "5309系統電 儲能子公司多",
+        "href": "/bbs/Stock/M.1709773502.A.C5B.html",
+        "date": "20240307",
+        "id": 1709773502,
         "highest": {
-          "date": "20240618",
-          "diff": 9.1,
-          "diffPercent": 9.8,
-          "price": 102,
+          "date": "20240327",
+          "diff": 2.9,
+          "diffPercent": 7.9,
+          "price": 39.6,
           "type": "highest"
         }
       },
       {
-        "title": "3580 友威科 B波多",
-        "href": "/bbs/Stock/M.1718759248.A.7B3.html",
-        "date": "20240619",
-        "id": 1718759248,
+        "title": "2537聯上發 地震加速都更題材多",
+        "href": "/bbs/Stock/M.1712538176.A.057.html",
+        "date": "20240408",
+        "id": 1712538176,
         "highest": {
-          "date": "20240705",
-          "diff": 28.2,
-          "diffPercent": 43.38,
-          "price": 93.2,
+          "date": "20240716",
+          "diff": 13.2,
+          "diffPercent": 92.31,
+          "price": 27.5,
           "type": "highest"
         }
       },
       {
-        "title": "6217 中探針 底部用力多",
-        "href": "/bbs/Stock/M.1718933078.A.791.html",
+        "title": "2509全坤建 雙北都更王",
+        "href": "/bbs/Stock/M.1713148569.A.1F6.html",
+        "date": "20240415",
+        "id": 1713148569,
+        "highest": {
+          "date": "20240506",
+          "diff": 4.75,
+          "diffPercent": 21.79,
+          "price": 26.55,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2536宏普 大戶加持多",
+        "href": "/bbs/Stock/M.1713859127.A.214.html",
+        "date": "20240423",
+        "id": 1713859127,
+        "highest": {
+          "date": "20240503",
+          "diff": 2.05,
+          "diffPercent": 5.42,
+          "price": 39.85,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "8028昇陽半 聖暉&均豪入董事會多",
+        "href": "/bbs/Stock/M.1716513383.A.C5B.html",
+        "date": "20240524",
+        "id": 1716513383,
+        "highest": {
+          "date": "20240711",
+          "diff": 58,
+          "diffPercent": 86.57,
+          "price": 125,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "8147正凌 輝達Spectrum-X概念多",
+        "href": "/bbs/Stock/M.1716945263.A.C4C.html",
+        "date": "20240529",
+        "id": 1716945263,
+        "highest": {
+          "date": "20240716",
+          "diff": 34,
+          "diffPercent": 26.88,
+          "price": 160.5,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3312弘憶股 台版CoreWeave概念多",
+        "href": "/bbs/Stock/M.1718068192.A.90F.html",
+        "date": "20240611",
+        "id": 1718068192,
+        "highest": {
+          "date": "20240711",
+          "diff": 39.1,
+          "diffPercent": 56.75,
+          "price": 108,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "6146耕興 Wifi 7 + AI伺服器耦合電感 多",
+        "href": "/bbs/Stock/M.1718938901.A.D0C.html",
         "date": "20240621",
-        "id": 1718933078,
+        "id": 1718938901,
         "highest": {
-          "date": "20240705",
-          "diff": 7.45,
-          "diffPercent": 15.6,
-          "price": 55.2,
+          "date": "20240716",
+          "diff": 10.5,
+          "diffPercent": 4.57,
+          "price": 240.5,
           "type": "highest"
         }
       },
       {
-        "title": "3535 晶彩科 東捷第二 多",
-        "href": "/bbs/Stock/M.1719370718.A.689.html",
-        "date": "20240626",
-        "id": 1719370718,
+        "title": "3338泰碩 董事長連10個月買股多",
+        "href": "/bbs/Stock/M.1719464051.A.5D7.html",
+        "date": "20240627",
+        "id": 1719464051,
+        "highest": {
+          "date": "20240628",
+          "diff": 4,
+          "diffPercent": 4.55,
+          "price": 92,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "6894衛司特 台積電液中求銅多",
+        "href": "/bbs/Stock/M.1720400741.A.9A4.html",
+        "date": "20240708",
+        "id": 1720400741,
         "highest": {
           "date": "20240708",
-          "diff": 19.9,
-          "diffPercent": 49.87,
-          "price": 59.8,
+          "diff": 0,
+          "diffPercent": 0,
+          "price": 236,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 118.65,
-    "_id": "6689578ba6acaa06088c48c9",
-    "name": "jason0606",
-    "likes": 0,
+    "totalRate": 306.73999999999995,
+    "_id": "665d53062efeabae9ab0c0cd",
+    "name": "leo15824",
+    "likes": 1,
     "dislikes": 0,
     "__v": 0,
-    "score": 30.68285764079363,
-    "combinedRank": 9
+    "score": 34.39655669429571,
+    "combinedRank": 10
   },
   {
-    "mean": 28.556,
+    "mean": 29.96,
     "maxRate": 60.64,
-    "minRate": 4.26,
-    "median": 22.43,
-    "stdDev": 18.819870987868114,
+    "minRate": 6.65,
+    "median": 24.86,
+    "stdDev": 17.860554302708525,
     "posts": [
       {
         "title": "2317 鴻海多",
@@ -659,10 +806,10 @@
         "date": "20240512",
         "id": 1715528178,
         "highest": {
-          "date": "20240709",
-          "diff": 0.8,
-          "diffPercent": 4.26,
-          "price": 19.6,
+          "date": "20240712",
+          "diff": 1.25,
+          "diffPercent": 6.65,
+          "price": 20.05,
           "type": "highest"
         }
       },
@@ -698,29 +845,29 @@
         "date": "20240528",
         "id": 1716857552,
         "highest": {
-          "date": "20240709",
-          "diff": 175,
-          "diffPercent": 20.23,
-          "price": 1040,
+          "date": "20240711",
+          "diff": 215,
+          "diffPercent": 24.86,
+          "price": 1080,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 142.78,
+    "totalRate": 149.8,
     "_id": "6689578ba6acaa06088c48ce",
     "name": "IhateOGC",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 29.978145441519835,
-    "combinedRank": 10
+    "score": 31.320302071105385,
+    "combinedRank": 11
   },
   {
-    "mean": 28.605,
-    "maxRate": 43.72,
+    "mean": 29.884999999999998,
+    "maxRate": 48.84,
     "minRate": 11.14,
     "median": 29.78,
-    "stdDev": 11.699193348261238,
+    "stdDev": 13.434311482171314,
     "posts": [
       {
         "title": "成霖9934（多）",
@@ -754,10 +901,10 @@
         "date": "20240606",
         "id": 1717604823,
         "highest": {
-          "date": "20240704",
-          "diff": 47,
-          "diffPercent": 43.72,
-          "price": 154.5,
+          "date": "20240710",
+          "diff": 52.5,
+          "diffPercent": 48.84,
+          "price": 160,
           "type": "highest"
         }
       },
@@ -775,14 +922,14 @@
         }
       }
     ],
-    "totalRate": 114.42,
+    "totalRate": 119.53999999999999,
     "_id": "6689578ba6acaa06088c48cc",
     "name": "imlucky",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 29.186624515904878,
-    "combinedRank": 11
+    "score": 30.65767793695934,
+    "combinedRank": 12
   },
   {
     "mean": 25.77333333333333,
@@ -838,14 +985,14 @@
     "dislikes": 0,
     "__v": 0,
     "score": 28.295892545259033,
-    "combinedRank": 12
+    "combinedRank": 13
   },
   {
-    "mean": 27.38666666666667,
+    "mean": 28.493333333333336,
     "maxRate": 67.04,
-    "minRate": 3.45,
+    "minRate": 6.77,
     "median": 11.67,
-    "stdDev": 28.23924259292771,
+    "stdDev": 27.329918079317807,
     "posts": [
       {
         "title": "8028 昇陽半導體 多",
@@ -879,85 +1026,29 @@
         "date": "20240624",
         "id": 1719199270,
         "highest": {
-          "date": "20240705",
-          "diff": 2.7,
-          "diffPercent": 3.45,
-          "price": 81,
+          "date": "20240711",
+          "diff": 5.3,
+          "diffPercent": 6.77,
+          "price": 83.6,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 82.16000000000001,
+    "totalRate": 85.48,
     "_id": "6689578ba6acaa06088c48ca",
     "name": "CCF2016",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 27.08125339456379,
-    "combinedRank": 13
-  },
-  {
-    "mean": 24.113333333333333,
-    "maxRate": 31.28,
-    "minRate": 12.82,
-    "median": 28.24,
-    "stdDev": 8.0814575143074,
-    "posts": [
-      {
-        "title": "緯創 3231訊號來了 多",
-        "href": "/bbs/Stock/M.1711382875.A.70C.html",
-        "date": "20240326",
-        "id": 1711382875,
-        "highest": {
-          "date": "20240408",
-          "diff": 15,
-          "diffPercent": 12.82,
-          "price": 132,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "廣達2382 肉鬆多多",
-        "href": "/bbs/Stock/M.1715001288.A.E3E.html",
-        "date": "20240506",
-        "id": 1715001288,
-        "highest": {
-          "date": "20240709",
-          "diff": 74,
-          "diffPercent": 28.24,
-          "price": 336,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "郭家萬潤餅6187 多",
-        "href": "/bbs/Stock/M.1718288730.A.5D0.html",
-        "date": "20240613",
-        "id": 1718288730,
-        "highest": {
-          "date": "20240709",
-          "diff": 84,
-          "diffPercent": 31.28,
-          "price": 352.5,
-          "type": "highest"
-        }
-      }
-    ],
-    "totalRate": 72.34,
-    "_id": "6689578ba6acaa06088c48d1",
-    "name": "icehorng",
-    "likes": 0,
-    "dislikes": 0,
-    "__v": 0,
-    "score": 24.590678114976857,
+    "score": 27.468696503912227,
     "combinedRank": 14
   },
   {
-    "mean": 19.880000000000003,
-    "maxRate": 38.67,
+    "mean": 23.698,
+    "maxRate": 44,
     "minRate": 3.06,
-    "median": 19.68,
-    "stdDev": 13.962832090947739,
+    "median": 24.28,
+    "stdDev": 15.505854894200448,
     "posts": [
       {
         "title": "危機入市之6505台塑化,低檔吃苦練功用股~",
@@ -978,10 +1069,10 @@
         "date": "20240416",
         "id": 1713280342,
         "highest": {
-          "date": "20240709",
-          "diff": 252,
-          "diffPercent": 31.98,
-          "price": 1040,
+          "date": "20240711",
+          "diff": 292,
+          "diffPercent": 37.06,
+          "price": 1080,
           "type": "highest"
         }
       },
@@ -991,10 +1082,10 @@
         "date": "20240419",
         "id": 1713528771,
         "highest": {
-          "date": "20240709",
-          "diff": 290,
-          "diffPercent": 38.67,
-          "price": 1040,
+          "date": "20240711",
+          "diff": 330,
+          "diffPercent": 44,
+          "price": 1080,
           "type": "highest"
         }
       },
@@ -1004,10 +1095,10 @@
         "date": "20240525",
         "id": 1716616971,
         "highest": {
-          "date": "20240709",
-          "diff": 171,
-          "diffPercent": 19.68,
-          "price": 1040,
+          "date": "20240711",
+          "diff": 211,
+          "diffPercent": 24.28,
+          "price": 1080,
           "type": "highest"
         }
       },
@@ -1017,29 +1108,223 @@
         "date": "20240619",
         "id": 1718764158,
         "highest": {
-          "date": "20240709",
-          "diff": 59,
-          "diffPercent": 6.01,
-          "price": 1040,
+          "date": "20240711",
+          "diff": 99,
+          "diffPercent": 10.09,
+          "price": 1080,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 99.40000000000002,
+    "totalRate": 118.49000000000001,
     "_id": "6689578ba6acaa06088c48d2",
     "name": "drwashing",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 21.586683226770987,
+    "score": 25.598358456265426,
     "combinedRank": 15
   },
   {
-    "mean": 19.936666666666667,
+    "mean": 24.75,
+    "maxRate": 31.28,
+    "minRate": 12.82,
+    "median": 30.15,
+    "stdDev": 8.448388406475324,
+    "posts": [
+      {
+        "title": "緯創 3231訊號來了 多",
+        "href": "/bbs/Stock/M.1711382875.A.70C.html",
+        "date": "20240326",
+        "id": 1711382875,
+        "highest": {
+          "date": "20240408",
+          "diff": 15,
+          "diffPercent": 12.82,
+          "price": 132,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "廣達2382 肉鬆多多",
+        "href": "/bbs/Stock/M.1715001288.A.E3E.html",
+        "date": "20240506",
+        "id": 1715001288,
+        "highest": {
+          "date": "20240710",
+          "diff": 79,
+          "diffPercent": 30.15,
+          "price": 341,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "郭家萬潤餅6187 多",
+        "href": "/bbs/Stock/M.1718288730.A.5D0.html",
+        "date": "20240613",
+        "id": 1718288730,
+        "highest": {
+          "date": "20240709",
+          "diff": 84,
+          "diffPercent": 31.28,
+          "price": 352.5,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 74.25,
+    "_id": "6689578ba6acaa06088c48d1",
+    "name": "icehorng",
+    "likes": 0,
+    "dislikes": 0,
+    "__v": 0,
+    "score": 25.481583815535295,
+    "combinedRank": 16
+  },
+  {
+    "mean": 23.698,
+    "maxRate": 31.55,
+    "minRate": 12.5,
+    "median": 26.46,
+    "stdDev": 7.050008226945556,
+    "posts": [
+      {
+        "title": "2330 台積電 821吃豆腐多",
+        "href": "/bbs/Stock/M.1717134209.A.7FD.html",
+        "date": "20240531",
+        "id": 1717134209,
+        "highest": {
+          "date": "20240711",
+          "diff": 259,
+          "diffPercent": 31.55,
+          "price": 1080,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2330 台積電  ADR創新高多",
+        "href": "/bbs/Stock/M.1717594898.A.17D.html",
+        "date": "20240605",
+        "id": 1717594898,
+        "highest": {
+          "date": "20240711",
+          "diff": 226,
+          "diffPercent": 26.46,
+          "price": 1080,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2330 台積電 蘋果換機潮多",
+        "href": "/bbs/Stock/M.1718164601.A.50B.html",
+        "date": "20240612",
+        "id": 1718164601,
+        "highest": {
+          "date": "20240711",
+          "diff": 171,
+          "diffPercent": 18.81,
+          "price": 1080,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2330 台積電 哲粉甩下車多",
+        "href": "/bbs/Stock/M.1719482080.A.1F4.html",
+        "date": "20240627",
+        "id": 1719482080,
+        "highest": {
+          "date": "20240711",
+          "diff": 120,
+          "diffPercent": 12.5,
+          "price": 1080,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3374 精材 折粉滾下車多",
+        "href": "/bbs/Stock/M.1719568017.A.ED9.html",
+        "date": "20240628",
+        "id": 1719568017,
+        "highest": {
+          "date": "20240711",
+          "diff": 52.5,
+          "diffPercent": 29.17,
+          "price": 232.5,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 118.49,
+    "_id": "6689578ba6acaa06088c48d6",
+    "name": "kech9111",
+    "likes": 0,
+    "dislikes": 0,
+    "__v": 0,
+    "score": 23.877722347553043,
+    "combinedRank": 17
+  },
+  {
+    "mean": 24.106666666666666,
+    "maxRate": 44.29,
+    "minRate": 13.22,
+    "median": 14.81,
+    "stdDev": 14.286525897579937,
+    "posts": [
+      {
+        "title": "6937 TW 天虹 多",
+        "href": "/bbs/Stock/M.1712635032.A.9C0.html",
+        "date": "20240409",
+        "id": 1712635032,
+        "highest": {
+          "date": "20240715",
+          "diff": 97,
+          "diffPercent": 44.29,
+          "price": 316,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "4571 鈞興ky 機器人future多",
+        "href": "/bbs/Stock/M.1717589309.A.B5E.html",
+        "date": "20240605",
+        "id": 1717589309,
+        "highest": {
+          "date": "20240607",
+          "diff": 20,
+          "diffPercent": 14.81,
+          "price": 155,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "6629 泰金-ky 降息概念股趨勢多",
+        "href": "/bbs/Stock/M.1717854312.A.745.html",
+        "date": "20240608",
+        "id": 1717854312,
+        "highest": {
+          "date": "20240701",
+          "diff": 15,
+          "diffPercent": 13.22,
+          "price": 128.5,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 72.32,
+    "_id": "65f07eafb65b18e0bcf62d57",
+    "name": "kobekid",
+    "__v": 0,
+    "dislikes": 0,
+    "likes": 0,
+    "score": 22.485375042068856,
+    "combinedRank": 18
+  },
+  {
+    "mean": 20.016666666666666,
     "maxRate": 26.97,
     "minRate": 7.56,
-    "median": 25.28,
-    "stdDev": 8.778778705238876,
+    "median": 25.52,
+    "stdDev": 8.828062578442049,
     "posts": [
       {
         "title": "2301光寶科",
@@ -1060,10 +1345,10 @@
         "date": "20240410",
         "id": 1712725262,
         "highest": {
-          "date": "20240705",
-          "diff": 102.5,
-          "diffPercent": 25.28,
-          "price": 508,
+          "date": "20240710",
+          "diff": 103.5,
+          "diffPercent": 25.52,
+          "price": 509,
           "type": "highest"
         }
       },
@@ -1081,21 +1366,21 @@
         }
       }
     ],
-    "totalRate": 59.81,
+    "totalRate": 60.05,
     "_id": "6689578ba6acaa06088c48d0",
     "name": "underwood",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 21.230059559226596,
-    "combinedRank": 16
+    "score": 21.34200827872077,
+    "combinedRank": 19
   },
   {
-    "mean": 17.169999999999998,
+    "mean": 17.453333333333333,
     "maxRate": 48.12,
     "minRate": 3,
-    "median": 12.61,
-    "stdDev": 14.62237098877379,
+    "median": 13.46,
+    "stdDev": 14.583922273822253,
     "posts": [
       {
         "title": "8390 金益鼎 多",
@@ -1142,10 +1427,10 @@
         "date": "20240527",
         "id": 1716772990,
         "highest": {
-          "date": "20240709",
-          "diff": 42.5,
-          "diffPercent": 14.48,
-          "price": 336,
+          "date": "20240710",
+          "diff": 47.5,
+          "diffPercent": 16.18,
+          "price": 341,
           "type": "highest"
         }
       },
@@ -1176,14 +1461,176 @@
         }
       }
     ],
-    "totalRate": 103.02,
+    "totalRate": 104.72,
     "_id": "6689578ba6acaa06088c48cf",
     "name": "boldt",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 20.053401077024212,
-    "combinedRank": 17
+    "score": 20.450083536453548,
+    "combinedRank": 20
+  },
+  {
+    "mean": 20.49,
+    "maxRate": 26.09,
+    "minRate": 13.48,
+    "median": 21.9,
+    "stdDev": 5.243669198821247,
+    "posts": [
+      {
+        "title": "2834臺企銀 高手分點高歌離席後怎麼看",
+        "href": "/bbs/Stock/M.1711038689.A.D91.html",
+        "date": "20240322",
+        "id": 1711038689,
+        "highest": {
+          "date": "20240708",
+          "diff": 3.45,
+          "diffPercent": 21.9,
+          "price": 19.2,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2423.TW 固緯 普普通通多",
+        "href": "/bbs/Stock/M.1713966632.A.B5F.html",
+        "date": "20240424",
+        "id": 1713966632,
+        "highest": {
+          "date": "20240430",
+          "diff": 5.65,
+          "diffPercent": 13.48,
+          "price": 47.55,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3022.TW 威強電 反彈多",
+        "href": "/bbs/Stock/M.1714020442.A.2E3.html",
+        "date": "20240425",
+        "id": 1714020442,
+        "highest": {
+          "date": "20240716",
+          "diff": 20.3,
+          "diffPercent": 26.09,
+          "price": 98.1,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 61.47,
+    "_id": "6689578ba6acaa06088c48d5",
+    "name": "wulowgunself",
+    "likes": 0,
+    "dislikes": 0,
+    "__v": 0,
+    "score": 20.070516223284038,
+    "combinedRank": 21
+  },
+  {
+    "mean": 20.74,
+    "maxRate": 44.04,
+    "minRate": 8.8,
+    "median": 10.67,
+    "stdDev": 13.420098998996137,
+    "posts": [
+      {
+        "title": "2379 瑞昱 多多多",
+        "href": "/bbs/Stock/M.1715079355.A.897.html",
+        "date": "20240507",
+        "id": 1715079355,
+        "highest": {
+          "date": "20240711",
+          "diff": 56,
+          "diffPercent": 10.67,
+          "price": 581,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2489 瑞軒 多多多",
+        "href": "/bbs/Stock/M.1715880206.A.23E.html",
+        "date": "20240517",
+        "id": 1715880206,
+        "highest": {
+          "date": "20240715",
+          "diff": 7.95,
+          "diffPercent": 44.04,
+          "price": 26,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "4976 佳凌 多多多",
+        "href": "/bbs/Stock/M.1716096667.A.366.html",
+        "date": "20240519",
+        "id": 1716096667,
+        "highest": {
+          "date": "20240708",
+          "diff": 13,
+          "diffPercent": 27.66,
+          "price": 60,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2489 瑞軒 無敵多",
+        "href": "/bbs/Stock/M.1716980650.A.CE5.html",
+        "date": "20240529",
+        "id": 1716980650,
+        "highest": {
+          "date": "20240715",
+          "diff": 2.45,
+          "diffPercent": 10.4,
+          "price": 26,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "5236 凌陽創新。多",
+        "href": "/bbs/Stock/M.1716967346.A.EBA.html",
+        "date": "20240529",
+        "id": 1716967346,
+        "highest": {
+          "date": "20240603",
+          "diff": 16,
+          "diffPercent": 9.22,
+          "price": 189.5,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "2379 瑞昱 螃蟹哥 大多",
+        "href": "/bbs/Stock/M.1717844932.A.565.html",
+        "date": "20240608",
+        "id": 1717844932,
+        "highest": {
+          "date": "20240711",
+          "diff": 47,
+          "diffPercent": 8.8,
+          "price": 581,
+          "type": "highest"
+        }
+      },
+      {
+        "title": "3374 精材。大多",
+        "href": "/bbs/Stock/M.1718282410.A.BF8.html",
+        "date": "20240613",
+        "id": 1718282410,
+        "highest": {
+          "date": "20240711",
+          "diff": 59.5,
+          "diffPercent": 34.39,
+          "price": 232.5,
+          "type": "highest"
+        }
+      }
+    ],
+    "totalRate": 145.17999999999998,
+    "name": "m4vu0",
+    "likes": 0,
+    "dislikes": 0,
+    "score": 19.80843476515015,
+    "combinedRank": 22
   },
   {
     "mean": 17.73,
@@ -1239,70 +1686,14 @@
     "dislikes": 0,
     "__v": 0,
     "score": 18.343230965422233,
-    "combinedRank": 18
+    "combinedRank": 23
   },
   {
-    "mean": 18.55333333333333,
-    "maxRate": 27.63,
-    "minRate": 13.22,
-    "median": 14.81,
-    "stdDev": 6.450913802624314,
-    "posts": [
-      {
-        "title": "6937 TW 天虹 多",
-        "href": "/bbs/Stock/M.1712635032.A.9C0.html",
-        "date": "20240409",
-        "id": 1712635032,
-        "highest": {
-          "date": "20240709",
-          "diff": 60.5,
-          "diffPercent": 27.63,
-          "price": 279.5,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "4571 鈞興ky 機器人future多",
-        "href": "/bbs/Stock/M.1717589309.A.B5E.html",
-        "date": "20240605",
-        "id": 1717589309,
-        "highest": {
-          "date": "20240607",
-          "diff": 20,
-          "diffPercent": 14.81,
-          "price": 155,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "6629 泰金-ky 降息概念股趨勢多",
-        "href": "/bbs/Stock/M.1717854312.A.745.html",
-        "date": "20240608",
-        "id": 1717854312,
-        "highest": {
-          "date": "20240701",
-          "diff": 15,
-          "diffPercent": 13.22,
-          "price": 128.5,
-          "type": "highest"
-        }
-      }
-    ],
-    "totalRate": 55.66,
-    "_id": "65f07eafb65b18e0bcf62d57",
-    "name": "kobekid",
-    "__v": 0,
-    "dislikes": 0,
-    "likes": 0,
-    "score": 17.21658783924348,
-    "combinedRank": 19
-  },
-  {
-    "mean": 15.816666666666668,
+    "mean": 15.910000000000002,
     "maxRate": 33.24,
-    "minRate": 0,
+    "minRate": 0.28,
     "median": 14.21,
-    "stdDev": 13.617646231595565,
+    "stdDev": 13.50945101277867,
     "posts": [
       {
         "title": "3483力致 散熱遺珠 末班車 多",
@@ -1336,160 +1727,22 @@
         "date": "20240705",
         "id": 1720158813,
         "highest": {
-          "date": "20240705",
-          "diff": 0,
-          "diffPercent": 0,
-          "price": 176,
+          "date": "20240710",
+          "diff": 0.5,
+          "diffPercent": 0.28,
+          "price": 176.5,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 47.45,
+    "totalRate": 47.730000000000004,
     "_id": "6689578ba6acaa06088c48d4",
     "name": "harry458031",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 17.16417437999814,
-    "combinedRank": 20
-  },
-  {
-    "mean": 17.294,
-    "maxRate": 26.67,
-    "minRate": 8.33,
-    "median": 15.28,
-    "stdDev": 6.336568787601063,
-    "posts": [
-      {
-        "title": "2330 台積電 821吃豆腐多",
-        "href": "/bbs/Stock/M.1717134209.A.7FD.html",
-        "date": "20240531",
-        "id": 1717134209,
-        "highest": {
-          "date": "20240709",
-          "diff": 219,
-          "diffPercent": 26.67,
-          "price": 1040,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "2330 台積電  ADR創新高多",
-        "href": "/bbs/Stock/M.1717594898.A.17D.html",
-        "date": "20240605",
-        "id": 1717594898,
-        "highest": {
-          "date": "20240709",
-          "diff": 186,
-          "diffPercent": 21.78,
-          "price": 1040,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "2330 台積電 蘋果換機潮多",
-        "href": "/bbs/Stock/M.1718164601.A.50B.html",
-        "date": "20240612",
-        "id": 1718164601,
-        "highest": {
-          "date": "20240709",
-          "diff": 131,
-          "diffPercent": 14.41,
-          "price": 1040,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "2330 台積電 哲粉甩下車多",
-        "href": "/bbs/Stock/M.1719482080.A.1F4.html",
-        "date": "20240627",
-        "id": 1719482080,
-        "highest": {
-          "date": "20240709",
-          "diff": 80,
-          "diffPercent": 8.33,
-          "price": 1040,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "3374 精材 折粉滾下車多",
-        "href": "/bbs/Stock/M.1719568017.A.ED9.html",
-        "date": "20240628",
-        "id": 1719568017,
-        "highest": {
-          "date": "20240709",
-          "diff": 27.5,
-          "diffPercent": 15.28,
-          "price": 207.5,
-          "type": "highest"
-        }
-      }
-    ],
-    "totalRate": 86.47,
-    "_id": "6689578ba6acaa06088c48d6",
-    "name": "kech9111",
-    "likes": 0,
-    "dislikes": 0,
-    "__v": 0,
-    "score": 16.74853034994901,
-    "combinedRank": 21
-  },
-  {
-    "mean": 16.376666666666665,
-    "maxRate": 21.9,
-    "minRate": 13.48,
-    "median": 13.75,
-    "stdDev": 3.9071416093553033,
-    "posts": [
-      {
-        "title": "2834臺企銀 高手分點高歌離席後怎麼看",
-        "href": "/bbs/Stock/M.1711038689.A.D91.html",
-        "date": "20240322",
-        "id": 1711038689,
-        "highest": {
-          "date": "20240708",
-          "diff": 3.45,
-          "diffPercent": 21.9,
-          "price": 19.2,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "2423.TW 固緯 普普通通多",
-        "href": "/bbs/Stock/M.1713966632.A.B5F.html",
-        "date": "20240424",
-        "id": 1713966632,
-        "highest": {
-          "date": "20240430",
-          "diff": 5.65,
-          "diffPercent": 13.48,
-          "price": 47.55,
-          "type": "highest"
-        }
-      },
-      {
-        "title": "3022.TW 威強電 反彈多",
-        "href": "/bbs/Stock/M.1714020442.A.2E3.html",
-        "date": "20240425",
-        "id": 1714020442,
-        "highest": {
-          "date": "20240604",
-          "diff": 10.7,
-          "diffPercent": 13.75,
-          "price": 88.5,
-          "type": "highest"
-        }
-      }
-    ],
-    "totalRate": 49.129999999999995,
-    "_id": "6689578ba6acaa06088c48d5",
-    "name": "wulowgunself",
-    "likes": 0,
-    "dislikes": 0,
-    "__v": 0,
-    "score": 14.944711795574845,
-    "combinedRank": 22
+    "score": 17.1968920595212,
+    "combinedRank": 24
   },
   {
     "mean": 13.406666666666666,
@@ -1545,14 +1798,14 @@
     "dislikes": 0,
     "__v": 0,
     "score": 13.034081622182882,
-    "combinedRank": 23
+    "combinedRank": 25
   },
   {
-    "mean": 10.736,
+    "mean": 11.068000000000001,
     "maxRate": 17.55,
-    "minRate": 0.61,
+    "minRate": 2.27,
     "median": 11.65,
-    "stdDev": 5.939917844549705,
+    "stdDev": 5.385151437053558,
     "posts": [
       {
         "title": "2885 元大金 - 帶出下車",
@@ -1612,21 +1865,21 @@
         "date": "20240705",
         "id": 1720157409,
         "highest": {
-          "date": "20240708",
-          "diff": 0.2,
-          "diffPercent": 0.61,
-          "price": 33.2,
+          "date": "20240712",
+          "diff": 0.75,
+          "diffPercent": 2.27,
+          "price": 33.75,
           "type": "highest"
         }
       }
     ],
-    "totalRate": 53.68000000000001,
+    "totalRate": 55.34,
     "_id": "6689578ba6acaa06088c48d8",
     "name": "sheisol",
     "likes": 0,
     "dislikes": 0,
     "__v": 0,
-    "score": 11.359509392479845,
-    "combinedRank": 24
+    "score": 11.476961335676346,
+    "combinedRank": 26
   }
 ]
