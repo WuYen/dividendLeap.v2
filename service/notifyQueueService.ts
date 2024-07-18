@@ -127,17 +127,17 @@ async function generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | und
     console.log(`start prompt`);
     let promptResult = await geminiAIService.generateWithTunedModel(promptWords + postContent);
 
-    let textArray = ['', '【✨✨大神來囉✨✨】'];
+    let textArray = ['', '✨✨大神來囉✨✨'];
     //TODO: Get rank info, or update those info to author
-    textArray.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
+    textArray.push(`作者: ${post.author}`);
     try {
       var stockNo = getStockNoFromTitle(post);
       if (stockNo) {
         var intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
         intradayInfo?.lastUpdated;
         if (intradayInfo) {
-          textArray.push(`${intradayInfo.name} 股價: ${intradayInfo.lastPrice}`);
-          textArray.push(`時間: ${formatTimestampToString(intradayInfo.lastUpdated)}`);
+          textArray.push(`${intradayInfo.name}股價: ${intradayInfo.lastPrice}`);
+          textArray.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)} \n`);
         }
       }
     } catch (error) {

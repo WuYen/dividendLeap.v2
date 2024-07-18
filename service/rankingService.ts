@@ -168,7 +168,10 @@ export function filterPositive() {
       var rank = JSON.parse(data) as AuthorStats[];
 
       var filtered = rank.filter((x) => x.score && x.score > 5 && x.median > 10 && x.mean > 10);
-      filtered.forEach((authorData, index) => (authorData.combinedRank = index + 1));
+      filtered.forEach((authorData, index) => {
+        authorData.posts.sort((a, b) => a.date.localeCompare(b.date));
+        authorData.combinedRank = index + 1;
+      });
       const filePath = path.join(__dirname, '..', '/resource');
       writeResultToJsonFile(`${filePath}/filtered_combined_ranked_authors.json`, filtered);
     } catch (err) {
