@@ -29,6 +29,6 @@ function buildInvitationMessage(channelId: string): string {
   baseContent.push(`Hi ${channelId}`);
   baseContent.push('邀請使用新功能');
   baseContent.push('祝您使用愉快！');
-  baseContent.push(`${config.CLIENT_URL}/my`);
+  baseContent.push(`${config.CLIENT_URL}/my?channel=${channelId}`);
   return baseContent.join('\n');
 }
