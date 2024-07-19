@@ -6,8 +6,9 @@ import { parsePosts } from './pttStockPostService';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
 import { isRePosts } from '../utility/stockPostHelper';
 import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
-import { AuthorStats } from './rankingService';
+import { AuthorStats } from './authorStatsService';
 import { AuthorModel, IAuthor } from '../model/Author';
+import { AuthorStatsModel } from '../model/AuthorStats';
 
 const domain = 'https://www.ptt.cc';
 
@@ -59,22 +60,30 @@ export async function getAuthors(): Promise<IAuthor[]> {
 }
 
 export async function getAuthorRankList() {
-  const isProd = process.env.NODE_ENV === 'production';
-  const filePath = path.join(__dirname, isProd ? 'resource/ranked_authors.json' : '../resource/ranked_authors.json');
-  const fileContent = await fs.readFile(filePath, 'utf-8');
-  const rankedAuthors = JSON.parse(fileContent) as AuthorStats[];
+  // const isProd = process.env.NODE_ENV === 'production';
+  // const filePath = path.join(__dirname, isProd ? 'resource/ranked_authors.json' : '../resource/ranked_authors.json');
+  // const fileContent = await fs.readFile(filePath, 'utf-8');
+  const rankedAuthors = await AuthorStatsModel.find().lean().exec();
   const authors = await getAuthors();
 
   const authorMap = new Map<string, AuthorStats>();
 
   // 首先添加 rankedAuthors 到 Map
   for (const author of rankedAuthors) {
-    authorMap.set(author.name, author);
+    authorMap.set(author.name, {
+      ...author,
+      likes: 0,
+      dislikes: 0,
+    });
   }
-
   // 然后处理 authors 列表
   for (const author of authors) {
-    if (!authorMap.has(author.name)) {
+    if (authorMap.has(author.name)) {
+      // 如果已存在，更新 likes 和 dislikes
+      const existingAuthor = authorMap.get(author.name)!;
+      existingAuthor.likes = author.likes;
+      existingAuthor.dislikes = author.dislikes;
+    } else {
       // 如果 authorMap 中没有这个作者，创建一个新的 AuthorStats 对象
       authorMap.set(author.name, {
         ...author,
@@ -86,12 +95,8 @@ export async function getAuthorRankList() {
         posts: [],
         score: 0,
         combinedRank: 0,
+        stdDev: 0,
       });
-    } else {
-      // 如果已存在，更新 likes 和 dislikes
-      const existingAuthor = authorMap.get(author.name)!;
-      existingAuthor.likes = author.likes;
-      existingAuthor.dislikes = author.dislikes;
     }
   }
 
