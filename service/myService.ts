@@ -72,17 +72,21 @@ export async function getFavoritePosts(userId: string): Promise<MyPostHistorical
       let profit: number | null = null;
       let profitRate: number | null = null;
 
-      if (favoritePost.cost !== undefined && favoritePost.shares !== undefined) {
+      if (favoritePost.cost && favoritePost.shares) {
         const cost = favoritePost.cost;
         const shares = favoritePost.shares;
 
         // 股票市值: 找到 LATEST 类型的 processedData
         const latestData = data.processedData.find((d) => d.type === DiffType.LATEST);
         if (latestData) {
-          const stockValue = latestData.price * shares;
-          const transactionFee = cost * shares * 0.001425;
-          profit = stockValue - transactionFee - cost * shares;
-          profitRate = (profit / (cost * shares)) * 100;
+          const stockValue = latestData.price * shares; // 市值
+          const costFee = cost * shares; // 成本
+          const buyTransactionFee = costFee * 0.001425; // 買入手續費
+          const totalCost = costFee + buyTransactionFee; // 成本 + 買入手續費
+          const saleTransactionFee = stockValue * 0.001425; // 賣出手續費
+          const tax = stockValue * 0.003;
+          profit = parseFloat((stockValue - tax - saleTransactionFee - totalCost).toFixed(0));
+          profitRate = parseFloat(((profit / totalCost) * 100).toFixed(2));
         }
       }
 
