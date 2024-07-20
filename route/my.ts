@@ -1,6 +1,6 @@
 import express, { Router, NextFunction, Response } from 'express';
 import { IAuthRequest, authentication } from '../utility/auth';
-import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts } from '../service/myService';
+import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts, updateFavoritePostInfo } from '../service/myService';
 import { getPostsWithInDays, searchPostsByTitle } from '../service/pttStockPostService';
 import { getAuthorRankList } from '../service/pttAuthorService';
 
@@ -17,6 +17,18 @@ router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: 
     return res.sendSuccess(200, { message: '收藏成功' });
   } catch (error) {
     return res.sendError(500, { message: '收藏失敗' });
+  }
+});
+
+router.post('/post/:id/update', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user?.id || '';
+    const { cost, shares, notes } = req.body;
+    const result = await updateFavoritePostInfo(userId, postId, { cost, shares, notes });
+    return res.sendSuccess(200, { message: '更新成功', data: result });
+  } catch (error) {
+    return res.sendError(500, { message: '更新失敗' });
   }
 });
 

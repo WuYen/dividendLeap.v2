@@ -6,9 +6,8 @@ import { parsePosts } from './pttStockPostService';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
 import { isRePosts } from '../utility/stockPostHelper';
 import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
-import { AuthorStats } from './authorStatsService';
 import { AuthorModel, IAuthor } from '../model/Author';
-import { AuthorStatsModel } from '../model/AuthorStats';
+import { AuthorStatsModel, IStatsPost } from '../model/AuthorStats';
 
 const domain = 'https://www.ptt.cc';
 
@@ -59,6 +58,18 @@ export async function getAuthors(): Promise<IAuthor[]> {
   return result;
 }
 
+export interface AuthorStatsResponse extends IAuthor {
+  mean: number; //平均報酬率
+  maxRate: number; //報酬率最高的一篇
+  minRate: number; //報酬率最低的一篇
+  totalRate: number; //所有貼文報酬率加總
+  median: number; //報酬率中位數
+  stdDev: number; // 標準差
+  posts: IStatsPost[]; //貼文
+  score: number; // 用來衡量作者績效的分數
+  combinedRank?: number;
+}
+
 export async function getAuthorRankList() {
   // const isProd = process.env.NODE_ENV === 'production';
   // const filePath = path.join(__dirname, isProd ? 'resource/ranked_authors.json' : '../resource/ranked_authors.json');
@@ -66,7 +77,7 @@ export async function getAuthorRankList() {
   const rankedAuthors = await AuthorStatsModel.find().lean().exec();
   const authors = await getAuthors();
 
-  const authorMap = new Map<string, AuthorStats>();
+  const authorMap = new Map<string, AuthorStatsResponse>();
 
   // 首先添加 rankedAuthors 到 Map
   for (const author of rankedAuthors) {

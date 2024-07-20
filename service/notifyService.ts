@@ -30,5 +30,6 @@ function buildInvitationMessage(channelId: string): string {
   baseContent.push('邀請使用新功能');
   baseContent.push('祝您使用愉快！');
   baseContent.push(`${config.CLIENT_URL}/my?channel=${channelId}`);
+  baseContent.push('NOTE: 請使用外部瀏覽器打開');
   return baseContent.join('\n');
 }

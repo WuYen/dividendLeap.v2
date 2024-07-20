@@ -22,39 +22,99 @@ export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null>
 }
 
 export async function toggleFavoritePost(userId: string, postId: string): Promise<any> {
-  // 更新用户的 favoritePosts
   const user = await LineTokenModel.findOne({ channel: userId });
 
   if (!userId || !user) {
     throw new Error('使用者不存在');
   }
 
-  // 查找 PostInfo 的 ObjectId
   const post = await PostInfoModel.findOne({ id: postId });
   if (!post) {
     throw new Error('文章不存在');
   }
 
-  const postIndex = user.favoritePosts.indexOf(post._id);
-  if (postIndex !== -1) {
-    user.favoritePosts.splice(postIndex, 1);
+  const favoritePostIndex = user.favoritePosts.findIndex((fp) => fp.postId?.toString() === post._id.toString());
+
+  if (favoritePostIndex !== -1) {
+    // 如果已存在，則移除
+    user.favoritePosts.splice(favoritePostIndex, 1);
   } else {
-    user.favoritePosts.push(post._id);
+    // 如果不存在，則添加
+    user.favoritePosts.push({
+      postId: post._id,
+      dateAdded: new Date(),
+    });
   }
 
   await user.save();
+  return user;
 }
 
-export async function getFavoritePosts(userId: string): Promise<PostHistoricalResponse[]> {
-  const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts', '-_id -__v').lean();
-  const favoritePosts: PostHistoricalResponse[] = [];
+export interface MyPostHistoricalResponse extends PostHistoricalResponse {
+  cost?: number;
+  shares?: number;
+  notes?: string;
+}
+
+export async function getFavoritePosts(userId: string): Promise<MyPostHistoricalResponse[]> {
+  const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts.postId', '-__v').lean();
+
+  const favoritePosts: MyPostHistoricalResponse[] = [];
 
   if (rawData?.favoritePosts) {
-    for (const postInfo of rawData.favoritePosts as IPostInfo[]) {
+    for (const favoritePost of rawData.favoritePosts) {
+      const postInfo = favoritePost.postId as IPostInfo;
       const data = await processHistoricalInfo(postInfo);
-      favoritePosts.push(data);
+
+      favoritePosts.push({
+        ...data,
+        cost: favoritePost.cost,
+        shares: favoritePost.shares,
+        notes: favoritePost.notes,
+      });
     }
   }
 
   return favoritePosts;
+}
+
+export async function updateFavoritePostInfo(
+  userId: string,
+  postId: string,
+  updateInfo: {
+    cost?: number;
+    shares?: number;
+    notes?: string;
+  }
+) {
+  try {
+    const post = await PostInfoModel.findOne({ id: postId });
+    if (!post) {
+      throw new Error('文章不存在');
+    }
+
+    const result = await LineTokenModel.findOneAndUpdate(
+      {
+        channel: userId,
+        'favoritePosts.postId': post._id,
+      },
+      {
+        $set: {
+          'favoritePosts.$.cost': updateInfo.cost,
+          'favoritePosts.$.shares': updateInfo.shares,
+          'favoritePosts.$.notes': updateInfo.notes,
+        },
+      },
+      { new: true }
+    );
+
+    if (!result) {
+      throw new Error('更新失敗');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error updating favorite post info:', error);
+    throw error;
+  }
 }

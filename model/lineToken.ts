@@ -8,6 +8,15 @@ enum TokenLevel {
   Test = 'test',
 }
 
+interface IFavoritePost {
+  postId: mongoose.Types.ObjectId | PopulatedDoc<IPostInfo>;
+  cost?: number;
+  shares?: number;
+  // 其他可能的個人化資訊
+  notes?: string;
+  dateAdded?: Date;
+}
+
 // Interface
 interface ILineToken {
   channel: string;
@@ -17,8 +26,16 @@ interface ILineToken {
   tokenLevel: TokenLevel[]; // 類型為陣列
   verifyCode?: string | null;
   verifyCodeExpires?: Date | null;
-  favoritePosts: mongoose.Types.ObjectId[] | PopulatedDoc<IPostInfo>[]; // 新增字段
+  favoritePosts: IFavoritePost[];
 }
+
+const FavoritePostSchema = new Schema({
+  postId: { type: Schema.Types.ObjectId, ref: 'PostInfo', required: true },
+  cost: { type: Number },
+  shares: { type: Number },
+  notes: { type: String },
+  dateAdded: { type: Date, default: Date.now },
+});
 
 // Schema
 const LineTokenSchema: Schema = new Schema({
@@ -40,16 +57,12 @@ const LineTokenSchema: Schema = new Schema({
   },
   verifyCode: { type: String, default: null },
   verifyCodeExpires: { type: Date, default: null },
-  favoritePosts: {
-    type: [Schema.Types.ObjectId],
-    ref: 'PostInfo',
-    default: [],
-  },
+  favoritePosts: [FavoritePostSchema],
 });
 
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);
 
-export { LineTokenModel, ILineToken, TokenLevel };
+export { LineTokenModel, ILineToken, TokenLevel, IFavoritePost };
 
 async function updateExistData() {
   await LineTokenModel.updateMany(
@@ -65,4 +78,35 @@ async function updateExistData() {
     .catch((err) => {
       console.error('更新失敗:', err);
     });
+}
+
+async function migrateData() {
+  // 获取原始 MongoDB 集合
+  const collection = mongoose.connection.db.collection('linetokens');
+
+  // 查询数据
+  const rawData = await collection.find({ channel: 'Zack' }).toArray();
+
+  for (const doc of rawData) {
+    // 在这里对数据进行处理和转换
+
+    // 使用新的模型进行更新
+    await LineTokenModel.updateOne(
+      { channel: doc.channel },
+      {
+        $set: {
+          updateDate: '20240720',
+          // 新的数据格式
+          favoritePosts: doc.favoritePosts.map((post: any) => ({
+            postId: post._id,
+            cost: post.cost?.toString() || '',
+            shares: post.shares?.toString() || '',
+            notes: post.notes || '',
+          })),
+        },
+      }
+    );
+  }
+
+  console.log('Data migration completed.');
 }
