@@ -1,7 +1,7 @@
 import { AuthorModel, IAuthor } from '../model/Author';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { LineTokenModel } from '../model/lineToken';
-import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
+import { DiffType, PostHistoricalResponse, processHistoricalInfo } from './historicalService';
 
 export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null> {
   let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
@@ -54,6 +54,8 @@ export interface MyPostHistoricalResponse extends PostHistoricalResponse {
   cost?: number;
   shares?: number;
   notes?: string;
+  profit: number | null;
+  profitRate?: number | null;
 }
 
 export async function getFavoritePosts(userId: string): Promise<MyPostHistoricalResponse[]> {
@@ -66,11 +68,31 @@ export async function getFavoritePosts(userId: string): Promise<MyPostHistorical
       const postInfo = favoritePost.postId as IPostInfo;
       const data = await processHistoricalInfo(postInfo);
 
+      // 计算 profit 和 profitRate
+      let profit: number | null = null;
+      let profitRate: number | null = null;
+
+      if (favoritePost.cost !== undefined && favoritePost.shares !== undefined) {
+        const cost = favoritePost.cost;
+        const shares = favoritePost.shares;
+
+        // 股票市值: 找到 LATEST 类型的 processedData
+        const latestData = data.processedData.find((d) => d.type === DiffType.LATEST);
+        if (latestData) {
+          const stockValue = latestData.price * shares;
+          const transactionFee = cost * shares * 0.001425;
+          profit = stockValue - transactionFee - cost * shares;
+          profitRate = (profit / (cost * shares)) * 100;
+        }
+      }
+
       favoritePosts.push({
         ...data,
         cost: favoritePost.cost,
         shares: favoritePost.shares,
         notes: favoritePost.notes,
+        profit,
+        profitRate,
       });
     }
   }
