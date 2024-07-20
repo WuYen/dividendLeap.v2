@@ -62,7 +62,7 @@ const LineTokenSchema: Schema = new Schema({
 
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);
 
-export { LineTokenModel, ILineToken, TokenLevel };
+export { LineTokenModel, ILineToken, TokenLevel, IFavoritePost };
 
 async function updateExistData() {
   await LineTokenModel.updateMany(
