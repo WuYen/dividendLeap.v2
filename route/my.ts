@@ -13,8 +13,8 @@ router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: 
   try {
     const postId = req.params.id;
     const userId = req.user?.id || '';
-    await toggleFavoritePost(userId, postId);
-    return res.sendSuccess(200, { message: '收藏成功' });
+    const result = await toggleFavoritePost(userId, postId);
+    return res.sendSuccess(200, { message: '收藏成功', data: result });
   } catch (error) {
     return res.sendError(500, { message: '收藏失敗' });
   }
