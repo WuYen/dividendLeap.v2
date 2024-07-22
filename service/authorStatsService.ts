@@ -1,13 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-import { PostHistoricalResponse, processHistoricalInfoWithDelay } from './historicalService';
+import Queue from 'better-queue';
+import { PostHistoricalResponse, processHistoricalInfo, processHistoricalInfoWithDelay } from './historicalService';
 import { getPostsWithInDays } from './pttStockPostService';
 import { isValidStockPost } from '../utility/stockPostHelper';
 import { toDateString } from '../utility/dateTime';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { AuthorStatsModel, IAuthorStats, IStatsPost } from '../model/AuthorStats';
-import { getAuthors } from './pttAuthorService';
 import { FlattenMaps, Types } from 'mongoose';
+import { IPostInfo } from '../model/PostInfo';
 
 interface AuthorPosts {
   rates: number[];
@@ -192,6 +191,52 @@ interface AuthorPosts {
 //     console.error('Error importing data:', error);
 //   }
 // }
+
+const queue = new Queue(
+  async function (job: IPostInfo, done: Function) {
+    try {
+      const result = await processHistoricalInfo(job);
+      done(null, result);
+    } catch (error) {
+      done(error);
+    }
+  },
+  { afterProcessDelay: 1500 }
+);
+
+let data: PostHistoricalResponse[] = [];
+
+// 監聽完成和失敗事件
+queue.on('task_finish', (taskId: number, result: PostHistoricalResponse) => {
+  if (result && result.historicalInfo && result.historicalInfo.length > 0) {
+    data.push(result);
+  } else {
+    console.warn(`can not retrieve historical Info for ${result.title}-${result.author}`);
+  }
+});
+
+queue.on('drain', async () => {
+  try {
+    const authors = await AuthorModel.find().lean().exec();
+    await processRankingAndSaveToDB(data, authors);
+    console.log('Author stats processing and updating completed successfully.');
+    data = []; // 清空data以便下次使用
+  } catch (error) {
+    console.error('Error processing and updating author stats:', error);
+    data = []; // 清空data以便下次使用
+  }
+});
+
+export async function processAuthorStatsWithQueue() {
+  const posts = await getPostsWithInDays(120, '標的');
+  const filterPost = posts.filter((x) => isValidStockPost(x));
+
+  filterPost.forEach((post) => {
+    queue.push({ post });
+  });
+
+  console.log('Posts queued for processing size:', filterPost.length);
+}
 
 export async function processAndUpdateAuthorStats() {
   try {
