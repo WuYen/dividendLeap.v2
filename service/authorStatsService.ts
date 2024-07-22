@@ -208,7 +208,9 @@ let data: PostHistoricalResponse[] = [];
 
 // 監聽完成和失敗事件
 queue.on('task_finish', (taskId: number, result: PostHistoricalResponse) => {
+  console.log('task_finish', result.stockNo);
   if (result && result.historicalInfo && result.historicalInfo.length > 0) {
+    console.log('data push', result.stockNo);
     data.push(result);
   } else {
     console.warn(`can not retrieve historical Info for ${result.title}-${result.author}`);
@@ -217,9 +219,9 @@ queue.on('task_finish', (taskId: number, result: PostHistoricalResponse) => {
 
 queue.on('drain', async () => {
   try {
-    const authors = await AuthorModel.find().lean().exec();
-    await processRankingAndSaveToDB(data, authors);
-    console.log('Author stats processing and updating completed successfully.');
+    // const authors = await AuthorModel.find().lean().exec();
+    // await processRankingAndSaveToDB(data, authors);
+    console.log('drain, data size: ' + data.length, data.map((x) => x.stockNo).join(','));
     data = []; // 清空data以便下次使用
   } catch (error) {
     console.error('Error processing and updating author stats:', error);
@@ -228,14 +230,11 @@ queue.on('drain', async () => {
 });
 
 export async function processAuthorStatsWithQueue() {
-  const posts = await getPostsWithInDays(120, '標的');
+  const posts = await getPostsWithInDays(20, '標的');
   const filterPost = posts.filter((x) => isValidStockPost(x));
-
-  filterPost.forEach((post) => {
-    queue.push({ post });
-  });
-
-  console.log('Posts queued for processing size:', filterPost.length);
+  for (const post of filterPost) {
+    queue.push(post);
+  }
 }
 
 export async function processAndUpdateAuthorStats() {
@@ -260,14 +259,14 @@ export async function processAndUpdateAuthorStats() {
 }
 
 async function processRankingAndSaveToDB(
-  jsonData: PostHistoricalResponse[],
+  postData: PostHistoricalResponse[],
   authors: (FlattenMaps<IAuthor> & {
     _id: Types.ObjectId;
   })[]
 ) {
   try {
     const authorPostsMap: Map<string, AuthorPosts> = new Map();
-    jsonData.forEach((item) => {
+    postData.forEach((item) => {
       const { processedData } = item;
       const author = item.author as string;
       if (!authorPostsMap.has(author)) {
@@ -307,7 +306,12 @@ async function processRankingAndSaveToDB(
         const authorInfo = authors.find((x) => x.name === author);
 
         if (authorInfo) {
-          const score = mean * 0.35 + median * 0.35 + maxRate * 0.2 + (1 / (stdDev + 1)) * 0.1;
+          // 计算得分
+          const score =
+            mean * 0.35 + // 35% 权重给平均值
+            median * 0.35 + // 35% 权重给中位数
+            maxRate * 0.2 + // 20% 权重给最高值
+            (1 / (stdDev + 1)) * 0.1; // 10% 权重给标准差的倒数（越稳定越高分）
 
           authorStatsToUpdate.push({
             name: author,
@@ -324,21 +328,15 @@ async function processRankingAndSaveToDB(
         }
       });
 
-    // 清除現有的排名數據
+    //TODO: creat author that not exist
+
+    // 清除現有的排名數據 TODO: 更新資料
     await AuthorStatsModel.deleteMany({});
 
     // 插入新的排名數據
     if (authorStatsToUpdate.length > 0) {
       await AuthorStatsModel.insertMany(authorStatsToUpdate);
     }
-
-    // 更新 combinedRank
-    const sortedStats = await AuthorStatsModel.find().sort({ score: -1 }).exec();
-    for (let i = 0; i < sortedStats.length; i++) {
-      sortedStats[i].combinedRank = i + 1;
-      await sortedStats[i].save();
-    }
-
     console.log(`Data processing and saving completed. Updated ${authorStatsToUpdate.length} records.`);
   } catch (error) {
     console.error('Error processing ranking and saving to DB:', error);
