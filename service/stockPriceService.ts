@@ -1,4 +1,5 @@
-import { StockHistoricalCache } from '../model/stockHistoricalCache';
+import { AnyBulkWriteOperation } from 'mongodb';
+import { ICacheEntry, StockHistoricalCache } from '../model/stockHistoricalCache';
 import { toDateString } from '../utility/dateTime';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import {
@@ -7,6 +8,8 @@ import {
   HistoricalDataInfo,
   StockIntradayQuoteResponse,
 } from '../utility/fugleTypes';
+
+export { HistoricalDataInfo };
 
 export async function getStockPriceIntraday(stockNo: string): Promise<StockIntradayQuoteResponse | null> {
   try {
@@ -79,8 +82,6 @@ export async function getCachedStockPriceByDates(
   }
 }
 
-export { HistoricalDataInfo };
-
 // 定义关键时间点
 const MARKET_CLOSE_HOUR = 14; // 假设市场收盘时间是下午2点
 
@@ -102,6 +103,92 @@ export function isCacheExpired(now: Date, createdAt: Date): boolean {
   }
 
   return true; // 如果缓存比昨天还早，视为过期（虽然实际上可能已经被 TTL 删除）
+}
+
+interface StockRequest {
+  stockNo: string;
+  startDate: string;
+  endDate: string;
+}
+
+export async function getCachedStockPriceByDatesBatch(
+  requests: StockRequest[]
+): Promise<(StockHistoricalResponse | null)[]> {
+  // 1. 先查詢所有可能的緩存數據
+  const cacheQueries = requests.map((req) => ({
+    stockNo: req.stockNo,
+    startDate: req.startDate,
+    endDate: req.endDate,
+  }));
+
+  const cachedData = await StockHistoricalCache.find({
+    $or: cacheQueries,
+  });
+
+  // 2. 處理緩存命中和過期的情況
+  const cacheMap = new Map(cachedData.map((cache) => [`${cache.stockNo}-${cache.startDate}-${cache.endDate}`, cache]));
+
+  const fetchRequests: StockRequest[] = [];
+  const results: (StockHistoricalResponse | null)[] = [];
+
+  for (const req of requests) {
+    const cacheKey = `${req.stockNo}-${req.startDate}-${req.endDate}`;
+    const cache = cacheMap.get(cacheKey);
+
+    if (cache && !isCacheExpired(new Date(), cache.createdAt)) {
+      console.log(`Cache hit ${req.stockNo}`);
+      results.push(cache.data);
+    } else {
+      fetchRequests.push(req);
+      results.push(null); // 佔位，之後更新
+    }
+  }
+
+  // 3. 批量獲取未緩存的數據
+  if (fetchRequests.length > 0) {
+    const fetchedData = await Promise.all(
+      fetchRequests.map((req) => getStockPriceByDates(req.stockNo, req.startDate, req.endDate))
+    );
+
+    // 4. 更新緩存和結果
+    let bulkOps: AnyBulkWriteOperation<ICacheEntry>[] = []; // Initialize empty array to store update operations
+
+    fetchedData.forEach((data, index) => {
+      if (data) {
+        // Check if data exists before creating update operation
+        bulkOps.push({
+          updateOne: {
+            filter: {
+              stockNo: fetchRequests[index].stockNo,
+              startDate: fetchRequests[index].startDate,
+              endDate: fetchRequests[index].endDate,
+            },
+            update: {
+              $set: {
+                data, // Use data directly since it's already checked for existence
+                createdAt: new Date(),
+              },
+            },
+            upsert: true,
+          },
+        });
+      }
+    });
+
+    if (bulkOps.length > 0) {
+      await StockHistoricalCache.bulkWrite(bulkOps);
+    }
+
+    // 更新結果數組
+    let fetchedIndex = 0;
+    for (let i = 0; i < results.length; i++) {
+      if (results[i] === null) {
+        results[i] = fetchedData[fetchedIndex++] || null;
+      }
+    }
+  }
+
+  return results;
 }
 
 export default {
