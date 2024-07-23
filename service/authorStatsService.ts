@@ -2,7 +2,7 @@ import Queue from 'better-queue';
 import { PostHistoricalResponse, processHistoricalInfo, processHistoricalInfoWithDelay } from './historicalService';
 import { getPostsWithInDays } from './pttStockPostService';
 import { isValidStockPost } from '../utility/stockPostHelper';
-import { toDateString } from '../utility/dateTime';
+import { toDateString, todayDate } from '../utility/dateTime';
 import { AuthorModel } from '../model/Author';
 import { AuthorStatsModel, IAuthorStats, IStatsPost } from '../model/AuthorStats';
 import { IPostInfo } from '../model/PostInfo';
@@ -42,7 +42,7 @@ let data: PostHistoricalResponse[] = [];
 const queue = new Queue(
   async function (job: IPostInfo, done: Function) {
     try {
-      const result = await processHistoricalInfo(job);
+      const result = await processHistoricalInfo(job, todayDate(), false);
       done(null, result);
     } catch (error) {
       console.error(`Error processing job for ${job.title}:`, error);

@@ -29,7 +29,8 @@ export interface PostHistoricalResponse extends IPostInfo {
 
 export async function processHistoricalInfo(
   postInfo: PostInfo.IPostInfo,
-  today: Date = todayDate()
+  today: Date = todayDate(),
+  useCache = true
 ): Promise<PostHistoricalResponse> {
   const stockNo = getStockNoFromTitle(postInfo);
   const postDate = new Date(postInfo.id * 1000);
@@ -46,7 +47,9 @@ export async function processHistoricalInfo(
   //發文日 -> 今天
   if (stockNo) {
     const targetDates = getDateRangeBaseOnPostedDate(postDate, today);
-    const result = await stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1]);
+    const result = await (useCache
+      ? stockPriceService.getCachedStockPriceByDates(stockNo, targetDates[0], targetDates[1])
+      : stockPriceService.getStockPriceByDates(stockNo, targetDates[0], targetDates[1]));
 
     if (result && result.data.length > 0) {
       const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
