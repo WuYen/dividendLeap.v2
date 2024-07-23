@@ -1,7 +1,17 @@
+import { FlattenMaps } from 'mongoose';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
-import { LineTokenModel } from '../model/lineToken';
-import { DiffType, PostHistoricalResponse, processHistoricalInfo } from './historicalService';
+import { IFavoritePost, LineTokenModel } from '../model/lineToken';
+import {
+  DiffType,
+  getDateRangeBaseOnPostedDate,
+  PostHistoricalResponse,
+  processHistoricalInfo,
+  processHistoricalInfoWithData,
+} from './historicalService';
+import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { todayDate } from '../utility/dateTime';
+import { getCachedStockPriceByDatesBatch, StockRequest } from './stockPriceService';
 
 export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null> {
   let authorInfo = await AuthorModel.findOne({ name: authorId }).exec();
@@ -76,13 +86,15 @@ export interface MyPostHistoricalResponse extends PostHistoricalResponse {
 export async function getFavoritePosts(userId: string): Promise<MyPostHistoricalResponse[]> {
   const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts.postId', '-__v').lean();
 
-  const favoritePosts: MyPostHistoricalResponse[] = [];
+  let favoritePosts: MyPostHistoricalResponse[] = [];
 
   if (rawData?.favoritePosts) {
-    for (const favoritePost of rawData.favoritePosts) {
-      const processedPost = await processPostData(favoritePost);
-      favoritePosts.push(processedPost);
-    }
+    favoritePosts = await processPostDataBatch(rawData.favoritePosts);
+
+    // for (const favoritePost of rawData.favoritePosts) {
+    //   const processedPost = await processPostData(favoritePost);
+    //   favoritePosts.push(processedPost);
+    // }
   }
 
   return favoritePosts;
@@ -151,25 +163,15 @@ async function processPostData(favoritePost: any): Promise<MyPostHistoricalRespo
   const postInfo = favoritePost.postId as IPostInfo;
   const data = await processHistoricalInfo(postInfo);
 
-  // 计算 profit 和 profitRate
   let profit: number | null = null;
   let profitRate: number | null = null;
 
   if (favoritePost.cost && favoritePost.shares) {
-    const cost = favoritePost.cost;
-    const shares = favoritePost.shares;
-
-    // 股票市值: 找到 LATEST 类型的 processedData
     const latestData = data.processedData.find((d) => d.type === DiffType.LATEST);
     if (latestData) {
-      const stockValue = latestData.price * shares; // 市值
-      const costFee = cost * shares; // 成本
-      const buyTransactionFee = costFee * 0.001425; // 買入手續費
-      const totalCost = costFee + buyTransactionFee; // 成本 + 買入手續費
-      const saleTransactionFee = stockValue * 0.001425; // 賣出手續費
-      const tax = stockValue * 0.003;
-      profit = parseFloat((stockValue - tax - saleTransactionFee - totalCost).toFixed(0));
-      profitRate = parseFloat(((profit / totalCost) * 100).toFixed(2));
+      const result = calculateProfit(favoritePost.cost, favoritePost.shares, latestData.price);
+      profit = result.profit;
+      profitRate = result.profitRate;
     }
   }
 
@@ -181,4 +183,73 @@ async function processPostData(favoritePost: any): Promise<MyPostHistoricalRespo
     profit,
     profitRate,
   };
+}
+async function processPostDataBatch(posts: FlattenMaps<IFavoritePost>[]): Promise<MyPostHistoricalResponse[]> {
+  const today = todayDate();
+
+  const stockRequests = posts.map((post) => {
+    const postInfo = post.postId as IPostInfo;
+    const stockNo = getStockNoFromTitle(postInfo);
+    const postDate = new Date(postInfo.id * 1000);
+    const dateRange = getDateRangeBaseOnPostedDate(postDate, today);
+    return { stockNo, startDate: dateRange[0], endDate: dateRange[1] } as StockRequest;
+  });
+
+  const data = await getCachedStockPriceByDatesBatch(stockRequests);
+  const processedPosts = await Promise.all(
+    posts.map(async (post) => {
+      const postInfo = post.postId as IPostInfo;
+      const stockNo = getStockNoFromTitle(postInfo);
+      const postDate = new Date(postInfo.id * 1000);
+      const dateRange = getDateRangeBaseOnPostedDate(postDate, today);
+
+      // 找到對應的 stockData
+      const stockData = data.find(
+        (d) => d?.stockNo === stockNo && d?.startDate === dateRange[0] && d?.endDate === dateRange[1]
+      );
+
+      const historicalInfo = processHistoricalInfoWithData(postInfo, stockData ? stockData.data : null, today);
+
+      let profit: number | null = null;
+      let profitRate: number | null = null;
+
+      if (post.cost && post.shares) {
+        const latestData = historicalInfo.processedData.find((d) => d.type === DiffType.LATEST);
+        if (latestData) {
+          const result = calculateProfit(post.cost, post.shares, latestData.price);
+          profit = result.profit;
+          profitRate = result.profitRate;
+        }
+      }
+
+      return {
+        ...historicalInfo,
+        cost: post.cost,
+        shares: post.shares,
+        notes: post.notes,
+        profit,
+        profitRate,
+      };
+    })
+  );
+  return processedPosts;
+}
+
+function calculateProfit(
+  cost: number,
+  shares: number,
+  latestPrice: number
+): { profit: number | null; profitRate: number | null } {
+  if (cost && shares && latestPrice) {
+    const stockValue = latestPrice * shares; // 市值
+    const costFee = cost * shares; // 成本
+    const buyTransactionFee = costFee * 0.001425; // 買入手續費
+    const totalCost = costFee + buyTransactionFee; // 成本 + 買入手續費
+    const saleTransactionFee = stockValue * 0.001425; // 賣出手續費
+    const tax = stockValue * 0.003;
+    const profit = parseFloat((stockValue - tax - saleTransactionFee - totalCost).toFixed(0));
+    const profitRate = parseFloat(((profit / totalCost) * 100).toFixed(2));
+    return { profit, profitRate };
+  }
+  return { profit: null, profitRate: null };
 }
