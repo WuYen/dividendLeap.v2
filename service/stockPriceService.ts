@@ -8,6 +8,7 @@ import {
   HistoricalDataInfo,
   StockIntradayQuoteResponse,
 } from '../utility/fugleTypes';
+import { delay } from '../utility/delay';
 
 export { HistoricalDataInfo };
 
@@ -105,31 +106,26 @@ export function isCacheExpired(now: Date, createdAt: Date): boolean {
   return true; // 如果缓存比昨天还早，视为过期（虽然实际上可能已经被 TTL 删除）
 }
 
-interface StockRequest {
+export interface StockRequest {
   stockNo: string;
   startDate: string;
   endDate: string;
 }
 
+export interface BatchStockHistoricalResponse extends StockHistoricalResponse, StockRequest {}
+
 export async function getCachedStockPriceByDatesBatch(
   requests: StockRequest[]
-): Promise<(StockHistoricalResponse | null)[]> {
-  // 1. 先查詢所有可能的緩存數據
-  const cacheQueries = requests.map((req) => ({
-    stockNo: req.stockNo,
-    startDate: req.startDate,
-    endDate: req.endDate,
-  }));
-
+): Promise<(BatchStockHistoricalResponse | null)[]> {
   const cachedData = await StockHistoricalCache.find({
-    $or: cacheQueries,
+    $or: requests,
   });
 
   // 2. 處理緩存命中和過期的情況
   const cacheMap = new Map(cachedData.map((cache) => [`${cache.stockNo}-${cache.startDate}-${cache.endDate}`, cache]));
 
   const fetchRequests: StockRequest[] = [];
-  const results: (StockHistoricalResponse | null)[] = [];
+  const results: (BatchStockHistoricalResponse | null)[] = [];
 
   for (const req of requests) {
     const cacheKey = `${req.stockNo}-${req.startDate}-${req.endDate}`;
@@ -137,7 +133,12 @@ export async function getCachedStockPriceByDatesBatch(
 
     if (cache && !isCacheExpired(new Date(), cache.createdAt)) {
       console.log(`Cache hit ${req.stockNo}`);
-      results.push(cache.data);
+      results.push({
+        ...cache.data,
+        stockNo: req.stockNo,
+        startDate: req.startDate,
+        endDate: req.endDate,
+      } as BatchStockHistoricalResponse);
     } else {
       fetchRequests.push(req);
       results.push(null); // 佔位，之後更新
@@ -146,9 +147,12 @@ export async function getCachedStockPriceByDatesBatch(
 
   // 3. 批量獲取未緩存的數據
   if (fetchRequests.length > 0) {
-    const fetchedData = await Promise.all(
-      fetchRequests.map((req) => getStockPriceByDates(req.stockNo, req.startDate, req.endDate))
-    );
+    const fetchedData = [];
+    for (const req of fetchRequests) {
+      const response = await getStockPriceByDates(req.stockNo, req.startDate, req.endDate);
+      fetchedData.push(response);
+      await delay(100);
+    }
 
     // 4. 更新緩存和結果
     let bulkOps: AnyBulkWriteOperation<ICacheEntry>[] = []; // Initialize empty array to store update operations
@@ -183,7 +187,17 @@ export async function getCachedStockPriceByDatesBatch(
     let fetchedIndex = 0;
     for (let i = 0; i < results.length; i++) {
       if (results[i] === null) {
-        results[i] = fetchedData[fetchedIndex++] || null;
+        const fetchedDataItem = fetchedData[fetchedIndex++];
+        if (fetchedDataItem) {
+          results[i] = {
+            ...fetchedDataItem,
+            stockNo: fetchRequests[fetchedIndex - 1].stockNo,
+            startDate: fetchRequests[fetchedIndex - 1].startDate,
+            endDate: fetchRequests[fetchedIndex - 1].endDate,
+          } as BatchStockHistoricalResponse;
+        } else {
+          results[i] = null;
+        }
       }
     }
   }

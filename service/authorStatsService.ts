@@ -1,11 +1,12 @@
 import Queue from 'better-queue';
-import { PostHistoricalResponse, processHistoricalInfo, processHistoricalInfoWithDelay } from './historicalService';
+import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
 import { getPostsWithInDays } from './pttStockPostService';
 import { isValidStockPost } from '../utility/stockPostHelper';
 import { toDateString, todayDate } from '../utility/dateTime';
 import { AuthorModel } from '../model/Author';
 import { AuthorStatsModel, IAuthorStats, IStatsPost } from '../model/AuthorStats';
 import { IPostInfo } from '../model/PostInfo';
+import { delay } from '../utility/delay';
 
 interface AuthorPosts {
   rates: number[];
@@ -24,8 +25,9 @@ export async function processAndUpdateAuthorStats(withInDays: number = 120, useQ
     } else {
       const data: PostHistoricalResponse[] = [];
       for (const post of filterPost) {
-        const result = await processHistoricalInfoWithDelay(post);
+        const result = await processHistoricalInfo(post);
         data.push(result);
+        await delay(1500);
       }
       await processRankingAndSaveToDB(data);
     }

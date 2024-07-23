@@ -3,7 +3,7 @@ import stockPriceService, { HistoricalDataInfo } from './stockPriceService';
 import { toDateString, todayDate } from '../utility/dateTime';
 import { IPostInfo } from '../model/PostInfo';
 import { getStockNoFromTitle, isPostedInOneWeek } from '../utility/stockPostHelper';
-import { delay } from '../utility/delay';
+import { roundToDecimal } from '../utility/numberFormatter';
 
 export enum DiffType {
   HIGHEST = 'highest',
@@ -52,26 +52,11 @@ export async function processHistoricalInfo(
       : stockPriceService.getStockPriceByDates(stockNo, targetDates[0], targetDates[1]));
 
     if (result && result.data.length > 0) {
-      const data = result.data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
-      const base = getBasePointInfo(data, postDate, isRecentPost); // 發文日為基準
-      const latest = getLatestPointInfo(data, base.price); //找到最靠近今天的股價
-      historicalPostInfo.historicalInfo = isRecentPost ? [data[data.length - 1]] : data;
-      if (isRecentPost) {
-        historicalPostInfo.processedData = [latest, base];
-      } else {
-        const highest = getHighestPointInfo(data, base.price); //找到資料區間內最高點
-        historicalPostInfo.processedData = [highest, latest, base];
-      }
+      return processHistoricalInfoWithData(postInfo, result?.data, today);
     }
   }
 
   return historicalPostInfo;
-}
-
-export async function processHistoricalInfoWithDelay(postInfo: PostInfo.IPostInfo): Promise<PostHistoricalResponse> {
-  const target = await processHistoricalInfo(postInfo);
-  await delay(1500);
-  return target;
 }
 
 export function findNearestHistoricalInfo(historicalInfo: HistoricalDataInfo[], postDate: Date): HistoricalDataInfo {
@@ -113,11 +98,6 @@ export function getDateRangeBaseOnPostedDate(baseDate: Date, today: Date): strin
   targetDate.setMonth(targetDate.getMonth() + 4);
   const finalDate = targetDate > today ? today : targetDate;
   return [toDateString(baseDate), toDateString(finalDate)];
-}
-
-export function roundToDecimal(value: number, decimalPlaces: number): number {
-  const factor = Math.pow(10, decimalPlaces);
-  return Math.round(value * factor) / factor;
 }
 
 export function getBasePointInfo(data: HistoricalDataInfo[], postDate: Date, isRecentPost: boolean): DiffInfo {
@@ -164,4 +144,37 @@ export function getLatestPointInfo(data: HistoricalDataInfo[], baseClose: number
     price: latestTradePoint.close,
     type: DiffType.LATEST,
   };
+}
+
+export function processHistoricalInfoWithData(
+  postInfo: PostInfo.IPostInfo,
+  data: HistoricalDataInfo[] | null,
+  today: Date = todayDate()
+): PostHistoricalResponse {
+  const stockNo = getStockNoFromTitle(postInfo);
+  const postDate = new Date(postInfo.id * 1000);
+  const isRecentPost = isPostedInOneWeek(postDate, today);
+  const historicalPostInfo: PostHistoricalResponse = {
+    ...postInfo,
+    stockNo: stockNo,
+    isFavorite: true,
+    historicalInfo: [],
+    processedData: [],
+    isRecentPost,
+  };
+
+  if (stockNo && data && data.length > 0) {
+    const formattedData = data.map((x) => ({ ...x, date: x.date.replace(/-/g, '') })).reverse();
+    const base = getBasePointInfo(formattedData, postDate, isRecentPost); // 發文日為基準
+    const latest = getLatestPointInfo(formattedData, base.price); //找到最靠近今天的股價
+    historicalPostInfo.historicalInfo = isRecentPost ? [formattedData[formattedData.length - 1]] : formattedData;
+    if (isRecentPost) {
+      historicalPostInfo.processedData = [latest, base];
+    } else {
+      const highest = getHighestPointInfo(formattedData, base.price); //找到資料區間內最高點
+      historicalPostInfo.processedData = [highest, latest, base];
+    }
+  }
+
+  return historicalPostInfo;
 }
