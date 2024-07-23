@@ -151,7 +151,7 @@ export async function getCachedStockPriceByDatesBatch(
     for (const req of fetchRequests) {
       const response = await getStockPriceByDates(req.stockNo, req.startDate, req.endDate);
       fetchedData.push(response);
-      await delay(100);
+      await delay(40);
     }
 
     // 4. 更新緩存和結果
