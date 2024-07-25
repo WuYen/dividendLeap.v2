@@ -205,6 +205,17 @@ export async function searchPostsByTitle(keyword: string): Promise<IPostInfo[]> 
   return posts;
 }
 
+export async function searchPostsByAuthor(keyword: string): Promise<IPostInfo[]> {
+  // 构建查询条件
+  const query = {
+    author: { $regex: keyword, $options: 'i' }, // 'i' 选项表示不区分大小写
+  };
+
+  // 查找符合条件的帖子
+  const posts = await PostInfoModel.find(query).sort({ id: -1 }).select('-_id -__v').lean();
+  return posts;
+}
+
 export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
   let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {

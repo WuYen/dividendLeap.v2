@@ -3,6 +3,7 @@ import { IAuthRequest, authentication } from '../utility/auth';
 import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts, updateFavoritePostInfo } from '../service/myService';
 import { getPostsWithInDays, searchPostsByTitle } from '../service/pttStockPostService';
 import { getAuthorRankList } from '../service/pttAuthorService';
+import { analysisPost, analysisPostById } from '../service/postStatsService';
 
 const router: Router = express.Router();
 
@@ -29,6 +30,16 @@ router.post('/post/:id/update', async (req: IAuthRequest, res: Response, next: N
     return res.sendSuccess(200, { message: '更新成功', data: result });
   } catch (error) {
     return res.sendError(500, { message: '更新失敗' });
+  }
+});
+
+router.get('/post/:id/stats', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const postId = req.params.id;
+    const result = await analysisPostById(postId);
+    return res.sendSuccess(200, { message: '成功', data: result });
+  } catch (error) {
+    return res.sendError(500, { message: '失敗' });
   }
 });
 

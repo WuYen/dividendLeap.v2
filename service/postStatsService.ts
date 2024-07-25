@@ -1,5 +1,5 @@
 import { SMA, RSI, MACD, BollingerBands, Stochastic, IchimokuCloud } from 'technicalindicators';
-import { IPostInfo } from '../model/PostInfo';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { getStockNoFromTitle } from '../utility/stockPostHelper';
 import stockPriceService, { HistoricalDataInfo } from './stockPriceService';
 import { toDateString } from '../utility/dateTime';
@@ -138,8 +138,7 @@ function analyzeStock(data: HistoricalDataInfo[]): AnalysisResults {
   };
 }
 
-export interface AnalysisResponse extends AnalysisResults {
-  post: IPostInfo;
+export interface AnalysisResponse extends AnalysisResults, IPostInfo {
   stockNo: string;
   startDate: Date;
   endDate: Date;
@@ -162,5 +161,28 @@ export async function analysisPost(post: IPostInfo): Promise<AnalysisResponse> {
 
   const result = analyzeStock((historicalData?.data as HistoricalDataInfo[]).reverse());
 
-  return { post: post, stockNo: symbol, startDate, endDate, ...result };
+  return { ...post, stockNo: symbol, startDate, endDate, ...result };
+}
+
+export async function analysisPostById(postId: string): Promise<AnalysisResponse> {
+  const post = await PostInfoModel.findOne({ id: postId }).select('-_id -__v').lean();
+  if (!post) {
+    throw new Error('文章不存在');
+  }
+  const symbol = getStockNoFromTitle(post);
+  const endDate = new Date(); // 都先用當日
+  const startDate = new Date(endDate); // 創建 startDate 作為 endDate 的副本
+  startDate.setMonth(endDate.getMonth() - 3); // 從今天回推三個月
+
+  console.log(`start analysis post ${post.title}, \nfrom:${toDateString(startDate)} to:${toDateString(endDate)}`);
+
+  const historicalData = await stockPriceService.getCachedStockPriceByDates(
+    symbol,
+    toDateString(startDate),
+    toDateString(endDate)
+  );
+
+  const result = analyzeStock((historicalData?.data as HistoricalDataInfo[]).reverse());
+
+  return { ...post, stockNo: symbol, startDate, endDate, ...result };
 }
