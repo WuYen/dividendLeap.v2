@@ -186,3 +186,22 @@ export async function analysisPostById(postId: string): Promise<AnalysisResponse
 
   return { ...post, stockNo: symbol, startDate, endDate, ...result };
 }
+
+export async function analysisByStockNo(stockNo: string): Promise<any> {
+  const symbol = stockNo;
+  const endDate = new Date(); // 都先用當日
+  const startDate = new Date(endDate); // 創建 startDate 作為 endDate 的副本
+  startDate.setMonth(endDate.getMonth() - 3); // 從今天回推三個月
+
+  console.log(`start analysis ${symbol}, \nfrom:${toDateString(startDate)} to:${toDateString(endDate)}`);
+
+  const historicalData = await stockPriceService.getCachedStockPriceByDates(
+    symbol,
+    toDateString(startDate),
+    toDateString(endDate)
+  );
+
+  const result = analyzeStock((historicalData?.data as HistoricalDataInfo[]).reverse());
+  console.log(JSON.stringify(result));
+  return { stockNo: symbol, startDate, endDate, ...result };
+}
