@@ -3,7 +3,7 @@ import config from '../utility/config';
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { getStockNoFromTitle, isRePosts } from '../utility/stockPostHelper';
 import { PTT_DOMAIN, fetchPostDetail } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
@@ -81,7 +81,7 @@ export async function processPostAndSendNotify(
       const delayNotifyUsers = [];
 
       for (const tokenInfo of users) {
-        if (isSubscribedAuthor && tokenInfo.tokenLevel.includes(TokenLevel.Test)) {
+        if (isSubscribedAuthor && tokenInfo.tokenLevel.includes(TokenLevel.Test) && !isRePosts(post)) {
           delayNotifyUsers.push(tokenInfo);
         } else {
           console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
