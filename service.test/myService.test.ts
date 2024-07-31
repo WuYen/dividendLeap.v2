@@ -49,10 +49,12 @@ describe('toggleFavoritePost', () => {
     (LineTokenModel.findOne as jest.Mock).mockResolvedValue(mockUser);
     (PostInfoModel.findOne as jest.Mock).mockResolvedValue(mockPost);
 
-    await toggleFavoritePost(mockUserId, '456');
+    const result = await toggleFavoritePost(mockUserId, '456');
 
     expect(mockUser.favoritePosts.map((x) => x.postId)).toContain(mockPost._id);
     expect(mockUser.save).toHaveBeenCalled();
+    expect(result).not.toBeNull();
+    expect(result?.postId).toEqual(mockPostId);
   });
 
   it('should remove post from favoritePosts if it is already in the list', async () => {
@@ -66,9 +68,10 @@ describe('toggleFavoritePost', () => {
     (LineTokenModel.findOne as jest.Mock).mockResolvedValue(mockUser);
     (PostInfoModel.findOne as jest.Mock).mockResolvedValue(mockPost);
 
-    await toggleFavoritePost(mockUserId, '456');
+    const result = await toggleFavoritePost(mockUserId, '456');
 
     expect(mockUser.favoritePosts).toHaveLength(0);
     expect(mockUser.save).toHaveBeenCalled();
+    expect(result).toBeNull();
   });
 });

@@ -52,6 +52,7 @@ describe('processPostAndSendNotify', () => {
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Test, TokenLevel.Standard],
       favoritePosts: [],
+      keywords: [],
     },
     {
       channel: 'B-STAND',
@@ -60,6 +61,7 @@ describe('processPostAndSendNotify', () => {
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Standard],
       favoritePosts: [],
+      keywords: [],
     },
     {
       channel: 'C-BASIC',
@@ -68,6 +70,7 @@ describe('processPostAndSendNotify', () => {
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Basic],
       favoritePosts: [],
+      keywords: [],
     },
   ];
 

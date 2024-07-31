@@ -31,7 +31,51 @@ export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null>
   return authorInfo.toObject();
 }
 
-export async function toggleFavoritePost(userId: string, postId: string): Promise<MyPostHistoricalResponse | null> {
+// export async function toggleFavoritePost(userId: string, postId: string): Promise<MyPostHistoricalResponse | null> {
+//   const user = await LineTokenModel.findOne({ channel: userId });
+
+//   if (!userId || !user) {
+//     throw new Error('使用者不存在');
+//   }
+
+//   const post = await PostInfoModel.findOne({ id: postId });
+//   if (!post) {
+//     throw new Error('文章不存在');
+//   }
+
+//   const favoritePostIndex = user.favoritePosts.findIndex((fp) => fp.postId?.toString() === post._id.toString());
+
+//   if (favoritePostIndex !== -1) {
+//     // 如果已存在，則移除
+//     user.favoritePosts.splice(favoritePostIndex, 1);
+//   } else {
+//     // 如果不存在，則添加
+//     user.favoritePosts.push({
+//       postId: post._id,
+//       dateAdded: new Date(),
+//     });
+//   }
+
+//   await user.save();
+
+//   // Re-fetch the updated favorite post with populated data
+//   const updatedFavoritePost = await LineTokenModel.findOne(
+//     { channel: userId, 'favoritePosts.postId': post._id },
+//     { 'favoritePosts.$': 1 }
+//   )
+//     .populate('favoritePosts.postId', '-__v')
+//     .lean();
+
+//   if (!updatedFavoritePost) {
+//     return null;
+//   }
+
+//   const updatedPost = updatedFavoritePost.favoritePosts[0];
+//   const processedPost = await processPostData(updatedPost);
+//   return processedPost;
+// }
+
+export async function toggleFavoritePost(userId: string, postId: string): Promise<IFavoritePost | null> {
   const user = await LineTokenModel.findOne({ channel: userId });
 
   if (!userId || !user) {
@@ -45,22 +89,34 @@ export async function toggleFavoritePost(userId: string, postId: string): Promis
 
   const favoritePostIndex = user.favoritePosts.findIndex((fp) => fp.postId?.toString() === post._id.toString());
 
+  let updatedFavoritePost: IFavoritePost | null = null;
+
   if (favoritePostIndex !== -1) {
-    // 如果已存在，則移除
+    // If already exists, remove it
     user.favoritePosts.splice(favoritePostIndex, 1);
   } else {
-    // 如果不存在，則添加
-    user.favoritePosts.push({
+    // If it doesn't exist, add it
+    const newFavoritePost: IFavoritePost = {
       postId: post._id,
       dateAdded: new Date(),
-    });
+    };
+    user.favoritePosts.push(newFavoritePost);
+    updatedFavoritePost = newFavoritePost;
   }
 
   await user.save();
 
-  // Re-fetch the updated favorite post with populated data
+  // Return the updated favorite post object
+  return updatedFavoritePost;
+}
+
+export async function fetchAndProcessFavoritePost(
+  userId: string,
+  favoritePost: IFavoritePost
+): Promise<MyPostHistoricalResponse | null> {
+  // Re-fetch the favorite post using the postId from the IFavoritePost object
   const updatedFavoritePost = await LineTokenModel.findOne(
-    { channel: userId, 'favoritePosts.postId': post._id },
+    { channel: userId, 'favoritePosts.postId': favoritePost.postId },
     { 'favoritePosts.$': 1 }
   )
     .populate('favoritePosts.postId', '-__v')
@@ -71,6 +127,8 @@ export async function toggleFavoritePost(userId: string, postId: string): Promis
   }
 
   const updatedPost = updatedFavoritePost.favoritePosts[0];
+
+  // Ensure that the post is correctly populated and processed
   const processedPost = await processPostData(updatedPost);
   return processedPost;
 }

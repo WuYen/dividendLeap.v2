@@ -1,6 +1,12 @@
 import express, { Router, NextFunction, Response } from 'express';
 import { IAuthRequest, authentication } from '../utility/auth';
-import { toggleFavoritePost, addLikeToAuthor, getFavoritePosts, updateFavoritePostInfo } from '../service/myService';
+import {
+  toggleFavoritePost,
+  addLikeToAuthor,
+  getFavoritePosts,
+  updateFavoritePostInfo,
+  fetchAndProcessFavoritePost,
+} from '../service/myService';
 import { getPostsWithInDays, searchPostsByTitle } from '../service/pttStockPostService';
 import { getAuthorRankList } from '../service/pttAuthorService';
 import { analysisPost, analysisPostById } from '../service/postStatsService';
@@ -14,8 +20,13 @@ router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: 
   try {
     const postId = req.params.id;
     const userId = req.user?.id || '';
-    const result = await toggleFavoritePost(userId, postId);
-    return res.sendSuccess(200, { message: '收藏成功', data: result });
+    const favoritePost = await toggleFavoritePost(userId, postId);
+    if (favoritePost) {
+      const data = await fetchAndProcessFavoritePost(userId, favoritePost);
+      return res.sendSuccess(200, { message: '收藏成功', data: data });
+    } else {
+      return res.sendSuccess(200, { message: '移除收藏成功', data: null });
+    }
   } catch (error) {
     return res.sendError(500, { message: '收藏失敗' });
   }
