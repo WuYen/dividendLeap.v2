@@ -36,10 +36,11 @@ router.post('/post/:id/update', async (req: IAuthRequest, res: Response, next: N
   try {
     const postId = req.params.id;
     const userId = req.user?.id || '';
-    const { cost, shares, notes } = req.body;
-    const result = await updateFavoritePostInfo(userId, postId, { cost, shares, notes });
+    const favoritePost = await updateFavoritePostInfo(userId, postId, { ...req.body });
+    const result = await fetchAndProcessFavoritePost(userId, favoritePost);
     return res.sendSuccess(200, { message: '更新成功', data: result });
   } catch (error) {
+    console.error(error);
     return res.sendError(500, { message: '更新失敗' });
   }
 });
