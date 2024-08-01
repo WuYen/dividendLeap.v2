@@ -7,7 +7,7 @@ import { isValidStockPost } from '../utility/stockPostHelper';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
-import { processPostAndSendNotify, processPostAndSendNotify_V2 } from './notifyQueueService';
+import { processPostAndSendNotify, newProcessPostAndSendNotify } from './notifyQueueService';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -238,13 +238,13 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   return { postCount: newPosts?.length };
 }
 
-export async function getNewPostAndSendLineNotify_V2(channel: string, channels: string): Promise<any> {
+export async function newGetNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
   let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {
     const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
     const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
     if (tokenInfos != null && tokenInfos.length > 0) {
-      await processPostAndSendNotify_V2(newPosts, tokenInfos, subscribeAuthors);
+      await newProcessPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors);
     }
     // Invalidate cache for authors with new posts
     const authorsWithNewPosts = [...new Set(newPosts.map((post) => post.author))];

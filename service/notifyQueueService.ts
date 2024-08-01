@@ -3,7 +3,7 @@ import config from '../utility/config';
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle, isRePosts, isValidStockPost } from '../utility/stockPostHelper';
+import { getStockNoFromTitle, isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper';
 import { PTT_DOMAIN, fetchPostDetail } from './pttStockPostService';
 import lineService from './lineService';
 import geminiAIService from './geminiAIService';
@@ -102,7 +102,7 @@ export async function processPostAndSendNotify(
   }
 }
 
-export async function processPostAndSendNotify_V2(
+export async function newProcessPostAndSendNotify(
   newPosts: IPostInfo[],
   users: ILineToken[],
   subscribeAuthors: IAuthor[]
@@ -118,7 +118,7 @@ export async function processPostAndSendNotify_V2(
       for (const tokenInfo of users) {
         const isMyKeywordMatch = tokenInfo.keywords.some((keyword) => post.title.includes(keyword));
 
-        if ((post.tag === '標的' && (isValidStockPost(post) || isSubscribedAuthor)) || isMyKeywordMatch) {
+        if ((post.tag === '標的' && (isValidStockPostForNotify(post) || isSubscribedAuthor)) || isMyKeywordMatch) {
           if (
             post.tag === '標的' &&
             isSubscribedAuthor &&
@@ -145,6 +145,7 @@ export async function processPostAndSendNotify_V2(
     }
   }
 }
+
 async function generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
   const href = `https://www.ptt.cc/${post.href}`;
 

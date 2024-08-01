@@ -69,6 +69,41 @@ export function isValidStockPost(post: IPostInfo): boolean {
   return true;
 }
 
+const excludeKeywordsForNotify = [
+  '討論',
+  '心得',
+  '請益',
+  '問題',
+  '嗎',
+  '解盤',
+  '請問',
+  '請教',
+  'etf',
+  '？',
+  '?',
+  '放棄',
+];
+export function isValidStockPostForNotify(post: IPostInfo): boolean {
+  const { title } = post;
+  const lowerTitle = title.toLowerCase();
+
+  if (replyPattern.test(lowerTitle)) {
+    return false;
+  }
+
+  // 4. 檢查排除關鍵字
+  if (excludeKeywordsForNotify.some((keyword) => lowerTitle.includes(keyword))) {
+    return false;
+  }
+
+  // 6. 檢查 .HK 和 .JP（不論大小寫）
+  if (countryPattern.test(title)) {
+    return false;
+  }
+
+  return true;
+}
+
 export function isRePosts(post: IPostInfo): boolean {
   const title = post.title.toLowerCase(); // 将标题转换为小写以进行不区分大小写的比较
   return Boolean(
