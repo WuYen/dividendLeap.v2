@@ -1,15 +1,8 @@
+import { AsyncLocalStorage } from 'async_hooks';
 import axios from 'axios';
 import config from './config';
 import { FugleDataset, QueryType, ResponseType, StockHistoricalQuery } from './fugleTypes';
-
-async function fugleCaller(url: string) {
-  console.log(`Calling Fugle: ${url}`);
-  return await axios.get(url, {
-    headers: {
-      'X-API-KEY': config.FUGLE_API_KEY,
-    },
-  });
-}
+import asyncLocalStorage from '../utility/asyncLocalStorage';
 
 export class FugleAPIBuilder<T extends FugleDataset> {
   private readonly baseUrl: string = 'https://api.fugle.tw/marketdata/v1.0';
@@ -52,12 +45,29 @@ export class FugleAPIBuilder<T extends FugleDataset> {
     }
   }
 
+  private getApiKey(): string {
+    const store = asyncLocalStorage.getStore();
+    if (store) {
+      const apiKey = store.get('fugleApiKey');
+      if (apiKey) {
+        return apiKey;
+      }
+    }
+    return config.FUGLE_API_KEY;
+  }
+
   async get(): Promise<ResponseType<T>> {
     const url = this.getUrl();
     const queryString = this.getQueryString();
     const fullUrl = queryString ? `${url}?${queryString}` : url;
 
-    const response = await fugleCaller(fullUrl);
+    console.log(`Calling Fugle: ${fullUrl}`);
+
+    const response = await axios.get(fullUrl, {
+      headers: {
+        'X-API-KEY': this.getApiKey(),
+      },
+    });
     return response.data as ResponseType<T>;
   }
 

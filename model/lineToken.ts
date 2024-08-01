@@ -28,6 +28,7 @@ interface ILineToken {
   verifyCodeExpires?: Date | null;
   favoritePosts: IFavoritePost[];
   keywords: string[]; // 新增關鍵字儲存
+  fugleApiKey?: string; // Add this line
 }
 
 const FavoritePostSchema = new Schema({
@@ -60,6 +61,7 @@ const LineTokenSchema: Schema = new Schema({
   verifyCodeExpires: { type: Date, default: null },
   favoritePosts: [FavoritePostSchema],
   keywords: { type: [String], default: [] }, // 新增關鍵字儲存
+  fugleApiKey: { type: String, default: null }, // 新增個人token
 });
 
 const LineTokenModel: Model<ILineToken> = mongoose.model<ILineToken>('LineToken', LineTokenSchema);
