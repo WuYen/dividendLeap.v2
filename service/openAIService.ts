@@ -106,7 +106,7 @@ export const processStockPostWithAI = async (messages: ChatCompletionMessagePara
     );
 
     const summary = await openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are a helpful assistant that summarizes stock posts.' },
         { role: 'user', content: `Please summarize the following posts: ${postDetails.join('\n')}` },
