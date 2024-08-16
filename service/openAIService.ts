@@ -4,70 +4,31 @@ import { ChatCompletionMessageParam, ChatCompletionMessageToolCall, ChatCompleti
 import { searchPostsByTitle } from './pttStockPostService';
 import { IPostInfo } from '../model/PostInfo';
 import config from '../utility/config';
+import { getAuthorHistoryPosts } from './pttAuthorService';
+import { AuthorStatsModel } from '../model/AuthorStats';
 
+const MODEL = 'gpt-4o-mini';
 const tools: ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
-      name: 'fetchPostsByStockCode',
-      description: 'Fetch related posts by stock code from MongoDB',
+      name: 'fetchAuthorPostAndStats',
+      description: '這個function會取得指定作者的貼文還有根據過去貼文統計出來的一些相關數據',
       parameters: {
         type: 'object',
         properties: {
-          stockCode: {
+          author: {
             type: 'string',
-            description: 'The stock code to fetch related posts for',
+            description: '作者的名字也就是id',
           },
         },
-        required: ['stockCode'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'summarizePosts',
-      description: 'Summarize the fetched posts to provide a brief overview',
-      parameters: {
-        type: 'object',
-        properties: {
-          postIds: {
-            type: 'array',
-            items: {
-              type: 'string',
-            },
-            description: 'Array of post IDs to summarize',
-          },
-        },
-        required: ['postIds'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'fetchStockPrice',
-      description: 'Fetch past or real-time stock price',
-      parameters: {
-        type: 'object',
-        properties: {
-          stockCode: {
-            type: 'string',
-            description: 'The stock code to fetch the price for',
-          },
-          date: {
-            type: 'string',
-            description: 'The date for historical price, leave empty for real-time',
-            nullable: true,
-          },
-        },
-        required: ['stockCode'],
+        required: ['author'],
       },
     },
   },
 ];
 
-export const processStockPostWithAI = async (messages: ChatCompletionMessageParam[]): Promise<any> => {
+export const conversationWithAI = async (messages: ChatCompletionMessageParam[]): Promise<any> => {
   // Example of creating a chat completion with tools and messages
   const response = await openai.chat.completions.create({
     model: 'gpt-4',
@@ -85,57 +46,62 @@ export const processStockPostWithAI = async (messages: ChatCompletionMessagePara
 
   let result;
 
-  if (toolCall.function.name === 'fetchPostsByStockCode') {
-    const stockCode = functionArguments.stockCode;
+  if (toolCall.function.name === 'fetchAuthorPostAndStats') {
+    await mongoose.connect(config.MONGODB_URI);
+    const author = functionArguments.author;
+    const posts = await getAuthorHistoryPosts(author);
+    const authorStats = await AuthorStatsModel.find({ name: author }).lean().exec();
+    const toolMessage: ChatCompletionMessageParam = {
+      role: 'tool',
+      content: JSON.stringify({
+        author,
+        posts,
+        authorStats,
+      }),
+      tool_call_id: toolCall.id,
+    };
 
-    var tempResult = await fetchPostsByStockCode(stockCode);
+    messages.push(response.choices[0].message);
+    messages.push(toolMessage);
 
-    result = tempResult.map((x) => {
-      return {
-        ...x,
-        message: `[${x.tag}] ${x.title} -${x.author} ${x.date}`,
-      };
-    });
-  } else if (toolCall.function.name === 'summarizePosts') {
-    const postIds = functionArguments.postIds;
-
-    const postDetails = await Promise.all(
-      postIds.map(async (postId: string) => {
-        return await fetchPostDetail(postId);
-      })
-    );
-
-    const summary = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant that summarizes stock posts.' },
-        { role: 'user', content: `Please summarize the following posts: ${postDetails.join('\n')}` },
-      ],
+    // 再次调用 AI，将 tool message 发送给 AI
+    const final_response = await openai.chat.completions.create({
+      model: MODEL, // 使用适当的模型
+      messages: messages,
+      tools: tools, // 假设你有定义的工具
     });
 
-    result = summary.choices[0].message?.content;
-  } else if (toolCall.function.name === 'fetchStockPrice') {
-    const stockCode = functionArguments.stockCode;
-    const date = functionArguments.date || `過去三個月`; //TODO: 取得過去三個月
-
-    result = await fetchStockPrice(stockCode, date);
+    // 输出 AI 生成的最终结果
+    // 表示不需要繼續 final_response.choices[0].finish_reason == 'stop'
+    console.log(final_response.choices[0].message.content);
+    await mongoose.disconnect();
+    return final_response;
   } else {
     result = { message: 'Function not recognized or not needed.' };
   }
+
+  // else if (toolCall.function.name === 'summarizePosts') {
+  //   const postIds = functionArguments.postIds;
+
+  //   const postDetails = await Promise.all(
+  //     postIds.map(async (postId: string) => {
+  //       return await fetchPostDetail(postId);
+  //     })
+  //   );
+
+  //   const summary = await openai.chat.completions.create({
+  //     model: MODEL,
+  //     messages: [
+  //       { role: 'system', content: 'You are a helpful assistant that summarizes stock posts.' },
+  //       { role: 'user', content: `Please summarize the following posts: ${postDetails.join('\n')}` },
+  //     ],
+  //   });
+
+  //   result = summary.choices[0].message?.content;
+  // } else if (toolCall.function.name === 'fetchStockPrice') {
+  //   const stockCode = functionArguments.stockCode;
+  //   const date = functionArguments.date || `過去三個月`; //TODO: 取得過去三個月
+
+  //   result = await fetchStockPrice(stockCode, date);
+  // }
 };
-
-async function fetchPostsByStockCode(stockCode: string): Promise<IPostInfo[]> {
-  // 連接到 MongoDB
-  await mongoose.connect(config.MONGODB_URI);
-  var result = await searchPostsByTitle(stockCode);
-  await mongoose.disconnect();
-  return result;
-}
-
-async function fetchStockPrice(stockCode: any, date: any) {
-  return null;
-}
-
-async function fetchPostDetail(params: any) {
-  return null;
-}
