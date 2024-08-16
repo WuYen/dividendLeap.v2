@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import openai from '../utility/openAIHelper';
 import { ChatCompletionMessageParam, ChatCompletionMessageToolCall, ChatCompletionTool } from 'openai/resources';
-import { searchPostsByTitle } from './pttStockPostService';
-import { IPostInfo } from '../model/PostInfo';
+import { fetchPostDetail, searchPostsByTitle } from './pttStockPostService';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import config from '../utility/config';
 import { getAuthorHistoryPosts } from './pttAuthorService';
 import { AuthorStatsModel } from '../model/AuthorStats';
@@ -26,6 +26,23 @@ const tools: ChatCompletionTool[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'fetchPost',
+      description: '用來分析某篇貼文, 這邊會提供這邊發文的內容',
+      parameters: {
+        type: 'object',
+        properties: {
+          postId: {
+            type: 'string',
+            description: '發文的id, 這個id是個時間戳記在文章網址的後面',
+          },
+        },
+        required: ['postId'],
+      },
+    },
+  },
 ];
 
 export const conversationWithAI = async (messages: ChatCompletionMessageParam[]): Promise<any> => {
@@ -44,10 +61,8 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
   const toolCall = response.choices[0].message.tool_calls[0] as ChatCompletionMessageToolCall;
   const functionArguments = JSON.parse(toolCall.function.arguments);
 
-  let result;
-
+  await mongoose.connect(config.MONGODB_URI);
   if (toolCall.function.name === 'fetchAuthorPostAndStats') {
-    await mongoose.connect(config.MONGODB_URI);
     const author = functionArguments.author;
     const posts = await getAuthorHistoryPosts(author);
     const authorStats = await AuthorStatsModel.find({ name: author }).lean().exec();
@@ -74,11 +89,37 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
     // 输出 AI 生成的最终结果
     // 表示不需要繼續 final_response.choices[0].finish_reason == 'stop'
     console.log(final_response.choices[0].message.content);
-    await mongoose.disconnect();
-    return final_response;
+
+    messages.push(final_response.choices[0].message);
+  } else if (toolCall.function.name === 'fetchPost') {
+    const postId = functionArguments.postId;
+    const postInfo = await PostInfoModel.find({ id: postId }).lean().exec();
+    const href = `https://www.ptt.cc/${postInfo.href}`;
+    const postContent = await fetchPostDetail(href);
+
+    const toolMessage: ChatCompletionMessageParam = {
+      role: 'tool',
+      content: postContent,
+      tool_call_id: toolCall.id,
+    };
+
+    messages.push(response.choices[0].message);
+    messages.push(toolMessage);
+
+    // 再次调用 AI，将 tool message 发送给 AI
+    const final_response = await openai.chat.completions.create({
+      model: MODEL, // 使用适当的模型
+      messages: messages,
+      tools: tools, // 假设你有定义的工具
+    });
+
+    messages.push(final_response.choices[0].message);
   } else {
-    result = { message: 'Function not recognized or not needed.' };
+    throw new Error('Sorry');
+    //messages.push();
   }
+  await mongoose.disconnect();
+  return messages;
 
   // else if (toolCall.function.name === 'summarizePosts') {
   //   const postIds = functionArguments.postIds;
