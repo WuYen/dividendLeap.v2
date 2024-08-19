@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import openai from '../utility/openAIHelper';
 import { ChatCompletionMessageParam, ChatCompletionMessageToolCall, ChatCompletionTool } from 'openai/resources';
-import { fetchPostDetail, searchPostsByTitle } from './pttStockPostService';
+import { fetchPostDetail, fetchPostDetailProxy, searchPostsByTitle } from './pttStockPostService';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import config from '../utility/config';
 import { getAuthorHistoryPosts } from './pttAuthorService';
@@ -94,8 +94,8 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
   } else if (toolCall.function.name === 'fetchPost') {
     const postId = functionArguments.postId;
     const postInfo = await PostInfoModel.find({ id: postId }).lean().exec();
-    const href = `https://www.ptt.cc/${postInfo.href}`;
-    const postContent = await fetchPostDetail(href);
+    //const href = `https://www.ptt.cc/${postInfo.href}`;
+    const postContent = await fetchPostDetailProxy('M.1712676476.A.A46.html');
 
     const toolMessage: ChatCompletionMessageParam = {
       role: 'tool',
@@ -116,33 +116,7 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
     messages.push(final_response.choices[0].message);
   } else {
     throw new Error('Sorry');
-    //messages.push();
   }
   await mongoose.disconnect();
   return messages;
-
-  // else if (toolCall.function.name === 'summarizePosts') {
-  //   const postIds = functionArguments.postIds;
-
-  //   const postDetails = await Promise.all(
-  //     postIds.map(async (postId: string) => {
-  //       return await fetchPostDetail(postId);
-  //     })
-  //   );
-
-  //   const summary = await openai.chat.completions.create({
-  //     model: MODEL,
-  //     messages: [
-  //       { role: 'system', content: 'You are a helpful assistant that summarizes stock posts.' },
-  //       { role: 'user', content: `Please summarize the following posts: ${postDetails.join('\n')}` },
-  //     ],
-  //   });
-
-  //   result = summary.choices[0].message?.content;
-  // } else if (toolCall.function.name === 'fetchStockPrice') {
-  //   const stockCode = functionArguments.stockCode;
-  //   const date = functionArguments.date || `過去三個月`; //TODO: 取得過去三個月
-
-  //   result = await fetchStockPrice(stockCode, date);
-  // }
 };
