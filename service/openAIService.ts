@@ -36,7 +36,7 @@ const tools: ChatCompletionTool[] = [
         properties: {
           postId: {
             type: 'string',
-            description: '發文的id, 這個id是個時間戳記在文章網址的後面',
+            description: '發文的id, 這個id是個時間戳記在文章網址的後面會是一個10碼的時間戳記格式',
           },
         },
         required: ['postId'],
@@ -94,8 +94,8 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
   } else if (toolCall.function.name === 'fetchPost') {
     const postId = functionArguments.postId;
     const postInfo = await PostInfoModel.find({ id: postId }).lean().exec();
-    //const href = `https://www.ptt.cc/${postInfo.href}`;
-    const postContent = await fetchPostDetailProxy('M.1712676476.A.A46.html');
+    const href = `https://www.ptt.cc/${postInfo.href}`;
+    const postContent = await fetchPostDetailProxy(href);
 
     const toolMessage: ChatCompletionMessageParam = {
       role: 'tool',
@@ -106,7 +106,6 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
     messages.push(response.choices[0].message);
     messages.push(toolMessage);
 
-    // 再次调用 AI，将 tool message 发送给 AI
     const final_response = await openai.chat.completions.create({
       model: MODEL, // 使用适当的模型
       messages: messages,
