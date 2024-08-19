@@ -6,7 +6,7 @@ import yahooRouter from './yahoo';
 import pttStockRouter from './pttStock';
 import toolRouter from './tool';
 import loginRouter from './login';
-import myRouter from './my';
+import myRouter from './my/index';
 
 const router = express.Router();
 

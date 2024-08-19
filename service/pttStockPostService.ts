@@ -220,19 +220,12 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {
     const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
-    const targetPosts = newPosts.filter((post) => {
-      const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
-      return post.tag === '標的' && (isValidStockPost(post) || isSubscribeAuthor);
-    });
-    if (targetPosts.length > 0) {
-      const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
-      if (tokenInfos != null && tokenInfos.length > 0) {
-        await processPostAndSendNotify(targetPosts, tokenInfos, subscribeAuthors);
-      }
-      console.log(`finish sending notify count:${tokenInfos.length}, post count:${targetPosts.length}`);
+    const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
+    if (tokenInfos != null && tokenInfos.length > 0) {
+      await processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors);
     }
     // Invalidate cache for authors with new posts
-    const authorsWithNewPosts = [...new Set(targetPosts.map((post) => post.author))];
+    const authorsWithNewPosts = [...new Set(newPosts.map((post) => post.author))];
     await invalidateAuthorCache(authorsWithNewPosts);
   }
   return { postCount: newPosts?.length };

@@ -67,6 +67,7 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       tokenLevel: [TokenLevel.Basic],
       updateDate: today(),
       favoritePosts: [],
+      keywords: [],
     };
     const savedTokenInfo = await new LineTokenModel(tokenInfo).save();
     const count = await LineTokenModel.countDocuments({ notifyEnabled: true });

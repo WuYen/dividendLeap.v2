@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
+import asyncLocalStorage from '../utility/asyncLocalStorage';
 import config from './config';
 
 interface IUserPayload {
   id: string;
-  // Add other properties as needed
+  fugleApiKey?: string; // Add this line
 }
 
 interface IAuthRequest extends Request {
@@ -38,8 +39,14 @@ function authentication(req: IAuthRequest, res: Response, next: NextFunction): v
         return;
       }
     }
+
     req.user = user as IUserPayload;
-    next(); // pass the execution off to whatever request the client intended
+    const store = new Map<string, string>();
+    store.set('id', req.user.id || '');
+    store.set('fugleApiKey', req.user.fugleApiKey || '');
+    asyncLocalStorage.run(store, () => {
+      next();
+    });
   });
 }
 
