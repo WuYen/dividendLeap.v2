@@ -16,8 +16,8 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
 
   const endpointToDatasetMap: { [key: string]: FugleDataset } = {
     historical: FugleDataset.StockHistorical,
-    'intraday/quote': FugleDataset.StockIntradayQuote,
-    'intraday/ticker': FugleDataset.StockIntradayTicker,
+    intradayquote: FugleDataset.StockIntradayQuote,
+    intradayticker: FugleDataset.StockIntradayTicker,
   };
 
   const dataset = endpointToDatasetMap[endpoint];
