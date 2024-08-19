@@ -81,53 +81,13 @@ export async function processPostAndSendNotify(
       const delayNotifyUsers = [];
 
       for (const tokenInfo of users) {
-        if (isSubscribedAuthor && tokenInfo.tokenLevel.includes(TokenLevel.Test) && !isRePosts(post)) {
-          delayNotifyUsers.push(tokenInfo);
-        } else {
-          console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
-          notifyQueue.push({
-            user: tokenInfo,
-            payload: tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? standardContent : basicContent,
-          });
-        }
-      }
-
-      if (isSubscribedAuthor) {
-        console.log('=> add job to testQueue ' + post.id);
-        postQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
-      }
-    } catch (error) {
-      console.error(`Error processing post ${post.id}:`, error);
-    }
-  }
-}
-
-export async function newProcessPostAndSendNotify(
-  newPosts: IPostInfo[],
-  users: ILineToken[],
-  subscribeAuthors: IAuthor[]
-): Promise<void> {
-  for (const post of newPosts) {
-    try {
-      const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
-      const isSubscribedAuthor = !!authorInfo;
-      const basicContent = await generateContent(post, authorInfo, TokenLevel.Basic, isSubscribedAuthor);
-      const standardContent = await generateContent(post, authorInfo, TokenLevel.Standard, isSubscribedAuthor);
-      const delayNotifyUsers = [];
-
-      for (const tokenInfo of users) {
-        const isMyKeywordMatch = tokenInfo.keywords.some((keyword) => post.title.includes(keyword));
+        const isMyKeywordMatch =
+          tokenInfo.keywords && tokenInfo.keywords.some((keyword) => post.title.includes(keyword));
 
         if ((post.tag === '標的' && (isValidStockPostForNotify(post) || isSubscribedAuthor)) || isMyKeywordMatch) {
-          if (
-            post.tag === '標的' &&
-            isSubscribedAuthor &&
-            tokenInfo.tokenLevel.includes(TokenLevel.Test) &&
-            !isRePosts(post)
-          ) {
+          if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
             delayNotifyUsers.push(tokenInfo);
           } else {
-            console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
             notifyQueue.push({
               user: tokenInfo,
               payload: tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? standardContent : basicContent,
