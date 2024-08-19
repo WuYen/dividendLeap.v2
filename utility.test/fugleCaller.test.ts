@@ -8,7 +8,6 @@ jest.mock('../utility/config', () => ({
   FUGLE_API_KEY: 'test-api-key',
 }));
 
-// 模擬 axios
 jest.mock('axios');
 
 describe('FugleAPIBuilder', () => {
@@ -105,4 +104,21 @@ describe('FugleAPIBuilder', () => {
       },
     });
   });
+});
+
+describe('FugleAPIBuilder with real axios', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should correctly make a real API call', async () => {
+    // const builder = new FugleAPIBuilder(FugleDataset.StockIntradayTicker).setParam({
+    //   symbol: '2330',
+    // });
+    // const response = await builder.get();
+    // // 這裡你可以檢查 response 的內容是否正確
+    // console.log(response); // 實際測試中你會檢查 response 而不是僅僅輸出它
+  });
+
+  // 其他使用真實 axios 的測試
 });

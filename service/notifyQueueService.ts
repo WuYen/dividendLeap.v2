@@ -9,6 +9,9 @@ import lineService from './lineService';
 import geminiAIService from './geminiAIService';
 import stockPriceService from './stockPriceService';
 import { formatTimestampToString } from '../utility/dateTime';
+import { FugleAPIBuilder } from '../utility/fugleCaller';
+import { FugleDataset } from '../utility/fugleTypes';
+import { getIndustryName } from '../utility/stockHelper';
 
 export interface PostContent {
   post: IPostInfo;
@@ -46,23 +49,33 @@ export class ContentGenerator {
     level: TokenLevel,
     isSubscribedAuthor: boolean
   ): Promise<PostContent> {
-    const notifyContent: string[] = [];
+    const notifyContent: string[] = [''];
     if (isSubscribedAuthor && post.tag === '標的') {
-      notifyContent.push(`【✨✨大神來囉✨✨】`);
+      notifyContent.push('✨✨大神來囉✨✨');
     }
-    notifyContent.push(`[${post.tag}] ${post.title}`);
-    //TODO: add get stock no basic info, EX: 上櫃 營建
+
+    const stockNo = getStockNoFromTitle(post);
+    if (stockNo) {
+      const response = await new FugleAPIBuilder(FugleDataset.StockIntradayTicker)
+        .setParam({
+          symbol: stockNo,
+        })
+        .get();
+      notifyContent.push(`${response.exchange == 'TWSE' ? '上市' : '上櫃'}-${getIndustryName(response.industry)}`);
+    }
 
     let textContent = '';
     switch (level) {
       case TokenLevel.Basic:
+        notifyContent.push(`[${post.tag}] ${post.title}`);
         textContent = this.generateBasicContent(post, notifyContent);
         break;
       case TokenLevel.Standard:
+        notifyContent.push(`[${post.tag}] ${post.title}`);
         textContent = this.generateStandardContent(post, authorInfo, notifyContent);
         break;
       case TokenLevel.Test:
-        textContent = await this.generateAdvanceMessage(post, authorInfo);
+        textContent = await this.generateAdvanceMessage(post, authorInfo, notifyContent);
         break;
     }
 
@@ -89,7 +102,11 @@ export class ContentGenerator {
     return standardContent.join('\n');
   }
 
-  private async generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
+  private async generateAdvanceMessage(
+    post: IPostInfo,
+    authorInfo: IAuthor | undefined,
+    notifyContent: string[]
+  ): Promise<string> {
     if (!post.href || !post.href.length) {
       console.log(`href is empty`);
       return '';
@@ -112,25 +129,24 @@ export class ContentGenerator {
       console.log(`start prompt`);
       const promptResult = await geminiAIService.generateWithTunedModel(promptWords + postTextContent);
 
-      const textArray = ['', '✨✨大神來囉✨✨'];
-      textArray.push(`作者: ${post.author}`);
+      notifyContent.push(`作者: ${post.author}`);
       try {
         const stockNo = getStockNoFromTitle(post);
         if (stockNo) {
           const intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
           if (intradayInfo) {
-            textArray.push(`${intradayInfo.name}股價: ${intradayInfo.lastPrice}`);
-            textArray.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)} \n`);
+            notifyContent.push(`${intradayInfo.name}股價: ${intradayInfo.lastPrice}`);
+            notifyContent.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)} \n`);
           }
         }
       } catch (error) {
         console.error('process message with getStockPriceIntraday fail', error);
       }
 
-      textArray.push(promptResult);
-      textArray.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+      notifyContent.push(promptResult);
+      notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
       console.log(`end prompt`);
-      return textArray.join('\n');
+      return notifyContent.join('\n');
     } catch (error) {
       return '';
     }
