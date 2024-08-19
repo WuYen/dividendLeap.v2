@@ -1,4 +1,4 @@
-import { Model, Schema, model } from 'mongoose';
+import { Model, Schema, Types, model } from 'mongoose';
 
 interface IPostInfo {
   tag: string | null;
@@ -33,6 +33,7 @@ const LastRecordSchema: Schema = new Schema({
 //TODO: figure out why duplicate, maybe its because schedule job has overlap
 const findAndRemoveDuplicateIds = async (doRemove: boolean = false) => {
   try {
+    // Step 1: Find duplicate IDs
     const duplicateIds = await PostInfoModel.aggregate([
       { $group: { _id: '$id', count: { $sum: 1 } } },
       { $match: { count: { $gt: 1 } } },
@@ -42,12 +43,38 @@ const findAndRemoveDuplicateIds = async (doRemove: boolean = false) => {
     console.log('Duplicate IDs:');
     console.log(duplicateIds);
     console.log('size:', duplicateIds.length);
-    if (doRemove) {
-      await PostInfoModel.deleteMany({ id: { $in: duplicateIds.map((x) => x.id) } });
+
+    if (doRemove && duplicateIds.length > 0) {
+      // Step 2: Find all documents with duplicate IDs
+      const allDuplicates = await PostInfoModel.find({ id: { $in: duplicateIds.map((x) => x.id) } });
+
+      // Step 3: Group by id and remove all but one document for each group
+      const idsToRemove: Types.ObjectId[] = [];
+
+      // The 'grouped' object will have keys as the 'id' and values as an array of ObjectIds
+      const grouped: Record<number, Types.ObjectId[]> = allDuplicates.reduce((acc, doc) => {
+        if (!acc[doc.id]) {
+          acc[doc.id] = [];
+        }
+        acc[doc.id].push(doc._id); // Store the _id of each document
+        return acc;
+      }, {} as Record<number, Types.ObjectId[]>);
+
+      for (const id in grouped) {
+        const docs = grouped[id];
+        if (docs.length > 1) {
+          // Keep the first document and remove the rest
+          idsToRemove.push(...docs.slice(1));
+        }
+      }
+
+      await PostInfoModel.deleteMany({ _id: { $in: idsToRemove } });
+      console.log(`Removed ${idsToRemove.length} duplicate documents.`);
     }
+
     return duplicateIds;
   } catch (err) {
-    console.error('Error finding duplicate IDs:', err);
+    console.error('Error finding and removing duplicate IDs:', err);
   }
 };
 
