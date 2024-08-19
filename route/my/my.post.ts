@@ -11,6 +11,23 @@ import { analysisPostById } from '../../service/postStatsService';
 
 const router: Router = express.Router();
 
+router.get('/posts', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  var result = await getPostsWithInDays(2);
+  return res.sendSuccess(200, { data: result });
+});
+
+router.get('/posts/search', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  const keyword = req.query.search as string;
+  const result = await searchPostsByTitle(keyword);
+  return res.sendSuccess(200, { data: result });
+});
+
+router.get('/posts/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
+  const userId = req.user?.id || '';
+  const result = await getFavoritePosts(userId);
+  return res.sendSuccess(200, { data: result });
+});
+
 router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
   try {
     const postId = req.params.id;
@@ -48,23 +65,6 @@ router.get('/post/:id/stats', async (req: IAuthRequest, res: Response, next: Nex
   } catch (error) {
     return res.sendError(500, { message: '失敗' });
   }
-});
-
-router.get('/posts', async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  var result = await getPostsWithInDays(2);
-  return res.sendSuccess(200, { data: result });
-});
-
-router.get('/posts/search', async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  const keyword = req.query.search as string;
-  const result = await searchPostsByTitle(keyword);
-  return res.sendSuccess(200, { data: result });
-});
-
-router.get('/posts/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  const userId = req.user?.id || '';
-  const result = await getFavoritePosts(userId);
-  return res.sendSuccess(200, { data: result });
 });
 
 export default router;
