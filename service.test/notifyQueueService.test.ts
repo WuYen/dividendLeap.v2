@@ -175,3 +175,10 @@ describe('processPostAndSendNotify', () => {
     processPostAndSendNotify(newPosts, users, subscribeAuthors);
   });
 });
+
+// call real service
+// var newPosts: IPostInfo[] = await PostInfoModel.find({ id: 1715508868 }).lean().exec();
+// var users: ILineToken[] = await LineTokenModel.find({ channel: 'myline' }).lean().exec();
+// var subscribeAuthors: IAuthor[] = await AuthorModel.find({ name: 'agogo1202' }).lean().exec();
+
+// await processPostAndSendNotify(newPosts, users, subscribeAuthors);

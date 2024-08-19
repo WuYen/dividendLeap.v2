@@ -12,6 +12,7 @@ import { formatTimestampToString } from '../utility/dateTime';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset } from '../utility/fugleTypes';
 import { getIndustryName } from '../utility/stockHelper';
+import { delay } from '../utility/delay';
 
 export interface PostContent {
   post: IPostInfo;
@@ -53,7 +54,7 @@ export class ContentGenerator {
     if (isSubscribedAuthor && post.tag === '標的') {
       notifyContent.push('✨✨大神來囉✨✨');
     }
-
+    notifyContent.push(`[${post.tag}] ${post.title}`);
     const stockNo = getStockNoFromTitle(post);
     if (stockNo) {
       const response = await new FugleAPIBuilder(FugleDataset.StockIntradayTicker)
@@ -67,15 +68,13 @@ export class ContentGenerator {
     let textContent = '';
     switch (level) {
       case TokenLevel.Basic:
-        notifyContent.push(`[${post.tag}] ${post.title}`);
         textContent = this.generateBasicContent(post, notifyContent);
         break;
       case TokenLevel.Standard:
-        notifyContent.push(`[${post.tag}] ${post.title}`);
         textContent = this.generateStandardContent(post, authorInfo, notifyContent);
         break;
       case TokenLevel.Test:
-        textContent = await this.generateAdvanceMessage(post, authorInfo, notifyContent);
+        textContent = await this.generateAdvanceMessage(post, authorInfo);
         break;
     }
 
@@ -102,11 +101,7 @@ export class ContentGenerator {
     return standardContent.join('\n');
   }
 
-  private async generateAdvanceMessage(
-    post: IPostInfo,
-    authorInfo: IAuthor | undefined,
-    notifyContent: string[]
-  ): Promise<string> {
+  private async generateAdvanceMessage(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
     if (!post.href || !post.href.length) {
       console.log(`href is empty`);
       return '';
@@ -126,23 +121,31 @@ export class ContentGenerator {
         '如果文章中沒特別說明則該項顯示無\n' +
         '接著列出原文重點摘要盡量簡短\n' +
         '文章內容如下\n\n';
-      console.log(`start prompt`);
-      const promptResult = await geminiAIService.generateWithTunedModel(promptWords + postTextContent);
 
-      notifyContent.push(`作者: ${post.author}`);
+      const promptResult = await geminiAIService.generateWithTunedModel(promptWords + postTextContent);
+      const notifyContent: string[] = [''];
       try {
         const stockNo = getStockNoFromTitle(post);
+
         if (stockNo) {
           const intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
           if (intradayInfo) {
             notifyContent.push(`${intradayInfo.name}股價: ${intradayInfo.lastPrice}`);
-            notifyContent.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)} \n`);
+            notifyContent.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)}`);
           }
+          await delay(100);
+          const stockInfo = await new FugleAPIBuilder(FugleDataset.StockIntradayTicker)
+            .setParam({ symbol: stockNo })
+            .get();
+          stockInfo &&
+            notifyContent.push(
+              `${stockInfo.exchange == 'TWSE' ? '上市' : '上櫃'}-${getIndustryName(stockInfo.industry)}`
+            );
         }
       } catch (error) {
         console.error('process message with getStockPriceIntraday fail', error);
       }
-
+      notifyContent.push(`作者: ${post.author} \n`);
       notifyContent.push(promptResult);
       notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
       console.log(`end prompt`);
