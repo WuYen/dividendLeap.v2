@@ -1,7 +1,7 @@
 import express, { Router, NextFunction, Response } from 'express';
-import { IAuthRequest, authentication } from '../utility/auth';
-import { addLikeToAuthor } from '../service/myService';
-import { getAuthorRankList } from '../service/pttAuthorService';
+import { IAuthRequest, authentication } from '../../utility/auth';
+import { addLikeToAuthor } from '../../service/myService';
+import { getAuthorRankList } from '../../service/pttAuthorService';
 import myPostRoute from './my.post';
 import myKeywordRoute from './my.keyword';
 

@@ -1,14 +1,13 @@
 import express, { Router, NextFunction, Response } from 'express';
-import { IAuthRequest } from '../utility/auth';
+import { IAuthRequest } from '../../utility/auth';
 import {
   toggleFavoritePost,
   getFavoritePosts,
   updateFavoritePostInfo,
   fetchAndProcessFavoritePost,
-} from '../service/myService';
-import { getPostsWithInDays, searchPostsByTitle } from '../service/pttStockPostService';
-
-import { analysisPostById } from '../service/postStatsService';
+} from '../../service/myService';
+import { getPostsWithInDays, searchPostsByTitle } from '../../service/pttStockPostService';
+import { analysisPostById } from '../../service/postStatsService';
 
 const router: Router = express.Router();
 
