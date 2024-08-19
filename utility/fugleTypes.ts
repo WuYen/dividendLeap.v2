@@ -1,6 +1,7 @@
 export enum FugleDataset {
   StockHistorical = 'StockHistorical',
   StockIntradayQuote = 'StockIntradayQuote',
+  StockIntradayTicker = 'StockIntradayTicker',
 }
 
 interface BaseParam {
@@ -13,15 +14,9 @@ export interface StockHistoricalQuery extends BaseParam {
   fields?: string[];
 }
 
-export interface StockIntradayQuoteQuery extends BaseParam {
-  // 可能不需要額外的參數
-}
+export interface StockIntradayQuoteQuery extends BaseParam {}
 
-export type QueryType<T extends FugleDataset> = T extends FugleDataset.StockHistorical
-  ? StockHistoricalQuery
-  : T extends FugleDataset.StockIntradayQuote
-  ? StockIntradayQuoteQuery
-  : never;
+export interface StockIntradayTickerQuery extends BaseParam {}
 
 export interface StockHistoricalResponse {
   symbol: string;
@@ -103,8 +98,57 @@ export interface StockIntradayQuoteResponse {
   lastUpdated: number;
 }
 
+export interface StockIntradayTickerResponse {
+  date: string;
+  type: string;
+  exchange: string;
+  market: string;
+  symbol: string;
+  name: string;
+  nameEn: string;
+  industry: string;
+  securityType: string;
+  referencePrice: number;
+  limitUpPrice: number;
+  limitDownPrice: number;
+  canDayTrade: boolean;
+  canBuyDayTrade: boolean;
+  canBelowFlatMarginShortSell: boolean;
+  canBelowFlatSBLShortSell: boolean;
+  isAttention: boolean;
+  isDisposition: boolean;
+  isUnusuallyRecommended: boolean;
+  isSpecificAbnormally: boolean;
+  matchingInterval: number;
+  securityStatus: string;
+  boardLot: number;
+  tradingCurrency: string;
+  exercisePrice: number;
+  exercisedVolume: number;
+  cancelledVolume: number;
+  remainingVolume: number;
+  exerciseRatio: number;
+  capPrice: number;
+  floorPrice: number;
+  maturityDate: string;
+  previousClose: number;
+  openTime: string;
+  closeTime: string;
+  isNewlyCompiled: boolean;
+}
+
+export type QueryType<T extends FugleDataset> = T extends FugleDataset.StockHistorical
+  ? StockHistoricalQuery
+  : T extends FugleDataset.StockIntradayQuote
+  ? StockIntradayQuoteQuery
+  : T extends FugleDataset.StockIntradayTicker
+  ? StockIntradayTickerQuery
+  : never;
+
 export type ResponseType<T extends FugleDataset> = T extends FugleDataset.StockHistorical
   ? StockHistoricalResponse
   : T extends FugleDataset.StockIntradayQuote
   ? StockIntradayQuoteResponse
+  : T extends FugleDataset.StockIntradayTicker
+  ? StockIntradayTickerResponse
   : never;

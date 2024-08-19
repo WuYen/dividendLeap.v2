@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import axios from 'axios';
 import config from './config';
 import { FugleDataset, QueryType, ResponseType, StockHistoricalQuery } from './fugleTypes';
@@ -24,6 +23,8 @@ export class FugleAPIBuilder<T extends FugleDataset> {
         return `${this.baseUrl}/stock/historical/candles/${this.params.symbol}`;
       case FugleDataset.StockIntradayQuote:
         return `${this.baseUrl}/stock/intraday/quote/${this.params.symbol}`;
+      case FugleDataset.StockIntradayTicker:
+        return `${this.baseUrl}/stock/intraday/ticker/${this.params.symbol}`;
       default:
         throw new Error('Unsupported dataset');
     }
@@ -37,9 +38,8 @@ export class FugleAPIBuilder<T extends FugleDataset> {
         const fieldsString = fields && fields.length > 0 ? fields.join(',') : 'open,high,low,close,volume';
         return `fields=${fieldsString}&from=${from}&to=${to}`;
       case FugleDataset.StockIntradayQuote:
-        // Intraday quote 可能不需要額外的查詢參數
+      case FugleDataset.StockIntradayTicker:
         return '';
-
       default:
         throw new Error('Unsupported dataset');
     }

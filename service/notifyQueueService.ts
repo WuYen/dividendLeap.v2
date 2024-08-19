@@ -96,7 +96,7 @@ export class ContentGenerator {
     }
 
     try {
-      const href = `https://www.ptt.cc/${post.href}`;
+      const href = `${PTT_DOMAIN}/${post.href}`;
       const postTextContent = await fetchPostDetail(href);
 
       if (!postTextContent) {
