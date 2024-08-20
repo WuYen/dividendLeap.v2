@@ -1,21 +1,44 @@
-import { IPostInfo } from '../model/PostInfo';
+import { AuthorModel } from '../model/Author';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import { toDateString, today } from '../utility/dateTime';
-import { getStockNoFromTitle } from '../utility/stockPostHelper';
+import { getStockNoFromTitle, isValidStockPost } from '../utility/stockPostHelper';
 import { BatchStockHistoricalResponse, getCachedStockPriceByDatesBatch, StockRequest } from './stockPriceService';
 
-async function fetchPostsFromLastFourWeeks(): Promise<IPostInfo[]> {
-  //TODO: 找出過去一個月大神貼文
-  throw new Error('Function not implemented.');
+async function fetchPostsFromLastFourWeeks(authorList: string[]): Promise<IPostInfo[]> {
+  const threeMonthsAgo = Math.floor(Date.now() / 1000) - 1 * 30 * 24 * 60 * 60; // 取得三個月前的 Unix timestamp (10 碼)
+
+  return await PostInfoModel.find({
+    author: { $in: authorList },
+    id: { $gte: threeMonthsAgo },
+  }).exec();
 }
 
 export async function generateWeeklyReport(): Promise<any> {
   // Step 1: Fetch Posts and Prices
-  const posts = await fetchPostsFromLastFourWeeks();
-  const prices = await fetchStockPrices(posts);
+  const authors = await AuthorModel.find({}).lean().exec();
+  const posts = await fetchPostsFromLastFourWeeks(authors.map((x) => x.name));
+  const targetPosts = posts.filter((x) => x.tag == '標的' && isValidStockPost(x)).splice(0, 5);
+
+  const prices = await fetchStockPrices(targetPosts);
 
   // Step 2: Process Data
-  const weeklyData = calculateWeeklyChanges(posts, prices);
-
+  const weeklyData = calculateWeeklyChanges(targetPosts, prices);
+  console.log(weeklyData);
+  // sample out put
+  // [
+  //   {
+  //     postId: 1721643502,
+  //     stockNo: '2308',
+  //     postDate: '20240722',
+  //     postTitle: '2308台達電',
+  //     initialPrice: 373.5,
+  //     latestPrice: 402.5,
+  //     priceChangeValue: 29,
+  //     priceChangePercentage: 7.764390896921017,
+  //     highestPrice: 427,
+  //     lowestPrice: 347
+  //   },
+  // ]
   return weeklyData;
 }
 
@@ -31,7 +54,7 @@ async function fetchStockPrices(posts: IPostInfo[]): Promise<BatchStockHistorica
     })
     .filter((x) => x.stockNo);
   var result = await getCachedStockPriceByDatesBatch(request);
-  return result.filter((x) => x != null);
+  return result.filter((x) => x != null) as BatchStockHistoricalResponse[];
 }
 
 function calculateWeeklyChanges(posts: IPostInfo[], prices: BatchStockHistoricalResponse[]) {
@@ -47,8 +70,8 @@ function calculateWeeklyChanges(posts: IPostInfo[], prices: BatchStockHistorical
         return null; // No price data available for this stock
       }
 
-      const priceOnPostDate = stockPriceData.data.find((data) => data.date === postDateString);
-      const latestPriceData = stockPriceData.data[stockPriceData.data.length - 1];
+      const latestPriceData = stockPriceData.data[0];
+      const priceOnPostDate = stockPriceData.data[stockPriceData.data.length - 1];
 
       if (!priceOnPostDate || !latestPriceData) {
         return null; // No price data available for the post date or latest date
