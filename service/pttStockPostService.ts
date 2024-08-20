@@ -163,21 +163,30 @@ export function getPreviousPageIndex($: cheerio.Root): string {
 export async function fetchPostDetail(url: string): Promise<string> {
   const $ = await getHTML(url);
 
+  //擷取留言
+  // <div class='push'>
+  //   <span class='hl push-tag'>推 </span>
+  //   <span class='f3 hl push-userid'>Vinccc </span>
+  //   <span class='f3 push-content'>: 定期定額滿合適的啊 去買富邦的保單 不如買富邦的</span>
+  //   <span class='push-ipdatetime'> 08/20 15:13</span>
+  // </div>;
+  const comment = [];
+  $('.push').each((index, element) => {
+    const pushTag = $(element).find('.push-tag').text().trim();
+    const pushContent = $(element).find('.push-content').text().trim();
+    const combinedText = `${pushTag}${pushContent}`;
+    comment.push(combinedText);
+  });
+
+  //擷取content
   const mainContent = $('#main-content');
-  // Remove richcontent items
   mainContent.find('.richcontent').remove();
-
-  // Remove <a> elements with href starting with "https://i.imgur.com/"
-  mainContent.find('a[href^="https://i.imgur.com/"]').remove();
-
+  mainContent.find('a[href^="https://i.imgur.com/"]').remove(); // Remove <a> elements with href starting with "https://i.imgur.com/"
   mainContent.find('.f2').each((index, element) => {
     $(element).nextAll().remove();
     $(element).remove();
   });
-
-  const text = mainContent.text().trim();
-
-  return text;
+  return mainContent.text().trim();
 }
 
 export async function fetchPostDetailProxy(id: string): Promise<string> {
