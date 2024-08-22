@@ -84,7 +84,7 @@ export class ContentGenerator {
   private generateBasicContent(post: IPostInfo, notifyContent: string[]): string {
     const baseContent = [...notifyContent];
     baseContent.push(`作者: ${post.author}`);
-    baseContent.push(`${config.CLIENT_URL}/${post.href}`);
+    baseContent.push(`${PTT_DOMAIN}/${post.href}`);
     if (getStockNoFromTitle(post)) {
       baseContent.push('');
       baseContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
