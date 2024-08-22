@@ -123,7 +123,7 @@ export class ContentGenerator {
         '文章內容如下\n\n';
 
       const promptResult = await geminiAIService.generateWithTunedModel(promptWords + postTextContent);
-      const notifyContent: string[] = [''];
+      const notifyContent: string[] = ['', '✨✨大神來囉✨✨'];
       try {
         const stockNo = getStockNoFromTitle(post);
 
