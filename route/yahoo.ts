@@ -22,6 +22,7 @@ const indexMapping: IndexMapping[] = [
   { key: 'DJI', value: '道瓊工業指數', query: '%5EDJI' },
   { key: 'GSPC', value: '標普500指數', query: '%5EGSPC' },
   { key: 'IXIC', value: 'NASDAQ指數', query: '%5EIXIC' },
+  { key: 'PHLX', value: '費半指數', query: '%5ESOX' },
 ];
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +48,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   messageBuilder[1] = '美股時間:' + toDateString(d, '-');
 
   // (3個指數%相加/3，大於0.5%上升/下降，若波動小於0.5%就"平平")
-  var avgDiff = accuDiff / 3;
+  var avgDiff = accuDiff / indexMapping.length;
   if (Math.abs(avgDiff) > 0.5) {
     messageBuilder.push('預測今日台股趨勢為 ' + (avgDiff > 0 ? '上升' : '下降'));
   } else {
@@ -94,7 +95,7 @@ const getHistoricalPrices = async (stockNo: string): Promise<any> => {
 const processDataDiff = (symbol: string, data: any[]): IDiff => {
   // 取出最近的兩個 date 的資料
   const latestTwoDates = data.slice(-2);
-  const [d0, d1] = latestTwoDates;
+  const [d1, d0] = latestTwoDates;
 
   const difference = d0.adjClose - d1.adjClose;
   const diffRatio = ((d0.adjClose - d1.adjClose) / d1.adjClose) * 100;

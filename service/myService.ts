@@ -92,7 +92,7 @@ export async function getFavoritePosts(userId: string): Promise<MyPostHistorical
   const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts.postId', '-__v').lean();
   let favoritePosts: MyPostHistoricalResponse[] = [];
 
-  if (rawData?.favoritePosts) {
+  if (rawData?.favoritePosts && rawData?.favoritePosts.length > 0) {
     favoritePosts = await processPostDataBatch(rawData.favoritePosts);
   }
 

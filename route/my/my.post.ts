@@ -23,9 +23,13 @@ router.get('/posts/search', async (req: IAuthRequest, res: Response, next: NextF
 });
 
 router.get('/posts/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
-  const userId = req.user?.id || '';
-  const result = await getFavoritePosts(userId);
-  return res.sendSuccess(200, { data: result });
+  try {
+    const userId = req.user?.id || '';
+    const result = await getFavoritePosts(userId);
+    return res.sendSuccess(200, { data: result });
+  } catch (e) {
+    return res.sendError(500, { message: '失敗', data: [] });
+  }
 });
 
 router.get('/post/:id/favorite', async (req: IAuthRequest, res: Response, next: NextFunction) => {
