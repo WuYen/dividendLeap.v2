@@ -21,9 +21,7 @@ export interface NotifyEnvelop {
 export const notifyQueue = new Queue(
   async (job: NotifyEnvelop, done: Function) => {
     try {
-      console.log(`Sending notification ${job.payload.content} to ${job.user.channel}`);
       await lineService.sendMessage(job.user.token, job.payload.content);
-      console.log(`Finish notifyQueue job \n`);
       done(null, job);
     } catch (error) {
       console.error(`Error processing notifyQueue job`, error);
@@ -42,21 +40,20 @@ export const postQueue = new Queue(async (job: any, done: Function) => {
       level,
       isSubscribedAuthor
     );
-    console.log(`Finish testQueue job ${post.title}\n`);
     done(null, { users, content: result });
   } catch (error) {
-    console.error(`Error testQueue job ${job.id}:`, error);
+    console.error(`Error postQueue job ${job.id}:`, error);
     done(error);
   }
 });
 
 // 監聽完成和失敗事件
 postQueue.on('task_finish', (taskId: number, result: any) => {
-  const { users, content } = result;
+  const { users, content }: { users: ILineToken[]; content: PostContent } = result;
   for (const tokenInfo of users as ILineToken[]) {
-    console.log(`=> add ${tokenInfo.channel} ${tokenInfo.tokenLevel.join(',')} to notifyQueue`);
     notifyQueue.push({ user: tokenInfo, payload: content });
   }
+  console.log(`postQueue task_finish for ${content.post.id} ${content.post.title}, notifyCount:${users.length}`);
 });
 
 postQueue.on('task_failed', (taskId: number, error: Error) => {
@@ -103,7 +100,7 @@ export async function processPostAndSendNotify(
       }
 
       if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
-        console.log('=> add job to testQueue ' + post.id);
+        console.log('Add job to postQueue ' + post.id);
         postQueue.push({ post, authorInfo, level: TokenLevel.Test, isSubscribedAuthor, users: delayNotifyUsers });
       }
     } catch (error) {
