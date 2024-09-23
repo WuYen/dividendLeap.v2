@@ -6,7 +6,7 @@ import { getStockNoFromTitle } from '../../utility/stockPostHelper';
 import { PTT_DOMAIN, fetchPostDetail } from '../pttStockPostService';
 import geminiAIService from '../geminiAIService';
 import stockPriceService from '../stockPriceService';
-import { formatTimestampToString } from '../../utility/dateTime';
+import { formatTimestampToString, toDateString, today, todayDate } from '../../utility/dateTime';
 import { FugleAPIBuilder } from '../../utility/fugleCaller';
 import { FugleDataset } from '../../utility/fugleTypes';
 import { getIndustryName } from '../../utility/stockHelper';
@@ -117,19 +117,34 @@ export class NotifyContentGenerator {
         const stockNo = getStockNoFromTitle(post);
 
         if (stockNo) {
-          const intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
-          if (intradayInfo) {
-            notifyContent.push(`${intradayInfo.name}股價: ${intradayInfo.lastPrice}`);
-            notifyContent.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)}`);
-          }
-          await delay(100);
           const stockInfo = await new FugleAPIBuilder(FugleDataset.StockIntradayTicker)
             .setParam({ symbol: stockNo })
             .get();
-          stockInfo &&
+          if (stockInfo) {
+            await delay(50);
+            const intradayInfo = await stockPriceService.getStockPriceIntraday(stockNo);
+            if (intradayInfo && intradayInfo.lastPrice > 0) {
+              notifyContent.push(`${stockInfo.name}股價: ${intradayInfo.lastPrice}`);
+              notifyContent.push(`股價更新時間: ${formatTimestampToString(intradayInfo.lastUpdated)}`);
+            } else {
+              const start = todayDate();
+              start.setDate(start.getDate() - 5); // 扣除5天
+              const historicalInfo = await stockPriceService.getStockPriceByDates(
+                stockNo,
+                toDateString(start),
+                today()
+              );
+              if (historicalInfo && historicalInfo?.data?.length) {
+                const lastPrice = historicalInfo.data.reverse()[0];
+                notifyContent.push(`${stockInfo.name}股價: ${lastPrice.close}`);
+                notifyContent.push(`股價更新時間: ${lastPrice.date}`);
+              }
+            }
+
             notifyContent.push(
               `${stockInfo.exchange == 'TWSE' ? '上市' : '上櫃'}-${getIndustryName(stockInfo.industry)}`
             );
+          }
         }
       } catch (error) {
         console.error('process message with getStockPriceIntraday fail', error);
