@@ -57,18 +57,26 @@ export class FugleAPIBuilder<T extends FugleDataset> {
   }
 
   async get(): Promise<ResponseType<T>> {
-    const url = this.getUrl();
-    const queryString = this.getQueryString();
-    const fullUrl = queryString ? `${url}?${queryString}` : url;
-
-    console.log(`Calling Fugle: ${fullUrl}`);
-
-    const response = await axios.get(fullUrl, {
-      headers: {
-        'X-API-KEY': this.getApiKey(),
-      },
-    });
-    return response.data as ResponseType<T>;
+    try {
+      const url = this.getUrl();
+      const queryString = this.getQueryString();
+      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      console.log(`Calling Fugle: ${fullUrl}`);
+      const response = await axios.get(fullUrl, {
+        headers: {
+          'X-API-KEY': this.getApiKey(),
+        },
+      });
+      return response.data as ResponseType<T>;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Request failed: ${error.message}, Status: ${error.response?.status}, StatusText: ${error.response?.statusText}, URL: ${error.config?.url}`
+        );
+      } else {
+        throw error;
+      }
+    }
   }
 
   getURL(): string {
