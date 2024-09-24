@@ -6,6 +6,8 @@ import { toDateString, todayDate } from '../../utility/dateTime';
 import { AuthorModel } from '../../model/Author';
 import { AuthorStatsModel, IAuthorStats, IStatsPost } from '../../model/AuthorStats';
 import { IPostInfo } from '../../model/PostInfo';
+import fs from 'fs';
+import path from 'path';
 
 interface AuthorPosts {
   rates: number[];
@@ -98,7 +100,7 @@ export class AuthorStatsProcessor {
     this.clearTimeout();
   }
 
-  public async newProcessAndUpdateAuthorStats(withInDays: number = 20): Promise<string> {
+  public async processAndUpdateAuthorStats(withInDays: number = 20): Promise<string> {
     if (this.isProcessing) {
       return 'Processing already in progress';
     }
@@ -108,6 +110,7 @@ export class AuthorStatsProcessor {
 
     try {
       const posts = await getPostsWithInDays(withInDays, '標的');
+      console.log(`total post size ${posts.length}`);
       const authorPostsMap = posts.filter(isValidStockPost).reduce((map, post) => {
         const author = post.author as string;
         if (!map.has(author)) map.set(author, []);
@@ -116,17 +119,19 @@ export class AuthorStatsProcessor {
       }, new Map<string, IPostInfo[]>());
 
       let queuedPosts = 0;
+      let authors = 0;
       for (const [_, posts] of authorPostsMap) {
         if (posts.length >= 3) {
           posts.forEach((post) => {
             this.queue.push(post);
             this.postsInQueue++;
           });
+          authors++;
           queuedPosts += posts.length;
         }
       }
 
-      const message = `Queued ${queuedPosts} posts from ${authorPostsMap.size} authors`;
+      const message = `Queued ${queuedPosts} posts from ${authors} authors`;
       console.log(message);
       return message;
     } catch (error) {
@@ -194,6 +199,7 @@ export async function processRankingAndSaveToDB(postData: PostHistoricalResponse
         }
       });
     }
+    console.log(`newAuthorStats`, newAuthorStats);
     const bulkOps = newAuthorStats.map((stat) => ({
       updateOne: {
         filter: { name: stat.name },
@@ -201,6 +207,8 @@ export async function processRankingAndSaveToDB(postData: PostHistoricalResponse
         upsert: true,
       },
     }));
+
+    //writeToFile(newAuthorStats, temp);
 
     if (bulkOps.length > 0) {
       const result = await AuthorStatsModel.bulkWrite(bulkOps);
@@ -224,4 +232,28 @@ function calculateStats(rates: number[]) {
   //加權計分：平均值和中位數各佔35%，最高值20%，標準差10%
   const score = mean * 0.35 + median * 0.35 + Math.max(...rates) * 0.2 + (1 / (stdDev + 1)) * 0.1;
   return { mean, maxRate: Math.max(...rates), minRate: Math.min(...rates), median, stdDev, totalRate, score };
+}
+
+function writeToFile(newAuthorStats: any, newAuthorStatsAll: any) {
+  const filePath = path.join(__dirname, '../../resource/ranked_authors_0924.json');
+
+  // 將結果寫入 JSON 文件
+  fs.writeFile(filePath, JSON.stringify(newAuthorStats, null, 2), 'utf-8', (err) => {
+    if (err) {
+      console.error('寫入 JSON 文件時出錯:', err);
+    } else {
+      console.log('成功寫入 JSON 文件:', filePath);
+    }
+  });
+
+  const filePath2 = path.join(__dirname, '../../resource/ranked_authors_all_0924.json');
+
+  // 將結果寫入 JSON 文件
+  fs.writeFile(filePath2, JSON.stringify(newAuthorStatsAll, null, 2), 'utf-8', (err) => {
+    if (err) {
+      console.error('寫入 JSON 文件時出錯:', err);
+    } else {
+      console.log('成功寫入 JSON 文件:', filePath);
+    }
+  });
 }

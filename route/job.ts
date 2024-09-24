@@ -9,7 +9,7 @@ const router: Router = express.Router();
 
 router.get('/update/rank', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const resultMessage = await newProcessAndUpdateAuthorStats(120);
+    const resultMessage = await newProcessAndUpdateAuthorStats(180);
     return res.sendSuccess(200, { message: resultMessage });
   } catch (error) {
     console.error(error);
