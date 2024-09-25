@@ -1,5 +1,5 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
-import { newProcessAndUpdateAuthorStats } from '../service/authorStatsService';
+import { newProcessAndUpdateAuthorStats } from '../service/pttAuthorService';
 const router: Router = express.Router();
 
 // router.get('/dayinfo', async (req: Request, res: Response, next: NextFunction) => {

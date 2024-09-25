@@ -1,5 +1,3 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { getHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { parsePosts } from './pttStockPostService';
@@ -8,6 +6,7 @@ import { isRePosts } from '../utility/stockPostHelper';
 import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { AuthorStatsModel, IStatsPost } from '../model/AuthorStats';
+import { authorStatsProcessorInstance } from './business/AuthorStatsProcessor';
 
 const domain = 'https://www.ptt.cc';
 
@@ -121,6 +120,11 @@ export async function getAuthorRankList() {
   });
 
   return combinedAuthors;
+}
+
+export async function newProcessAndUpdateAuthorStats(withInDays: number = 20): Promise<string> {
+  const message = await authorStatsProcessorInstance.processAndUpdateAuthorStats(withInDays);
+  return message;
 }
 
 // function getAuthorWithRecentPostList() {
