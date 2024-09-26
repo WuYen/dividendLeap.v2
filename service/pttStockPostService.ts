@@ -8,6 +8,7 @@ import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
 import { processPostAndSendNotify } from './notifyQueueService';
+import geminiAIService from './geminiAIService';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -162,21 +163,6 @@ export function getPreviousPageIndex($: cheerio.Root): string {
 export async function fetchPostDetail(url: string): Promise<string> {
   const $ = await getHTML(url);
 
-  //擷取留言
-  // <div class='push'>
-  //   <span class='hl push-tag'>推 </span>
-  //   <span class='f3 hl push-userid'>Vinccc </span>
-  //   <span class='f3 push-content'>: 定期定額滿合適的啊 去買富邦的保單 不如買富邦的</span>
-  //   <span class='push-ipdatetime'> 08/20 15:13</span>
-  // </div>;
-  const comment = [];
-  $('.push').each((index, element) => {
-    const pushTag = $(element).find('.push-tag').text().trim();
-    const pushContent = $(element).find('.push-content').text().trim();
-    const combinedText = `${pushTag}${pushContent}`;
-    comment.push(combinedText);
-  });
-
   //擷取content
   const mainContent = $('#main-content');
   mainContent.find('.richcontent').remove();
@@ -186,6 +172,27 @@ export async function fetchPostDetail(url: string): Promise<string> {
     $(element).remove();
   });
   return mainContent.text().trim();
+}
+
+export async function fetchPostComment(url: string): Promise<string[]> {
+  const $ = await getHTML(url);
+
+  //擷取留言
+  // <div class='push'>
+  //   <span class='hl push-tag'>推 </span>
+  //   <span class='f3 hl push-userid'>Vinccc </span>
+  //   <span class='f3 push-content'>: 定期定額滿合適的啊 去買富邦的保單 不如買富邦的</span>
+  //   <span class='push-ipdatetime'> 08/20 15:13</span>
+  // </div>;
+  const comment: string[] = [];
+  $('.push').each((index, element) => {
+    const pushTag = $(element).find('.push-tag').text().trim();
+    const pushContent = $(element).find('.push-content').text().trim();
+    const combinedText = `${pushTag}${pushContent}`;
+    comment.push(combinedText);
+  });
+
+  return comment;
 }
 
 export async function getPostsWithInDays(days: number = 120, tag: string = ''): Promise<IPostInfo[]> {
@@ -252,6 +259,12 @@ async function invalidateAuthorCache(authors: (string | null)[]): Promise<void> 
     await AuthorHistoricalCache.deleteMany({ authorId: { $in: authorIdsToInvalidate } }).exec();
     console.log(`Cache invalidated for authors: ${authorIdsToInvalidate.join(', ')}`);
   }
+}
+
+async function commentSentimentAnalysis(url: string): Promise<string> {
+  const comment: string[] = await fetchPostComment(url);
+  const result = await geminiAIService.generateWithText(`幫我分析這些留言情緒是正面還是負面 ${comment.join('\n')}`);
+  return result;
 }
 
 export default {

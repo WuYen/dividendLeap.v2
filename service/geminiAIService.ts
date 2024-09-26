@@ -215,4 +215,4 @@ export async function generateWithImage(filePath: string): Promise<string | null
   }
 }
 
-export default { generateWithTunedModel };
+export default { generateWithTunedModel, generateWithText };
