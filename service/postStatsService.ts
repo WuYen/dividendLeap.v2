@@ -4,6 +4,8 @@ import { getStockNoFromTitle } from '../utility/stockPostHelper';
 import stockPriceService, { HistoricalDataInfo } from './stockPriceService';
 import { toDateString } from '../utility/dateTime';
 import { IchimokuCloudOutput } from 'technicalindicators/declarations/ichimoku/IchimokuCloud';
+import { fetchPostComment } from './pttStockPostService';
+import geminiAIService from './geminiAIService';
 
 // 定義分析結果的接口
 export interface AnalysisResults {
@@ -204,4 +206,15 @@ export async function analysisByStockNo(stockNo: string): Promise<any> {
   const result = analyzeStock((historicalData?.data as HistoricalDataInfo[]).reverse());
   console.log(JSON.stringify(result));
   return { stockNo: symbol, startDate, endDate, ...result };
+}
+
+export async function commentSentimentAnalysis(url: string): Promise<string> {
+  const comment: string[] = await fetchPostComment(url);
+  console.log(comment);
+  const result = await geminiAIService.generateWithText(
+    `幫我分析這些留言情緒是正面還是負面，不需要擷取留言內容，並且歸納出來大家是贊同還是不贊同，留言內容如下: ${comment.join(
+      '\n'
+    )}`
+  );
+  return result;
 }

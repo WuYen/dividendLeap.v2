@@ -261,12 +261,6 @@ async function invalidateAuthorCache(authors: (string | null)[]): Promise<void> 
   }
 }
 
-async function commentSentimentAnalysis(url: string): Promise<string> {
-  const comment: string[] = await fetchPostComment(url);
-  const result = await geminiAIService.generateWithText(`幫我分析這些留言情緒是正面還是負面 ${comment.join('\n')}`);
-  return result;
-}
-
 export default {
   getNewPosts,
   getLast50Posts,
