@@ -35,3 +35,12 @@ X-Line-Signature: 123
     }
   ]
 }
+
+### 發送推播通知
+POST {{host}}/push/sendNotification
+Content-Type: application/json
+
+{
+  "title": "測試通知",
+  "message": "這是一個測試推播通知！"
+}
