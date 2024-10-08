@@ -28,6 +28,7 @@
     "morgan": "^1.10.0",
     "qs": "^6.11.2",
     "technicalindicators": "^3.1.0",
+    "web-push": "^3.6.7",
     "yahoo-finance2": "^2.12.4"
   },
   "devDependencies": {
@@ -39,6 +40,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.4",
     "@types/node": "^18.15.10",
+    "@types/web-push": "^3.6.3",
     "concurrently": "^7.6.0",
     "jest": "^29.7.0",
     "rimraf": "^4.4.1",
