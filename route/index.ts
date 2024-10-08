@@ -8,6 +8,7 @@ import toolRouter from './tool';
 import loginRouter from './login';
 import myRouter from './my/index';
 import telegramRoute from './telegram';
+import pushRouter from './pushRoutes';
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ const defaultIRoute: IRoute[] = [
   { path: '/job', route: jobRouter },
   { path: '/tool', route: toolRouter },
   { path: '/telegram', route: telegramRoute },
+  { path: '/push', route: pushRouter }, // 將推播路由掛載在 /push 路徑下
 ];
 
 defaultIRoute.forEach((route) => {
