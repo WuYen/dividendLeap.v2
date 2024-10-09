@@ -6,6 +6,8 @@ import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 import config from '../utility/config';
 import { getAuthorHistoryPosts } from './pttAuthorService';
 import { AuthorStatsModel } from '../model/AuthorStats';
+import { z } from 'zod';
+import { zodResponseFormat } from 'openai/helpers/zod';
 
 const MODEL = 'gpt-4o-mini';
 const tools: ChatCompletionTool[] = [
@@ -93,7 +95,7 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
     messages.push(final_response.choices[0].message);
   } else if (toolCall.function.name === 'fetchPost') {
     const postId = functionArguments.postId;
-    const postInfo = await PostInfoModel.find({ id: postId }).lean().exec();
+    const postInfo = (await PostInfoModel.findOne({ id: postId }).exec()) as IPostInfo;
     const href = `https://www.ptt.cc/${postInfo.href}`;
     const postContent = await fetchPostDetailProxy(href);
 
@@ -119,3 +121,55 @@ export const conversationWithAI = async (messages: ChatCompletionMessageParam[])
   await mongoose.disconnect();
   return messages;
 };
+
+export async function structuredOutput(articleContent: string) {
+  // Define the schema using Zod
+  const StockAnalysisSchema = z.object({
+    tag: z.string(), // Original: 標的
+    title: z.string(), // Original: 標題
+    category: z.string(), // Original: 分類
+    entryPoint: z.string().or(z.literal('')), // Original: 進場
+    takeProfit: z.string().or(z.literal('')), // Original: 停利
+    stopLoss: z.string().or(z.literal('')), // Original: 停損
+    summary: z.string(), // Original: 重點摘要
+    additionalInfo: z.string().or(z.literal('')), // Original: 其他資訊
+  });
+
+  // Prompt with the article content for analysis
+  const completion = await openai.beta.chat.completions.parse({
+    model: 'gpt-4o-mini-2024-07-18',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful assistant that analyzes stock articles and provides structured output.',
+      },
+      {
+        role: 'user',
+        content: `Please analyze the following article and extract key information in JSON format according to the schema provided:
+{
+"tag": "文章標籤 通常是在[]裡面的值",
+"title": "文章標題",
+"category": "文章分類 通常是 多 or 空",
+"entryPoint": "進場的股價或是有關進場的任何資訊",
+"takeProfit": "停利的股價或是有關進場的任何資訊",
+"stopLoss": "停損的股價或是有關進場的任何資訊",
+"summary": "正文或是分析的重點摘要或整份文件的相關總結",
+"additionalInfo": "補充說明, 跟正文摘要無關的內容"
+}
+
+If any item is not explicitly mentioned in the article, please use 'None' as the value for that item.
+
+Analyze the following article:
+
+${articleContent}
+
+Please provide the structured output in the specified JSON format.`,
+      },
+    ],
+    response_format: zodResponseFormat(StockAnalysisSchema, 'stock_analysis'),
+  });
+
+  // Extract and display the structured output
+  const stock_analysis = completion.choices[0].message.parsed;
+  console.log(stock_analysis);
+}
