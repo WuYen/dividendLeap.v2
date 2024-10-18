@@ -138,32 +138,33 @@ export async function structuredOutput(articleContent: string) {
   // Prompt with the article content for analysis
   const completion = await openai.beta.chat.completions.parse({
     model: 'gpt-4o-mini-2024-07-18',
+    temperature: 0.2,
     messages: [
       {
         role: 'system',
-        content: 'You are a helpful assistant that analyzes stock articles and provides structured output.',
+        content: `你是一個有幫助的助手，負責分析股票文章並提供結構化輸出。
+        
+        輸出應遵循以下結構，下面是每個欄位希望的內容說明：
+        {
+          "tag": "文章標籤 通常是在[]裡面的值只要保留純文字 例如: 標的。",
+          "title": "文章標題，通常是跟在文章標籤後面。",
+          "category": "文章分類，通常表示市場情緒，例如 '多'（看漲）或 '空'（看跌）。",
+          "entryPoint": "進場點，描述建議的進場價格或進場條件。如果文章中沒有明確提到，請使用 '' 。",
+          "takeProfit": "停利點，描述實現利潤的建議價格或條件。如果文章中沒有明確提到，請使用 '' 。",
+          "stopLoss": "停損點，描述風險控制措施，例如特定的價格或條件。如果文章中沒有明確提到，請使用 '' 。",
+          "summary": "文章的重點摘要，盡量包含到所有提到的內容",
+          "additionalInfo": "補充說明，與正文摘要無關的其他資訊，例如: 背景資料或補充觀察、有對帳單。"
+        }
+        
+        如果文章中沒有明確提到某個欄位的資訊，請使用 '' 作為該欄位的值。`,
       },
       {
         role: 'user',
-        content: `Please analyze the following article and extract key information in JSON format according to the schema provided:
-{
-"tag": "文章標籤 通常是在[]裡面的值",
-"title": "文章標題",
-"category": "文章分類 通常是 多 or 空",
-"entryPoint": "進場的股價或是有關進場的任何資訊",
-"takeProfit": "停利的股價或是有關進場的任何資訊",
-"stopLoss": "停損的股價或是有關進場的任何資訊",
-"summary": "正文或是分析的重點摘要或整份文件的相關總結",
-"additionalInfo": "補充說明, 跟正文摘要無關的內容"
-}
+        content: `請分析以下文章，根據提供的結構提取關鍵資訊，並以 JSON 格式返回：
 
-If any item is not explicitly mentioned in the article, please use 'None' as the value for that item.
+        ${articleContent}
 
-Analyze the following article:
-
-${articleContent}
-
-Please provide the structured output in the specified JSON format.`,
+        請根據以上結構提供結構化輸出。`,
       },
     ],
     response_format: zodResponseFormat(StockAnalysisSchema, 'stock_analysis'),
