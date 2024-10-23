@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import config from './utility/config';
 import middleware from './utility/middleware';
 import router from './route';
+import TelegramBotService from './service/telegramService';
 
 const app: Express = express();
 
@@ -16,4 +17,5 @@ mongoose.connect(config.MONGODB_URI).then(() => {
   server = app.listen(config.SERVER_PORT, () => {
     console.log('Server up on port:', config.SERVER_PORT);
   });
+  TelegramBotService.getInstance();
 });
