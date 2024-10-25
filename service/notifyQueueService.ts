@@ -7,7 +7,7 @@ import { isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper
 import lineService from './lineService';
 import { NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator';
 import config from '../utility/config';
-import TelegramBotService from './telegramService';
+import TelegramBotService from './telegramBotService';
 
 export interface MessageContent {
   content: string;

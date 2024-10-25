@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import config from './utility/config';
 import middleware from './utility/middleware';
 import router from './route';
-import TelegramBotService from './service/telegramService';
+import TelegramBotService from './service/telegramBotService';
 
 const app: Express = express();
 

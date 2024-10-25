@@ -1,7 +1,7 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset, QueryType, StockHistoricalQuery } from '../utility/fugleTypes';
-import TelegramBotService from '../service/telegramService';
+import TelegramBotService from '../service/telegramBotService';
 const router: Router = express.Router();
 
 router.get('/healthy', async (req: Request, res: Response, next: NextFunction) => {
