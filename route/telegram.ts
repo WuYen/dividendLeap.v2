@@ -8,7 +8,7 @@ const callbackPath = `/${config.TELEGRAM_CALLBACK_PATH}${config.TELEGRAM_BOT_TOK
 router.post(callbackPath, async (req: Request, res: Response, next: NextFunction) => {
   try {
     //handle telegram callback event
-    TelegramBotService.getInstance().getBot().processUpdate(req.body);
+    TelegramBotService.getInstance().processUpdate(req.body);
     return res.sendSuccess(200, { message: 'success' });
   } catch (error) {
     console.log('send notify fail', error);

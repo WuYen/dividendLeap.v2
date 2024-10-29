@@ -50,17 +50,6 @@ class TelegramBotService {
     return this.sendMessageWithOptions(chatId, message);
   }
 
-  public async shutdown(): Promise<void> {
-    if (this.bot.isPolling()) {
-      console.log('Stopping bot polling...');
-      await this.bot.stopPolling();
-    } else {
-      console.log('Closing bot webhook...');
-      await this.bot.deleteWebHook();
-    }
-    console.log('Telegram bot shutdown completed');
-  }
-
   public async sendMessageWithOptions(
     chatId: string,
     message: string,
@@ -76,8 +65,19 @@ class TelegramBotService {
     }
   }
 
-  public getBot(): TelegramBot {
-    return this.bot;
+  public processUpdate(req: { body: TelegramBot.Update }) {
+    this.bot.processUpdate(req.body);
+  }
+
+  public async shutdown(): Promise<void> {
+    if (this.bot.isPolling()) {
+      console.log('Stopping bot polling...');
+      await this.bot.stopPolling();
+    } else {
+      console.log('Closing bot webhook...');
+      await this.bot.deleteWebHook();
+    }
+    console.log('Telegram bot shutdown completed');
   }
 }
 

@@ -51,6 +51,8 @@ export class TelegramMessageHandler {
       return this.handleStartCommand(msg); // 直接調用 handleStartCommand
     }
 
+    //TODO: get user, decided calling AI or not
+
     // 處理其他訊息
     console.log(`收到來自 chat ID: ${chatId} 的消息: ${text}`);
     //this.bot.sendMessage(chatId, 'Hello! 這是一條測試訊息。');
