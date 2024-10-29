@@ -20,6 +20,7 @@ export class TelegramMessageHandler {
     try {
       // 查找使用者
       let user = await LineTokenModel.findOne({ tgChatId: chatId });
+      //reference: [Deep Linking](https://core.telegram.org/bots/features#deep-linking)
 
       if (!user) {
         // 新增用戶資料
@@ -52,6 +53,6 @@ export class TelegramMessageHandler {
 
     // 處理其他訊息
     console.log(`收到來自 chat ID: ${chatId} 的消息: ${text}`);
-    this.bot.sendMessage(chatId, 'Hello! 這是一條測試訊息。');
+    //this.bot.sendMessage(chatId, 'Hello! 這是一條測試訊息。');
   }
 }
