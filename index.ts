@@ -1,6 +1,7 @@
 import express, { Express } from 'express';
 import mongoose from 'mongoose';
 import webPush from 'web-push';
+import path from 'path';
 
 import config from './utility/config';
 import middleware from './utility/middleware';
@@ -10,6 +11,7 @@ const app: Express = express();
 
 app.use(middleware);
 app.use(router);
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 設定 web-push 的 VAPID 詳細資訊
 const publicVapidKey = process.env.VAPID_PUBLIC_KEY!;
