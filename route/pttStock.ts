@@ -1,6 +1,5 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 
-import { AuthorModel } from '../model/Author';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 import { PostHistoricalResponse } from '../service/historicalService';
 import { fetchPostDetail, getLast50Posts, getNewPostAndSendLineNotify } from '../service/pttStockPostService';

@@ -7,6 +7,7 @@ import pttStockRouter from './pttStock';
 import toolRouter from './tool';
 import loginRouter from './login';
 import myRouter from './my/index';
+import telegramRoute from './telegram';
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ const defaultIRoute: IRoute[] = [
   { path: '/login', route: loginRouter },
   { path: '/job', route: jobRouter },
   { path: '/tool', route: toolRouter },
+  { path: '/telegram', route: telegramRoute },
 ];
 
 defaultIRoute.forEach((route) => {
