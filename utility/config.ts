@@ -30,7 +30,7 @@ const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
 const GEMINI_KEY: string = process.env.GEMINI_KEY || '';
 const TELEGRAM_BOT_TOKEN: string = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CALLBACK_PATH: string = process.env.TELEGRAM_CALLBACK_PATH || '/callback';
-const TELEGRAM_USE_WEBHOOK: boolean = !!process.env.TELEGRAM_USE_WEBHOOK;
+const TELEGRAM_USE_WEBHOOK: boolean = process.env.TELEGRAM_USE_WEBHOOK === 'true';
 
 export default {
   NODE_ENV,
