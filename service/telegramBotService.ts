@@ -7,8 +7,9 @@ class TelegramBotService {
   private bot: TelegramBot;
   private messageHandler: TelegramMessageHandler;
 
-  private constructor(useWebhook: boolean) {
+  private constructor() {
     const token = config.TELEGRAM_BOT_TOKEN;
+    const useWebhook = config.TELEGRAM_USE_WEBHOOK;
 
     if (!token) {
       throw new Error('Telegram bot token is required');
@@ -24,7 +25,6 @@ class TelegramBotService {
       this.bot.setWebHook(callbackUrl);
       console.log(`Telegram bot webhook set at ${callbackUrl}`);
     } else {
-      // Set up the bot to use polling
       this.bot = new TelegramBot(token, {
         polling: {
           interval: 2000, // Poll every 2 seconds
@@ -35,13 +35,20 @@ class TelegramBotService {
 
     this.messageHandler = new TelegramMessageHandler(this.bot);
 
+    // 設置 Bot Commands
+    // this.bot.setMyCommands([
+    //   { command: '/start', description: '開始與 Bot 的互動' },
+    //   { command: '/help', description: '顯示幫助訊息' },
+    //   { command: '/info', description: '獲取有關此 Bot 的資訊' },
+    // ]);
+
     console.log('Telegram bot construct successfully');
   }
 
-  // 確保只會創建一個實例
   public static getInstance(): TelegramBotService {
     if (!TelegramBotService.instance) {
-      TelegramBotService.instance = new TelegramBotService(config.TELEGRAM_USE_WEBHOOK);
+      console.log('Initialize telegram bot');
+      TelegramBotService.instance = new TelegramBotService();
     }
     return TelegramBotService.instance;
   }
