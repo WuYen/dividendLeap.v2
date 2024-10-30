@@ -92,7 +92,7 @@ export async function getFavoritePosts(userId: string): Promise<MyPostHistorical
   const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts.postId', '-__v').lean();
   let favoritePosts: MyPostHistoricalResponse[] = [];
 
-  if (rawData?.favoritePosts) {
+  if (rawData?.favoritePosts && rawData?.favoritePosts.length > 0) {
     favoritePosts = await processPostDataBatch(rawData.favoritePosts);
   }
 
@@ -173,13 +173,15 @@ async function processPostData(favoritePost: any): Promise<MyPostHistoricalRespo
 async function processPostDataBatch(posts: FlattenMaps<IFavoritePost>[]): Promise<MyPostHistoricalResponse[]> {
   const today = todayDate();
 
-  const stockRequests = posts.map((post) => {
-    const postInfo = post.postId as IPostInfo;
-    const stockNo = getStockNoFromTitle(postInfo);
-    const postDate = new Date(postInfo.id * 1000);
-    const dateRange = getDateRangeBaseOnPostedDate(postDate, today);
-    return { stockNo, startDate: dateRange[0], endDate: dateRange[1] } as StockRequest;
-  });
+  const stockRequests = posts
+    .map((post) => {
+      const postInfo = post.postId as IPostInfo;
+      const stockNo = getStockNoFromTitle(postInfo);
+      const postDate = new Date(postInfo.id * 1000);
+      const dateRange = getDateRangeBaseOnPostedDate(postDate, today);
+      return { stockNo, startDate: dateRange[0], endDate: dateRange[1] } as StockRequest;
+    })
+    .filter((request) => request.stockNo !== '');
 
   const data = await getCachedStockPriceByDatesBatch(stockRequests);
   const processedPosts = await Promise.all(

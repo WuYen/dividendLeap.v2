@@ -1,12 +1,7 @@
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import {
-  processPostAndSendNotify,
-  notifyQueue,
-  postQueue,
-  newProcessPostAndSendNotify,
-} from '../service/notifyQueueService'; // Adjust the import according to your module structure
+import { processPostAndSendNotify, notifyQueue, postQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
 import * as geminiAIService from '../service/geminiAIService';
 
 jest.mock('../service/lineService', () => ({
@@ -128,7 +123,7 @@ describe('processPostAndSendNotify', () => {
     expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('鴻海大跌'));
   });
 
-  it('should correctly process notifications with newProcessPostAndSendNotify', (done) => {
+  it('should correctly process notifications with processPostAndSendNotify', (done) => {
     newPosts.push({
       tag: '閒聊',
       title: '123關鍵字測試456',
@@ -177,6 +172,13 @@ describe('processPostAndSendNotify', () => {
     });
 
     // 调用处理函数
-    newProcessPostAndSendNotify(newPosts, users, subscribeAuthors);
+    processPostAndSendNotify(newPosts, users, subscribeAuthors);
   });
 });
+
+// call real service
+// var newPosts: IPostInfo[] = await PostInfoModel.find({ id: 1715508868 }).lean().exec();
+// var users: ILineToken[] = await LineTokenModel.find({ channel: 'myline' }).lean().exec();
+// var subscribeAuthors: IAuthor[] = await AuthorModel.find({ name: 'agogo1202' }).lean().exec();
+
+// await processPostAndSendNotify(newPosts, users, subscribeAuthors);

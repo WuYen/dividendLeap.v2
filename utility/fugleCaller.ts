@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import axios from 'axios';
 import config from './config';
 import { FugleDataset, QueryType, ResponseType, StockHistoricalQuery } from './fugleTypes';
@@ -24,6 +23,8 @@ export class FugleAPIBuilder<T extends FugleDataset> {
         return `${this.baseUrl}/stock/historical/candles/${this.params.symbol}`;
       case FugleDataset.StockIntradayQuote:
         return `${this.baseUrl}/stock/intraday/quote/${this.params.symbol}`;
+      case FugleDataset.StockIntradayTicker:
+        return `${this.baseUrl}/stock/intraday/ticker/${this.params.symbol}`;
       default:
         throw new Error('Unsupported dataset');
     }
@@ -37,9 +38,8 @@ export class FugleAPIBuilder<T extends FugleDataset> {
         const fieldsString = fields && fields.length > 0 ? fields.join(',') : 'open,high,low,close,volume';
         return `fields=${fieldsString}&from=${from}&to=${to}`;
       case FugleDataset.StockIntradayQuote:
-        // Intraday quote 可能不需要額外的查詢參數
+      case FugleDataset.StockIntradayTicker:
         return '';
-
       default:
         throw new Error('Unsupported dataset');
     }
@@ -57,18 +57,26 @@ export class FugleAPIBuilder<T extends FugleDataset> {
   }
 
   async get(): Promise<ResponseType<T>> {
-    const url = this.getUrl();
-    const queryString = this.getQueryString();
-    const fullUrl = queryString ? `${url}?${queryString}` : url;
-
-    console.log(`Calling Fugle: ${fullUrl}`);
-
-    const response = await axios.get(fullUrl, {
-      headers: {
-        'X-API-KEY': this.getApiKey(),
-      },
-    });
-    return response.data as ResponseType<T>;
+    try {
+      const url = this.getUrl();
+      const queryString = this.getQueryString();
+      const fullUrl = queryString ? `${url}?${queryString}` : url;
+      console.log(`Calling Fugle: ${fullUrl}`);
+      const response = await axios.get(fullUrl, {
+        headers: {
+          'X-API-KEY': this.getApiKey(),
+        },
+      });
+      return response.data as ResponseType<T>;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          `Request failed: ${error.message}, Status: ${error.response?.status}, StatusText: ${error.response?.statusText}, URL: ${error.config?.url}`
+        );
+      } else {
+        throw error;
+      }
+    }
   }
 
   getURL(): string {

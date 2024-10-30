@@ -3,12 +3,11 @@ import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
-import { isValidStockPost } from '../utility/stockPostHelper';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
-import { processPostAndSendNotify, newProcessPostAndSendNotify } from './notifyQueueService';
 import axios from 'axios';
+import { processPostAndSendNotify } from './notifyQueueService';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -163,21 +162,6 @@ export function getPreviousPageIndex($: cheerio.Root): string {
 export async function fetchPostDetail(url: string): Promise<string> {
   const $ = await getHTML(url);
 
-  //擷取留言
-  // <div class='push'>
-  //   <span class='hl push-tag'>推 </span>
-  //   <span class='f3 hl push-userid'>Vinccc </span>
-  //   <span class='f3 push-content'>: 定期定額滿合適的啊 去買富邦的保單 不如買富邦的</span>
-  //   <span class='push-ipdatetime'> 08/20 15:13</span>
-  // </div>;
-  const comment = [];
-  $('.push').each((index, element) => {
-    const pushTag = $(element).find('.push-tag').text().trim();
-    const pushContent = $(element).find('.push-content').text().trim();
-    const combinedText = `${pushTag}${pushContent}`;
-    comment.push(combinedText);
-  });
-
   //擷取content
   const mainContent = $('#main-content');
   mainContent.find('.richcontent').remove();
@@ -193,6 +177,27 @@ export async function fetchPostDetailProxy(id: string): Promise<string> {
   const response = await axios.get(`https://monneey-fe846abf0722.herokuapp.com/ptt/post/${id}`);
 
   return response.data.data;
+}
+
+export async function fetchPostComment(url: string): Promise<string[]> {
+  const $ = await getHTML(url);
+
+  //擷取留言
+  // <div class='push'>
+  //   <span class='hl push-tag'>推 </span>
+  //   <span class='f3 hl push-userid'>Vinccc </span>
+  //   <span class='f3 push-content'>: 定期定額滿合適的啊 去買富邦的保單 不如買富邦的</span>
+  //   <span class='push-ipdatetime'> 08/20 15:13</span>
+  // </div>;
+  const comment: string[] = [];
+  $('.push').each((index, element) => {
+    const pushTag = $(element).find('.push-tag').text().trim();
+    const pushContent = $(element).find('.push-content').text().trim();
+    const combinedText = `${pushTag}${pushContent}`;
+    comment.push(combinedText);
+  });
+
+  return comment;
 }
 
 export async function getPostsWithInDays(days: number = 120, tag: string = ''): Promise<IPostInfo[]> {
@@ -236,31 +241,9 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   let newPosts = await getNewPosts();
   if (newPosts && newPosts.length) {
     const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
-    const targetPosts = newPosts.filter((post) => {
-      const isSubscribeAuthor = !!subscribeAuthors.find((x) => x.name === post.author);
-      return post.tag === '標的' && (isValidStockPost(post) || isSubscribeAuthor);
-    });
-    if (targetPosts.length > 0) {
-      const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
-      if (tokenInfos != null && tokenInfos.length > 0) {
-        await processPostAndSendNotify(targetPosts, tokenInfos, subscribeAuthors);
-      }
-      console.log(`finish sending notify count:${tokenInfos.length}, post count:${targetPosts.length}`);
-    }
-    // Invalidate cache for authors with new posts
-    const authorsWithNewPosts = [...new Set(targetPosts.map((post) => post.author))];
-    await invalidateAuthorCache(authorsWithNewPosts);
-  }
-  return { postCount: newPosts?.length };
-}
-
-export async function newGetNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
-  let newPosts = await getNewPosts();
-  if (newPosts && newPosts.length) {
-    const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
     const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
     if (tokenInfos != null && tokenInfos.length > 0) {
-      await newProcessPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors);
+      await processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors);
     }
     // Invalidate cache for authors with new posts
     const authorsWithNewPosts = [...new Set(newPosts.map((post) => post.author))];

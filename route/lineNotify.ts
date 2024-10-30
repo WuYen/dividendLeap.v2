@@ -6,7 +6,7 @@ import config from '../utility/config';
 import { today } from '../utility/dateTime';
 import lineService from '../service/lineService';
 import { delay } from '../utility/delay';
-import { sendPremiumInvitation } from '../service/notifyService';
+import { sendPremiumInvitation } from '../service/notifyQueueService';
 
 const router: Router = express.Router();
 const {

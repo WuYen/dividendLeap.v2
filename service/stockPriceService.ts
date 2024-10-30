@@ -117,9 +117,12 @@ export interface BatchStockHistoricalResponse extends StockHistoricalResponse, S
 export async function getCachedStockPriceByDatesBatch(
   requests: StockRequest[]
 ): Promise<(BatchStockHistoricalResponse | null)[]> {
-  const cachedData = await StockHistoricalCache.find({
-    $or: requests,
-  });
+  const cachedData =
+    requests.length > 0
+      ? await StockHistoricalCache.find({
+          $or: requests,
+        })
+      : [];
 
   // 2. 處理緩存命中和過期的情況
   const cacheMap = new Map(cachedData.map((cache) => [`${cache.stockNo}-${cache.startDate}-${cache.endDate}`, cache]));
