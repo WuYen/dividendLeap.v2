@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import TelegramBot from 'node-telegram-bot-api';
 import config from '../utility/config';
 import { TelegramMessageHandler } from './business/TelegramMessageHandler';
@@ -23,7 +24,7 @@ class TelegramBotService {
 
       this.bot = new TelegramBot(token, { polling: false, webHook: true });
       this.bot.setWebHook(callbackUrl);
-      console.log(`Telegram bot webhook set at ${callbackUrl} with port ${config.SERVER_PORT}`);
+      console.log(`Telegram bot webhook set at ${callbackUrl}`);
     } else {
       this.bot = new TelegramBot(token, {
         polling: {
@@ -72,7 +73,7 @@ class TelegramBotService {
     }
   }
 
-  public processUpdate(req: { body: TelegramBot.Update }) {
+  public processUpdate(req: Request) {
     this.bot.processUpdate(req.body);
   }
 
