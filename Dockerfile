@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # 第二階段：運行階段
-FROM node:18
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
@@ -31,4 +31,4 @@ RUN npm install --only=production
 EXPOSE 3000
 
 # 啟動應用
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/index.js"]

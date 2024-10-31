@@ -7,6 +7,7 @@ import { isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper
 import lineService from './lineService';
 import { NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator';
 import config from '../utility/config';
+import TelegramBotService from './telegramBotService';
 
 export interface MessageContent {
   content: string;
@@ -21,7 +22,10 @@ export interface NotifyEnvelop {
 export const notifyQueue = new Queue(
   async (job: NotifyEnvelop, done: Function) => {
     try {
-      await lineService.sendMessage(job.user.token, job.payload.content);
+      const promises: Promise<any>[] = [lineService.sendMessage(job.user.token, job.payload.content)];
+      job.user.tgChatId &&
+        promises.push(TelegramBotService.getInstance().sendMessage(job.user.tgChatId, job.payload.content));
+      await Promise.all(promises);
       done(null, job);
     } catch (error) {
       console.error(`Error processing notifyQueue job`, error);

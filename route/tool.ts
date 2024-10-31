@@ -1,6 +1,7 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset, QueryType, StockHistoricalQuery } from '../utility/fugleTypes';
+import TelegramBotService from '../service/telegramBotService';
 const router: Router = express.Router();
 
 router.get('/healthy', async (req: Request, res: Response, next: NextFunction) => {
@@ -59,6 +60,11 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
     console.error('Error calling Fugle API:', error);
     return res.status(500).send({ message: 'Failed to fetch data from Fugle API' });
   }
+});
+
+router.get('/tg/send', async (req: Request, res: Response, next: NextFunction) => {
+  await TelegramBotService.getInstance().sendMessage('', 'test');
+  return res.sendSuccess(200, { message: 'test' });
 });
 
 export default router;

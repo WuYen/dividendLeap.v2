@@ -1,10 +1,10 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 
-import { AuthorModel } from '../model/Author';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 import { PostHistoricalResponse } from '../service/historicalService';
 import { fetchPostDetail, getLast50Posts, getNewPostAndSendLineNotify } from '../service/pttStockPostService';
 import { getAuthorHistoryPosts, getAuthors } from '../service/pttAuthorService';
+import { commentSentimentAnalysis } from '../service/postStatsService';
 
 const router: Router = express.Router();
 
@@ -55,6 +55,25 @@ router.get('/post/:id', async (req: Request, res: Response, next: NextFunction) 
     return res.sendSuccess(200, {
       message: `send notify success`,
       data: postContent,
+    });
+  } catch (error) {
+    console.log('send notify fail', error);
+    return res.sendError(500, { message: 'send notify fail' });
+  }
+});
+
+router.get('/post/:id/comment', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const postId = req.params.id;
+    if (!postId) {
+      return res.sendError(500, { message: 'invalid input params' });
+    }
+
+    const text = await commentSentimentAnalysis(`https://www.ptt.cc/bbs/Stock/${postId}`);
+    console.log(text);
+    return res.sendSuccess(200, {
+      message: `success`,
+      data: text,
     });
   } catch (error) {
     console.log('send notify fail', error);

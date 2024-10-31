@@ -21,12 +21,17 @@ const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
 const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
 const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
 const CLIENT_URL: string = process.env.CLIENT_URL || 'http://localhost:3000';
+const SERVER_URL: string = process.env.SERVER_URL || 'http://localhost:8000';
 
 const LINE_CHANNEL_ID: string = process.env.LINE_CHANNEL_ID || '';
 const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
 const LINE_CHANNEL_ACCESS_TOKEN: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
 const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
 const GEMINI_KEY: string = process.env.GEMINI_KEY || '';
+
+const TELEGRAM_BOT_TOKEN: string = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CALLBACK_URL: string = process.env.TELEGRAM_CALLBACK_URL || '';
+const TELEGRAM_USE_WEBHOOK: boolean = process.env.TELEGRAM_USE_WEBHOOK === 'true';
 
 export default {
   NODE_ENV,
@@ -44,9 +49,13 @@ export default {
   FUGLE_API_KEY,
   ADMIN_LINE_TOKEN,
   CLIENT_URL,
+  SERVER_URL,
   LINE_CHANNEL_ID,
   LINE_CHANNEL_SECRET,
   LINE_CHANNEL_ACCESS_TOKEN,
   LINE_USER_ID,
   GEMINI_KEY,
+  TELEGRAM_BOT_TOKEN,
+  TELEGRAM_CALLBACK_URL,
+  TELEGRAM_USE_WEBHOOK,
 };
