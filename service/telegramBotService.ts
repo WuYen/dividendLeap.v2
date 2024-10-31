@@ -21,7 +21,7 @@ class TelegramBotService {
         throw new Error('Webhook URL is required for using TelegramBot with webhooks');
       }
 
-      this.bot = new TelegramBot(token, { polling: false, webHook: { port: parseInt(config.SERVER_PORT) } });
+      this.bot = new TelegramBot(token, { polling: false, webHook: true });
       this.bot.setWebHook(callbackUrl);
       console.log(`Telegram bot webhook set at ${callbackUrl} with port ${config.SERVER_PORT}`);
     } else {
