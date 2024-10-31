@@ -28,8 +28,9 @@ const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
 const LINE_CHANNEL_ACCESS_TOKEN: string = process.env.LINE_CHANNEL_ACCESS_TOKEN || '';
 const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
 const GEMINI_KEY: string = process.env.GEMINI_KEY || '';
+
 const TELEGRAM_BOT_TOKEN: string = process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_CALLBACK_PATH: string = process.env.TELEGRAM_CALLBACK_PATH || '/callback';
+const TELEGRAM_CALLBACK_URL: string = process.env.TELEGRAM_CALLBACK_URL || '';
 const TELEGRAM_USE_WEBHOOK: boolean = process.env.TELEGRAM_USE_WEBHOOK === 'true';
 
 export default {
@@ -55,7 +56,6 @@ export default {
   LINE_USER_ID,
   GEMINI_KEY,
   TELEGRAM_BOT_TOKEN,
-  TELEGRAM_CALLBACK_PATH,
-  TELEGRAM_CALLBACK_URL: SERVER_URL + TELEGRAM_CALLBACK_PATH + TELEGRAM_BOT_TOKEN,
+  TELEGRAM_CALLBACK_URL,
   TELEGRAM_USE_WEBHOOK,
 };

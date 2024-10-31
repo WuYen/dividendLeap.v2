@@ -4,8 +4,7 @@ import config from '../utility/config';
 
 const router: Router = express.Router();
 
-const callbackPath = `/${config.TELEGRAM_CALLBACK_PATH}${config.TELEGRAM_BOT_TOKEN}`;
-router.post(callbackPath, async (req: Request, res: Response, next: NextFunction) => {
+router.post(`/callback${config.TELEGRAM_BOT_TOKEN}`, async (req: Request, res: Response, next: NextFunction) => {
   try {
     //handle telegram callback event
     TelegramBotService.getInstance().processUpdate(req.body);

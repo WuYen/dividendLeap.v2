@@ -16,18 +16,18 @@ class TelegramBotService {
     }
 
     if (useWebhook) {
-      const callbackUrl = config.TELEGRAM_CALLBACK_URL;
+      const callbackUrl = config.TELEGRAM_CALLBACK_URL + config.TELEGRAM_BOT_TOKEN;
       if (!callbackUrl) {
         throw new Error('Webhook URL is required for using TelegramBot with webhooks');
       }
 
-      this.bot = new TelegramBot(token, { polling: false });
+      this.bot = new TelegramBot(token, { polling: false, webHook: { port: parseInt(config.SERVER_PORT) } });
       this.bot.setWebHook(callbackUrl);
-      console.log(`Telegram bot webhook set at ${callbackUrl}`);
+      console.log(`Telegram bot webhook set at ${callbackUrl} with port ${config.SERVER_PORT}`);
     } else {
       this.bot = new TelegramBot(token, {
         polling: {
-          interval: 2000, // Poll every 2 seconds
+          interval: 800, // Poll every 800 milliseconds
         },
       });
       console.log('Telegram bot is using polling mode');
