@@ -21,19 +21,19 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
     intradayticker: FugleDataset.StockIntradayTicker,
   };
 
-  const dataset = endpointToDatasetMap[endpoint];
+  const targetDataset = endpointToDatasetMap[endpoint];
 
-  if (!dataset) {
+  if (!targetDataset) {
     return res.status(400).send({ message: 'Invalid endpoint' });
   }
   try {
     // 使用適當的 QueryType 泛型來生成 API Builder
-    const builder = new FugleAPIBuilder(dataset);
+    const builder = new FugleAPIBuilder(targetDataset);
 
     // 根據 dataset 動態構建相應的查詢參數類型
-    let queryParams: QueryType<typeof dataset>;
+    let queryParams: QueryType<typeof targetDataset>;
 
-    switch (dataset) {
+    switch (targetDataset) {
       case FugleDataset.StockHistorical:
         queryParams = {
           symbol: req.query.symbol as string,
@@ -46,7 +46,7 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
       case FugleDataset.StockIntradayTicker:
         queryParams = {
           symbol: req.query.symbol as string,
-        } as QueryType<typeof dataset>;
+        } as QueryType<typeof targetDataset>;
         break;
       default:
         return res.status(400).send({ message: 'Unsupported dataset' });
