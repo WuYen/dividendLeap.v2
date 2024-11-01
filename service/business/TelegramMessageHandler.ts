@@ -1,5 +1,12 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { LineTokenModel } from '../../model/lineToken';
+import { LineTokenModel, TokenLevel } from '../../model/lineToken';
+import stockPriceService from '../stockPriceService';
+import { formatTimestampToString, toDateString, today, todayDate } from '../../utility/dateTime';
+import { AuthorStatsModel } from '../../model/AuthorStats';
+import { IPostInfo, PostInfoModel } from '../../model/PostInfo';
+import { getStockNoFromTitle } from '../../utility/stockPostHelper';
+import { analysisPostById } from '../postStatsService';
+import { NotifyContentGenerator } from './NotifyContentGenerator';
 
 export class TelegramMessageHandler {
   private bot: TelegramBot;
@@ -19,7 +26,6 @@ export class TelegramMessageHandler {
     const username = msg.chat.username || '';
 
     try {
-      // 查找使用者
       let user = await LineTokenModel.findOne({ tgChatId: chatId });
       //reference: [Deep Linking](https://core.telegram.org/bots/features#deep-linking)
 
@@ -47,24 +53,34 @@ export class TelegramMessageHandler {
     const chatId = msg.chat.id;
     const text = msg.text || '';
     console.log(`收到來自 chat ID: ${chatId} 的消息: ${text}`);
-    // 檢查是否收到 /start 指令，並觸發 handleStartCommand
+
     if (/^\/start\b/.test(text)) {
-      return this.handleStartCommand(msg); // 直接調用 handleStartCommand
+      return this.handleStartCommand(msg);
     }
 
-    if (/test/i.test(text.trim())) {
-      const options = {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              { text: '取得 AAPL 當下股價', callback_data: 'get_stock_price:AAPL' },
-              { text: '取得作者績效', callback_data: 'get_author_performance:12345' },
+    if (/post/i.test(text.trim())) {
+      const post = await PostInfoModel.findOne({ id: '1727053349' }).lean<IPostInfo>();
+      if (post != null) {
+        const postContent = await NotifyContentGenerator.getInstance().generateContent(
+          post,
+          undefined,
+          TokenLevel.Test,
+          true
+        );
+        const symbol = getStockNoFromTitle(post as IPostInfo);
+        const options = {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '取得股價', callback_data: `get_stock_price:${symbol}` },
+                { text: '作者資訊', callback_data: `get_author_performance:${post?.author}` },
+              ],
+              [{ text: '取得標的分析資訊', callback_data: `get_target_analysis:${post?.id}` }],
             ],
-            [{ text: '取得標的分析資訊', callback_data: 'get_target_analysis:AAPL' }],
-          ],
-        },
-      } as TelegramBot.SendMessageOptions;
-      this.bot.sendMessage(chatId, `測試發文`, options);
+          },
+        } as TelegramBot.SendMessageOptions;
+        this.bot.sendMessage(chatId, postContent.content, options);
+      }
     }
   }
 
@@ -80,29 +96,23 @@ export class TelegramMessageHandler {
 
       // 根據 action 和 param 執行相應操作
       const messageId = query.message?.message_id; // 取得消息的 ID
-      const options = {
+      const commonOptions = {
         //reply_to_message_id: messageId, // 指定回覆原本的訊息
       };
       switch (action) {
         case 'get_stock_price':
-          const stockPrice = await this.getStockPrice(param); // param 是股票代號
-
-          // 修改原始訊息的文字內容，更新標的分析資訊
-          //  this.bot.editMessageText(`${param} 的標的分析資訊：${targetAnalysis}`, {
-          //   chat_id: chatId,
-          //   message_id: messageId,
-          // });
-          this.bot.sendMessage(chatId, `${param} 的當前股價為：$${stockPrice}`, options);
+          const priceContent = await this.getStockPrice(param); // param 是股票代號
+          this.bot.sendMessage(chatId, priceContent, commonOptions);
           break;
 
         case 'get_author_performance':
           const authorPerformance = await this.getAuthorPerformance(param); // param 是作者 ID
-          this.bot.sendMessage(chatId, `作者 ID ${param} 的績效為：${authorPerformance}`, options);
+          this.bot.sendMessage(chatId, authorPerformance, { ...commonOptions, parse_mode: 'Markdown' });
           break;
 
         case 'get_target_analysis':
-          const targetAnalysis = await this.getTargetAnalysis(param); // param 是股票代號
-          this.bot.sendMessage(chatId, `${param} 的標的分析資訊：${targetAnalysis}`, options);
+          const targetAnalysis = await this.getTargetAnalysis(param); // param 是post id
+          this.bot.sendMessage(chatId, targetAnalysis, { ...commonOptions, parse_mode: 'Markdown' });
           break;
 
         default:
@@ -118,18 +128,77 @@ export class TelegramMessageHandler {
     }
   }
 
-  // 模擬的股價獲取方法，接收股票代號
   private async getStockPrice(symbol: string): Promise<string> {
-    return '100.25'; // 假設返回的股價
+    const intradayInfo = await stockPriceService.getStockPriceIntraday(symbol);
+    if (intradayInfo && intradayInfo.lastPrice > 0) {
+      return `${symbol}股價: ${intradayInfo.lastPrice} \n${formatTimestampToString(intradayInfo.lastUpdated)}`;
+    } else {
+      const start = todayDate();
+      start.setDate(start.getDate() - 5); // 扣除5天
+      const historicalInfo = await stockPriceService.getStockPriceByDates(symbol, toDateString(start), today());
+      if (historicalInfo && historicalInfo?.data?.length) {
+        const lastPrice = historicalInfo.data.reverse()[0];
+        return `${symbol}股價: ${lastPrice.close} \n${lastPrice.date}`;
+      }
+    }
+    return '查無資料';
   }
 
-  // 模擬的作者績效獲取方法，接收作者 ID
   private async getAuthorPerformance(authorId: string): Promise<string> {
-    return '85%'; // 假設返回的績效
+    const authorStats = await AuthorStatsModel.findOne({ name: authorId }).lean();
+
+    if (authorStats != null) {
+      const message = `
+      📊 **作者績效報告**
+      
+      **名稱**: ${authorStats.name}
+      **平均增長率**: ${authorStats.mean.toFixed(2)}
+      **最高增長率**: ${authorStats.maxRate.toFixed(2)}%
+      **最低增長率**: ${authorStats.minRate.toFixed(2)}%
+      **中位數增長率**: ${authorStats.median.toFixed(2)}
+      **標準差**: ${authorStats.stdDev.toFixed(2)}
+      **總增長率**: ${authorStats.totalRate.toFixed(2)}%
+      **綜合排名**: ${authorStats.combinedRank}
+      **評分**: ${authorStats.score.toFixed(2)}
+      `;
+      return message;
+    }
+
+    return '查無資料';
   }
 
-  // 模擬的標的分析資訊，接收股票代號
-  private async getTargetAnalysis(symbol: string): Promise<string> {
-    return '該標的表現良好，建議觀察'; // 假設返回的分析
+  private async getTargetAnalysis(postId: string): Promise<string> {
+    const stats = await analysisPostById(postId);
+
+    if (stats != null) {
+      const message = `
+      📈 **標的分析資訊**
+
+      **標題**: ${stats.title}
+      **作者**: ${stats.author}
+      **日期**: ${stats.date}
+      **連結**: [點擊查看](https://www.ptt.cc${stats.href})
+
+      **技術指標分析**:
+      - **SMA 上漲**: ${stats.isSMAUp ? '✅' : '❌'}
+      - **RSI 低位**: ${stats.isRSILow ? '✅' : '❌'}
+      - **MACD 正向**: ${stats.isMACDPositive ? '✅' : '❌'}
+      - **布林通道正向**: ${stats.isBollingerPositive ? '✅' : '❌'}
+      - **隨機指標正向**: ${stats.isStochasticPositive ? '✅' : '❌'}
+      - **股價在雲上**: ${stats.isPriceAboveCloud ? '✅' : '❌'}
+      - **轉換線在基準線之上**: ${stats.isTenkanAboveKijun ? '✅' : '❌'}
+      - **Senkou Span A 多頭**: ${stats.isSenkouSpanABullish ? '✅' : '❌'}
+      - **遲行線在價格之上**: ${stats.isChikouAbovePrice ? '✅' : '❌'}
+
+      **推薦購買**: ${stats.recommandBuying ? '是' : '否'}
+      **推薦計數**: ${stats.recommandCount}
+
+      📅 **分析期間**: ${new Date(stats.startDate).toLocaleDateString()} - ${new Date(
+        stats.endDate
+      ).toLocaleDateString()}
+      `;
+      return message;
+    }
+    return '查無資料'; // 假設返回的分析
   }
 }
