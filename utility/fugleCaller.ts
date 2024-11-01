@@ -4,7 +4,6 @@ import { FugleDataset, QueryType, ResponseType, StockHistoricalQuery } from './f
 import asyncLocalStorage from '../utility/asyncLocalStorage';
 
 export class FugleAPIBuilder<T extends FugleDataset> {
-  private useProxy: boolean = false;
   private dataset: T;
   private params: QueryType<T> = {} as QueryType<T>;
 
@@ -50,7 +49,8 @@ export class FugleAPIBuilder<T extends FugleDataset> {
   }
 
   getURL(): string {
-    const baseUrl: string = this.useProxy
+    const useProxy = config.FUGLE_API_USE_PROXY;
+    const baseUrl: string = useProxy
       ? 'https://monneey-fe846abf0722.herokuapp.com/tool/proxy/fugle'
       : 'https://api.fugle.tw/marketdata/v1.0';
     switch (this.dataset) {
@@ -58,15 +58,15 @@ export class FugleAPIBuilder<T extends FugleDataset> {
         const historicalParams = this.params as StockHistoricalQuery;
         const { from, to, fields } = historicalParams;
         const fieldsString = fields && fields.length > 0 ? fields.join(',') : 'open,high,low,close,volume';
-        return this.useProxy
+        return useProxy
           ? `${baseUrl}/historical?symbol=${this.params.symbol}&fields=${fieldsString}&from=${from}&to=${to}`
           : `${baseUrl}/stock/historical/candles/${this.params.symbol}?fields=${fieldsString}&from=${from}&to=${to}`;
       case FugleDataset.StockIntradayQuote:
-        return this.useProxy
+        return useProxy
           ? `${baseUrl}/intradayquote?symbol=${this.params.symbol}`
           : `${baseUrl}/stock/intraday/quote/${this.params.symbol}`;
       case FugleDataset.StockIntradayTicker:
-        return this.useProxy
+        return useProxy
           ? `${baseUrl}/intradayticker?symbol=${this.params.symbol}`
           : `${baseUrl}/stock/intraday/ticker/${this.params.symbol}`;
       default:

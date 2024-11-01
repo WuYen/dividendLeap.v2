@@ -19,6 +19,7 @@ const LINE_NOTIFY_URL: string | undefined = process.env.LINE_NOTIFY_URL || 'http
 const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
   process.env.LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL || 'http://localhost:3000/line/registration/callback';
 const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
+const FUGLE_API_USE_PROXY: boolean = process.env.FUGLE_API_USE_PROXY === 'true';
 const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
 const CLIENT_URL: string = process.env.CLIENT_URL || 'http://localhost:3000';
 const SERVER_URL: string = process.env.SERVER_URL || 'http://localhost:8000';
@@ -47,6 +48,7 @@ export default {
   LINE_NOTIFY_URL,
   LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
   FUGLE_API_KEY,
+  FUGLE_API_USE_PROXY,
   ADMIN_LINE_TOKEN,
   CLIENT_URL,
   SERVER_URL,
