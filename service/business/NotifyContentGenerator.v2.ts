@@ -15,7 +15,8 @@ import { delay } from '../../utility/delay';
 export interface PostContent {
   post: IPostInfo;
   isSubscribedAuthor: boolean;
-  contentMap?: Map<TokenLevel, string>;
+  content: string;
+  options: any;
 }
 
 interface StockPriceContent {
@@ -31,6 +32,10 @@ export class NotifyContentGenerator {
   private post: IPostInfo;
   private authorInfo: IAuthor | undefined;
   private isSubscribedAuthor: boolean = false;
+  private postSummary: string = '';
+  private stockInfo: any = {};
+
+  private contentMap: Map<string, PostContent> = new Map();
 
   constructor(post: IPostInfo, authorInfo: IAuthor | undefined) {
     this.post = post;
@@ -38,37 +43,61 @@ export class NotifyContentGenerator {
     this.isSubscribedAuthor = !!authorInfo;
   }
 
-  async generateAllContent(): Promise<PostContent> {
+  private async generateContent(type: string): Promise<PostContent> {
     const notifyContent: string[] = [''];
     if (this.isSubscribedAuthor && this.post.tag === '標的') {
       notifyContent.push('✨✨大神來囉✨✨');
     }
     notifyContent.push(`[${this.post.tag}] ${this.post.title}`);
     const stockNo = getStockNoFromTitle(this.post);
-    if (stockNo) {
-      const response = await this.generateStockContent(stockNo);
-      notifyContent.push(`${response?.exchangeType}-${response?.industryName}`);
+    if (stockNo && !this.stockInfo) {
+      const response = await this.getStockContent(stockNo);
+      this.stockInfo = response;
+      notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
     }
 
     let result = {
       post: this.post,
       isSubscribedAuthor: this.isSubscribedAuthor,
-      contentMap: new Map(),
+      content: '',
     } as PostContent;
 
-    result.contentMap?.set(TokenLevel.Basic, this.generateBasicContent(this.post, notifyContent));
-    result.contentMap?.set(
-      TokenLevel.Standard,
-      this.generateStandardContent(this.post, this.authorInfo, notifyContent)
-    );
+    switch (type) {
+      case 'basic':
+        result.content = this.generateBasicContent(this.post, notifyContent);
+        this.contentMap?.set(type, result);
+        return result;
 
-    //TODO: 確認以下兩個產生的內容訊息
-    //TODO: 改用 ContentType, and process Telegram message
-    //TODO: check when should calling generatePostSummaryWithAI
-    let postSummary = await this.generatePostSummaryByAI(this.post, this.authorInfo);
-    result.contentMap?.set(TokenLevel.Premium, postSummary);
-    result.contentMap?.set(TokenLevel.Test, postSummary);
-    return result;
+      case 'standard':
+        result.content = this.generateStandardContent(this.post, this.authorInfo, notifyContent);
+        this.contentMap?.set(type, result);
+        return result;
+    }
+
+    if (!this.postSummary) {
+      this.postSummary = await this.getPostSummaryByAI(this.post, this.authorInfo);
+    }
+
+    switch (type) {
+      case 'advance':
+        result.content = this.generateAdvanceContent(this.post, this.authorInfo, this.postSummary, this.stockInfo);
+        this.contentMap?.set(type, result);
+        return result;
+      case 'telegram':
+        result.content = this.generateTelegramContent(this.post, this.authorInfo, this.postSummary, this.stockInfo);
+        this.contentMap?.set(type, result);
+        return result;
+    }
+
+    throw new Error(`generateContent fail, un-match type ${type} for post ${this.post.id}`);
+  }
+
+  async getContent(key: string): Promise<PostContent> {
+    let postContent = this.contentMap.get(key);
+    if (postContent == null) {
+      postContent = await this.generateContent(key);
+    }
+    return postContent;
   }
 
   private generateBasicContent(post: IPostInfo, notifyContent: string[]): string {
@@ -91,7 +120,25 @@ export class NotifyContentGenerator {
     return standardContent.join('\n');
   }
 
-  private async generatePostSummaryByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
+  private generateTelegramContent(
+    post: IPostInfo,
+    authorInfo: IAuthor | undefined,
+    postSummary: string,
+    stockInfo: any
+  ): string {
+    throw new Error('Method not implemented.');
+  }
+
+  private generateAdvanceContent(
+    post: IPostInfo,
+    authorInfo: IAuthor | undefined,
+    postSummary: string,
+    stockInfo: any
+  ): string {
+    throw new Error('Method not implemented.');
+  }
+
+  private async getPostSummaryByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
     if (!post.href || !post.href.length) {
       console.log(`href is empty`);
       return '';
@@ -120,7 +167,7 @@ export class NotifyContentGenerator {
     }
   }
 
-  private async generateStockContent(stockNo: string): Promise<StockPriceContent | null> {
+  private async getStockContent(stockNo: string): Promise<StockPriceContent | null> {
     try {
       const stockInfo = await new FugleAPIBuilder(FugleDataset.StockIntradayTicker).setParam({ symbol: stockNo }).get();
 
