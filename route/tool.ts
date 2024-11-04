@@ -63,7 +63,9 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
 });
 
 router.get('/tg/send', async (req: Request, res: Response, next: NextFunction) => {
-  await TelegramBotService.getInstance().sendMessage('', 'test');
+  const id = req.query.id as string;
+  const msg: string = req.query.msg as string;
+  await TelegramBotService.getInstance().sendMessage(id, msg);
   return res.sendSuccess(200, { message: 'test' });
 });
 

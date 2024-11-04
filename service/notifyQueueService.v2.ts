@@ -5,7 +5,7 @@ import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
 import { isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper';
 import lineService from './lineService';
-import { NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator.v2';
+import { ContentType, NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator.v2';
 
 import TelegramBotService from './telegramBotService';
 
@@ -38,16 +38,18 @@ export const notifyQueue = new Queue(
   { afterProcessDelay: 10 }
 );
 
-export const postQueue = new Queue(async (job: any, done: Function) => {
-  try {
-    const { contentGenerator, level, users } = job;
-    const result = await (contentGenerator as NotifyContentGenerator).getContent(level);
-    done(null, { users, content: result });
-  } catch (error) {
-    console.error(`Error postQueue job ${job.id}:`, error);
-    done(error);
+export const postQueue = new Queue<{ contentGenerator: NotifyContentGenerator; type: ContentType; users: ILineToken[] }>(
+  async (job: any, done: Function) => {
+    try {
+      const { contentGenerator, type, users } = job;
+      const result = await (contentGenerator as NotifyContentGenerator).getContent(type);
+      done(null, { users, content: result });
+    } catch (error) {
+      console.error(`Error postQueue job ${job.id}:`, error);
+      done(error);
+    }
   }
-});
+);
 
 // 監聽完成和失敗事件
 postQueue.on('task_finish', (taskId: number, result: any) => {
@@ -73,27 +75,30 @@ export async function processPostAndSendNotify(
       const isSubscribedAuthor = !!authorInfo;
       const contentGenerator = new NotifyContentGenerator(post, authorInfo);
 
-      const delayNotifyUsers = new Map<string, ILineToken[]>();
+      const notifyUsers = new Map<ContentType, ILineToken[]>();
       for (const tokenInfo of users) {
         const isMyKeywordMatch = tokenInfo.keywords?.some((keyword) => post.title.includes(keyword)) ?? false;
 
         if ((post.tag === '標的' && (isValidStockPostForNotify(post) || isSubscribedAuthor)) || isMyKeywordMatch) {
-          let key: string;
+          let type: ContentType;
           if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
-            key = tokenInfo.tgChatId == null ? 'advance' : 'tg';
+            type = tokenInfo.tgChatId == null ? ContentType.Premium : ContentType.Telegram;
           } else {
-            key = tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? 'Standard' : 'Basic';
+            type = tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? ContentType.Standard : ContentType.Basic;
           }
 
-          if (!delayNotifyUsers.get(key)) {
-            delayNotifyUsers.set(key, []);
+          if (!notifyUsers.get(type)) {
+            notifyUsers.set(type, []);
           }
-          delayNotifyUsers.get(key)?.push(tokenInfo);
+          notifyUsers.get(type)?.push(tokenInfo);
         }
       }
 
-      for (const key of delayNotifyUsers.keys()) {
-        postQueue.push({ contentGenerator, level: key, isSubscribedAuthor, users: delayNotifyUsers.get(key) });
+      for (const key of notifyUsers.keys()) {
+        const users = notifyUsers.get(key);
+        if (users && users.length > 0) {
+          postQueue.push({ contentGenerator, type: key, users });
+        }
       }
     } catch (error) {
       console.error(`Error processing post ${post.id}:`, error);

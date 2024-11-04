@@ -1,6 +1,5 @@
 import config from '../../utility/config';
 import { IAuthor } from '../../model/Author';
-import { TokenLevel } from '../../model/lineToken';
 import { IPostInfo } from '../../model/PostInfo';
 import { getStockNoFromTitle } from '../../utility/stockPostHelper';
 import { PTT_DOMAIN, fetchPostDetail } from '../pttStockPostService';
@@ -11,12 +10,21 @@ import { FugleAPIBuilder } from '../../utility/fugleCaller';
 import { FugleDataset } from '../../utility/fugleTypes';
 import { getIndustryName } from '../../utility/stockHelper';
 import { delay } from '../../utility/delay';
+import TelegramBot from 'node-telegram-bot-api';
+
+export enum ContentType {
+  Basic = 'basic',
+  Standard = 'standard',
+  Premium = 'premium',
+  Telegram = 'telegram',
+}
 
 export interface PostContent {
   post: IPostInfo;
-  isSubscribedAuthor: boolean;
   content: string;
-  options: any;
+  contentType: ContentType;
+  isSubscribedAuthor: boolean;
+  options: TelegramBot.SendMessageOptions | any | null;
 }
 
 interface StockPriceContent {
@@ -34,7 +42,6 @@ export class NotifyContentGenerator {
   private isSubscribedAuthor: boolean = false;
   private postSummary: string = '';
   private stockInfo: any = {};
-
   private contentMap: Map<string, PostContent> = new Map();
 
   constructor(post: IPostInfo, authorInfo: IAuthor | undefined) {
@@ -43,7 +50,7 @@ export class NotifyContentGenerator {
     this.isSubscribedAuthor = !!authorInfo;
   }
 
-  private async generateContent(type: string): Promise<PostContent> {
+  private async generateContent(type: ContentType): Promise<PostContent> {
     const notifyContent: string[] = [''];
     if (this.isSubscribedAuthor && this.post.tag === '標的') {
       notifyContent.push('✨✨大神來囉✨✨');
@@ -63,12 +70,12 @@ export class NotifyContentGenerator {
     } as PostContent;
 
     switch (type) {
-      case 'basic':
+      case ContentType.Basic:
         result.content = this.generateBasicContent(this.post, notifyContent);
         this.contentMap?.set(type, result);
         return result;
 
-      case 'standard':
+      case ContentType.Standard:
         result.content = this.generateStandardContent(this.post, this.authorInfo, notifyContent);
         this.contentMap?.set(type, result);
         return result;
@@ -79,23 +86,21 @@ export class NotifyContentGenerator {
     }
 
     switch (type) {
-      case 'advance':
+      case ContentType.Premium:
         result.content = this.generateAdvanceContent(this.post, this.authorInfo, this.postSummary, this.stockInfo);
         this.contentMap?.set(type, result);
         return result;
-      case 'telegram':
+      case ContentType.Telegram:
         result.content = this.generateTelegramContent(this.post, this.authorInfo, this.postSummary, this.stockInfo);
         this.contentMap?.set(type, result);
         return result;
     }
-
-    throw new Error(`generateContent fail, un-match type ${type} for post ${this.post.id}`);
   }
 
-  async getContent(key: string): Promise<PostContent> {
-    let postContent = this.contentMap.get(key);
+  async getContent(type: ContentType): Promise<PostContent> {
+    let postContent = this.contentMap.get(type);
     if (postContent == null) {
-      postContent = await this.generateContent(key);
+      postContent = await this.generateContent(type);
     }
     return postContent;
   }

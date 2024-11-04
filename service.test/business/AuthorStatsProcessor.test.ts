@@ -89,7 +89,7 @@ describe('AuthorStatsProcessor', () => {
         upsertedCount: 0,
       });
 
-      const message = await processor.newProcessAndUpdateAuthorStats(30);
+      const message = await processor.processAndUpdateAuthorStats(30);
       await new Promise((resolve) => setTimeout(resolve, 8000));
       expect(message).toEqual('Queued 4 posts from 1 authors');
       expect(getPostsWithInDays).toHaveBeenCalledWith(30, '標的');
@@ -101,7 +101,7 @@ describe('AuthorStatsProcessor', () => {
     it('should return error when getPostsWithInDays throws an error', async () => {
       (getPostsWithInDays as jest.Mock).mockRejectedValue(new Error('Error fetching posts'));
 
-      await expect(processor.newProcessAndUpdateAuthorStats(20)).rejects.toThrow('Error fetching posts');
+      await expect(processor.processAndUpdateAuthorStats(20)).rejects.toThrow('Error fetching posts');
       expect(processor['isProcessing']).toBe(false);
     });
   });
