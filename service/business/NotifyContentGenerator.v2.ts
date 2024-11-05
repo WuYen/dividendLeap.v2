@@ -146,10 +146,10 @@ export class NotifyContentGenerator {
         reply_markup: {
           inline_keyboard: [
             [
-              { text: '取得股價', callback_data: `get_stock_price:${stockInfo.stockNo}` },
-              { text: '作者資訊', callback_data: `get_author_performance:${post?.author}` },
+              { text: '股價', callback_data: `get_stock_price:${stockInfo.stockNo}` },
+              { text: '作者', callback_data: `get_author_performance:${post?.author}` },
+              { text: '分析', callback_data: `get_target_analysis:${post?.id}` },
             ],
-            [{ text: '取得標的分析資訊', callback_data: `get_target_analysis:${post?.id}` }],
             [{ text: '打開PTT', url: `https://www.ptt.cc/${post.href}` }],
           ],
         },
