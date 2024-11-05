@@ -91,7 +91,14 @@ export class NotifyContentGenerator {
         this.contentMap?.set(type, result);
         return result;
       case ContentType.Telegram:
-        result.content = this.generateTelegramContent(this.post, this.authorInfo, this.postSummary, this.stockInfo);
+        const { content, options } = this.generateTelegramContent(
+          this.post,
+          this.authorInfo,
+          this.postSummary,
+          this.stockInfo
+        );
+        result.content = content;
+        result.options = options;
         this.contentMap?.set(type, result);
         return result;
     }
@@ -129,18 +136,45 @@ export class NotifyContentGenerator {
     post: IPostInfo,
     authorInfo: IAuthor | undefined,
     postSummary: string,
-    stockInfo: any
-  ): string {
-    throw new Error('Method not implemented.');
+    stockInfo: StockPriceContent
+  ): any {
+    const notifyContent: string[] = [''];
+    notifyContent.push(postSummary);
+
+    if (this.isSubscribedAuthor && stockInfo) {
+      let options = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '取得股價', callback_data: `get_stock_price:${stockInfo.stockNo}` },
+              { text: '作者資訊', callback_data: `get_author_performance:${post?.author}` },
+            ],
+            [{ text: '取得標的分析資訊', callback_data: `get_target_analysis:${post?.id}` }],
+            [{ text: '打開PTT', url: `https://www.ptt.cc/${post.href}` }],
+          ],
+        },
+      } as TelegramBot.SendMessageOptions;
+      return { content: notifyContent.join('\n'), options };
+    }
+    return { content: notifyContent.join('\n') };
   }
 
   private generateAdvanceContent(
     post: IPostInfo,
     authorInfo: IAuthor | undefined,
     postSummary: string,
-    stockInfo: any
+    stockInfo: StockPriceContent
   ): string {
-    throw new Error('Method not implemented.');
+    const notifyContent: string[] = [''];
+    if (stockInfo != null) {
+      notifyContent.push(`${stockInfo.stockName}股價: ${stockInfo.price}`);
+      notifyContent.push(`股價更新時間: ${stockInfo.updateDate}`);
+      notifyContent.push(`${stockInfo.exchangeType}-${stockInfo.industryName}`);
+    }
+    notifyContent.push(`作者: ${post.author} \n`);
+    notifyContent.push(postSummary);
+    notifyContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
+    return notifyContent.join('\n');
   }
 
   private async getPostSummaryByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
@@ -210,7 +244,6 @@ export class NotifyContentGenerator {
       console.error('Error generating stock price content', error);
     }
 
-    // Return null if no data is found or an error occurs
     return null;
   }
 }
