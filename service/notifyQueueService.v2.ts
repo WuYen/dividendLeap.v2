@@ -25,7 +25,7 @@ export enum MessageChannel {
 }
 
 // 創建隊列
-export const notifyQueue = new Queue(
+export const notifyQueue = new Queue<NotifyEnvelop>(
   async (job: NotifyEnvelop, done: Function) => {
     try {
       if (job.channel === MessageChannel.Telegram) {
@@ -85,7 +85,7 @@ export async function processPostAndSendNotify(
     try {
       const authorInfo = subscribeAuthors.find((x) => x.name === post.author);
       const isSubscribedAuthor = !!authorInfo;
-      const contentGenerator = new NotifyContentGenerator(post, authorInfo);
+      const contentGenerator = new NotifyContentGenerator(post, authorInfo || null);
 
       const notifyUsers = new Map<ContentType, NotifyEnvelop[]>();
       for (const tokenInfo of users) {

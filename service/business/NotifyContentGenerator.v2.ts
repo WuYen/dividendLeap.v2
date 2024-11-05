@@ -38,13 +38,13 @@ interface StockPriceContent {
 
 export class NotifyContentGenerator {
   private post: IPostInfo;
-  private authorInfo: IAuthor | undefined;
+  private authorInfo: IAuthor | null = null;
   private isSubscribedAuthor: boolean = false;
   private postSummary: string = '';
-  private stockInfo: any = {};
+  private stockInfo: StockPriceContent | null = null;
   private contentMap: Map<string, PostContent> = new Map();
 
-  constructor(post: IPostInfo, authorInfo: IAuthor | undefined) {
+  constructor(post: IPostInfo, authorInfo: IAuthor | null) {
     this.post = post;
     this.authorInfo = authorInfo;
     this.isSubscribedAuthor = !!authorInfo;
@@ -57,9 +57,9 @@ export class NotifyContentGenerator {
     }
     notifyContent.push(`[${this.post.tag}] ${this.post.title}`);
     const stockNo = getStockNoFromTitle(this.post);
-    if (stockNo && !this.stockInfo) {
+    if (stockNo && this.stockInfo == null) {
       const response = await this.getStockContent(stockNo);
-      this.stockInfo = response;
+      response && (this.stockInfo = response);
       notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
     }
 
@@ -82,7 +82,7 @@ export class NotifyContentGenerator {
     }
 
     if (!this.postSummary) {
-      this.postSummary = await this.getPostSummaryByAI(this.post, this.authorInfo);
+      this.postSummary = await this.getPostSummaryByAI(this.post);
     }
 
     switch (type) {
@@ -124,7 +124,7 @@ export class NotifyContentGenerator {
     return baseContent.join('\n');
   }
 
-  private generateStandardContent(post: IPostInfo, authorInfo: IAuthor | undefined, notifyContent: string[]): string {
+  private generateStandardContent(post: IPostInfo, authorInfo: IAuthor | null, notifyContent: string[]): string {
     const standardContent = [...notifyContent];
     standardContent.push(`作者: ${post.author} ${authorInfo ? `👍:${authorInfo.likes}` : ''}`);
     standardContent.push(`${config.CLIENT_URL}/ptt/author/${post.author}`);
@@ -134,9 +134,9 @@ export class NotifyContentGenerator {
 
   private generateTelegramContent(
     post: IPostInfo,
-    authorInfo: IAuthor | undefined,
+    authorInfo: IAuthor | null,
     postSummary: string,
-    stockInfo: StockPriceContent
+    stockInfo: StockPriceContent | null
   ): any {
     const notifyContent: string[] = [''];
     notifyContent.push(postSummary);
@@ -154,6 +154,7 @@ export class NotifyContentGenerator {
           ],
         },
       } as TelegramBot.SendMessageOptions;
+      console.log(`reply_markup ` + JSON.stringify(options));
       return { content: notifyContent.join('\n'), options };
     }
     return { content: notifyContent.join('\n') };
@@ -161,9 +162,9 @@ export class NotifyContentGenerator {
 
   private generateAdvanceContent(
     post: IPostInfo,
-    authorInfo: IAuthor | undefined,
+    authorInfo: IAuthor | null,
     postSummary: string,
-    stockInfo: StockPriceContent
+    stockInfo: StockPriceContent | null
   ): string {
     const notifyContent: string[] = [''];
     if (stockInfo != null) {
@@ -177,7 +178,7 @@ export class NotifyContentGenerator {
     return notifyContent.join('\n');
   }
 
-  private async getPostSummaryByAI(post: IPostInfo, authorInfo: IAuthor | undefined): Promise<string> {
+  private async getPostSummaryByAI(post: IPostInfo): Promise<string> {
     if (!post.href || !post.href.length) {
       console.log(`href is empty`);
       return '';
