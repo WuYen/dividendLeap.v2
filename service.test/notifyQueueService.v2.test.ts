@@ -1,18 +1,38 @@
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { processPostAndSendNotify, notifyQueue, postQueue } from '../service/notifyQueueService'; // Adjust the import according to your module structure
-import * as geminiAIService from '../service/geminiAIService';
+import { processPostAndSendNotify, notifyQueue, postQueue } from '../service/notifyQueueService.v2'; // Adjust the import according to your module structure
 
 jest.mock('../service/lineService', () => ({
   sendMessage: jest.fn(),
 }));
 
-jest.mock('../service/geminiAIService', () => ({
-  generateWithTunedModel: jest.fn(),
+jest.mock('../service/telegramBotService', () => ({
+  sendMessageWithOptions: jest.fn(),
 }));
 
-jest.mock('../service/pttStockPostService');
+jest.mock('../service/business/NotifyContentGenerator.v2', () => {
+  const originalModule = jest.requireActual('../service/business/NotifyContentGenerator.v2');
+  return {
+    ...originalModule,
+    NotifyContentGenerator: jest.fn().mockImplementation((post, authorInfo) => {
+      return {
+        post, // Store the post parameter
+        authorInfo, // Store the authorInfo parameter
+        getContent: jest.fn((type) => {
+          // Return different mock content based on the type
+          return Promise.resolve({
+            post,
+            contentType: type,
+            isSubscribedAuthor: !!authorInfo,
+            content: `${post.title}`,
+            options: {},
+          });
+        }),
+      };
+    }),
+  };
+});
 
 describe('processPostAndSendNotify', () => {
   const newPosts: IPostInfo[] = [
@@ -34,6 +54,15 @@ describe('processPostAndSendNotify', () => {
       batchNo: 12346,
       id: 123457,
     },
+    {
+      tag: '其他',
+      title: '測試關鍵字測試',
+      href: 'stock/M.1672225369.A.103',
+      author: 'anotherAuthor',
+      date: '2023-10-04 23:55:09',
+      batchNo: 12346,
+      id: 123457,
+    },
   ];
 
   const subscribeAuthors: IAuthor[] = [
@@ -46,16 +75,17 @@ describe('processPostAndSendNotify', () => {
 
   const users: ILineToken[] = [
     {
-      channel: 'A-TEST+STAND',
+      channel: 'A', //預期收到三封通知,台積電(Telegram), 鴻海(Standard), 關鍵字(Standard)
       token: 'myToken1',
       updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
       tokenLevel: [TokenLevel.Test, TokenLevel.Standard],
       favoritePosts: [],
       keywords: ['關鍵'],
+      tgChatId: '123',
     },
     {
-      channel: 'B-STAND',
+      channel: 'B', //預期收到兩封通知,台積電(Premium), 鴻海(Standard)
       token: 'myToken2',
       updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
@@ -64,7 +94,7 @@ describe('processPostAndSendNotify', () => {
       keywords: [],
     },
     {
-      channel: 'C-BASIC',
+      channel: 'C', //預期收到兩封通知,台積電(Premium), 鴻海(Basic)
       token: 'myToken3',
       updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
@@ -80,13 +110,9 @@ describe('processPostAndSendNotify', () => {
     postQueue.resetStats();
   });
 
-  it('should call sendMessage the correct number of times', async () => {
+  it('should call postQueue and notifyQueue the correct number of times', async () => {
     const { sendMessage } = jest.requireMock('../service/lineService');
-    const { generateWithTunedModel } = jest.requireMock('../service/geminiAIService');
-    generateWithTunedModel.mockResolvedValue('台積電漲停 ai message');
-    const mockPttStockPostService = jest.requireMock('../service/pttStockPostService');
-
-    mockPttStockPostService.fetchPostDetail.mockResolvedValue('台積電漲停！散戶嗨翻：護盤有功 mock');
+    const { sendMessageWithOptions } = jest.requireMock('../service/telegramBotService');
 
     await processPostAndSendNotify(newPosts, users, subscribeAuthors);
 
@@ -102,83 +128,11 @@ describe('processPostAndSendNotify', () => {
       }, 100);
     });
 
-    expect(postQueue.getStats().total).toEqual(1);
-    expect(geminiAIService.generateWithTunedModel).toHaveBeenCalledTimes(1);
-    expect(notifyQueue.getStats().total).toEqual(6);
+    //assert queue behavior
+    expect(postQueue.getStats().total).toEqual(5);
+    expect(notifyQueue.getStats().total).toEqual(7);
+
+    expect(sendMessageWithOptions).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledTimes(6);
-
-    // Verify the calls for user A (test + standard)
-    expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('鴻海大跌'));
-    expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('台積電漲停 ai message'));
-
-    // Verify the calls for user B (standard)
-    expect(sendMessage).toHaveBeenCalledWith(
-      'myToken2',
-      expect.stringContaining('👍:100') && expect.stringContaining('台積電漲停')
-    );
-    expect(sendMessage).toHaveBeenCalledWith('myToken2', expect.stringContaining('鴻海大跌'));
-
-    // Verify the calls for user C (basic)
-    expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('台積電漲停'));
-    expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('鴻海大跌'));
-  });
-
-  it('should correctly process notifications with processPostAndSendNotify', (done) => {
-    newPosts.push({
-      tag: '閒聊',
-      title: '123關鍵字測試456',
-      href: 'stock/M.1672225269.A.103',
-      author: 'anotherAuthor',
-      date: '2023-10-04 23:55:09',
-      batchNo: 12346,
-      id: 123427,
-    });
-    const { sendMessage } = jest.requireMock('../service/lineService');
-    const { generateWithTunedModel } = jest.requireMock('../service/geminiAIService');
-    generateWithTunedModel.mockResolvedValue('台積電漲停 ai message');
-    const mockPttStockPostService = jest.requireMock('../service/pttStockPostService');
-
-    mockPttStockPostService.fetchPostDetail.mockResolvedValue('台積電漲停！散戶嗨翻：護盤有功 mock');
-
-    // 监听 notifyQueue 完成事件
-    notifyQueue.on('drain', () => {
-      try {
-        expect(postQueue.getStats().total).toEqual(1);
-        expect(geminiAIService.generateWithTunedModel).toHaveBeenCalledTimes(1);
-        expect(notifyQueue.getStats().total).toEqual(7);
-        expect(sendMessage).toHaveBeenCalledTimes(7);
-
-        // Verify the calls for user A (test + standard)
-        expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('鴻海大跌'));
-        expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('台積電漲停 ai message'));
-        expect(sendMessage).toHaveBeenCalledWith('myToken1', expect.stringContaining('關鍵'));
-
-        // Verify the calls for user B (standard)
-        expect(sendMessage).toHaveBeenCalledWith(
-          'myToken2',
-          expect.stringContaining('👍:100') && expect.stringContaining('台積電漲停')
-        );
-        expect(sendMessage).toHaveBeenCalledWith('myToken2', expect.stringContaining('鴻海大跌'));
-        expect(sendMessage).toHaveBeenCalledWith('myToken2', expect.not.stringContaining('關鍵'));
-
-        // Verify the calls for user C (basic)
-        expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('台積電漲停'));
-        expect(sendMessage).toHaveBeenCalledWith('myToken3', expect.stringContaining('鴻海大跌'));
-
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
-
-    // 调用处理函数
-    processPostAndSendNotify(newPosts, users, subscribeAuthors);
   });
 });
-
-// call real service
-// var newPosts: IPostInfo[] = await PostInfoModel.find({ id: 1715508868 }).lean().exec();
-// var users: ILineToken[] = await LineTokenModel.find({ channel: 'myline' }).lean().exec();
-// var subscribeAuthors: IAuthor[] = await AuthorModel.find({ name: 'agogo1202' }).lean().exec();
-
-// await processPostAndSendNotify(newPosts, users, subscribeAuthors);

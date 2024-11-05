@@ -3,7 +3,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import config from '../utility/config';
 import { TelegramMessageHandler } from './business/TelegramMessageHandler';
 
-class TelegramBotService {
+export class TelegramBotService {
   private static instance: TelegramBotService;
   private bot: TelegramBot;
   private messageHandler: TelegramMessageHandler;
@@ -89,4 +89,4 @@ class TelegramBotService {
   }
 }
 
-export default TelegramBotService;
+export default TelegramBotService.getInstance();

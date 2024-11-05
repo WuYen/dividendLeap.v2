@@ -3,12 +3,11 @@ import Queue from 'better-queue';
 import { IAuthor } from '../model/Author';
 import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
-import { getStockNoFromTitle, isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper';
+import { isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper';
 import lineService from './lineService';
 import { ContentType, NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator';
 import config from '../utility/config';
-import TelegramBotService from './telegramBotService';
-import TelegramBot from 'node-telegram-bot-api';
+import telegramBotService from './telegramBotService';
 
 export interface MessageContent {
   content: string;
@@ -25,11 +24,7 @@ export const notifyQueue = new Queue(
     try {
       const postContent = job.payload as PostContent;
       if (job.user.tgChatId && postContent?.contentType == ContentType.Telegram) {
-        await TelegramBotService.getInstance().sendMessageWithOptions(
-          job.user.tgChatId,
-          postContent.content,
-          postContent.options
-        );
+        await telegramBotService.sendMessageWithOptions(job.user.tgChatId, postContent.content, postContent.options);
       } else {
         await lineService.sendMessage(job.user.token, job.payload.content);
       }
@@ -96,7 +91,8 @@ export async function processPostAndSendNotify(
       const delayNotifyUsers = [];
 
       for (const tokenInfo of users) {
-        const isMyKeywordMatch = tokenInfo.keywords && tokenInfo.keywords.some((keyword) => post.title.includes(keyword));
+        const isMyKeywordMatch =
+          tokenInfo.keywords && tokenInfo.keywords.some((keyword) => post.title.includes(keyword));
 
         if ((post.tag === '標的' && (isValidStockPostForNotify(post) || isSubscribedAuthor)) || isMyKeywordMatch) {
           if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
@@ -112,7 +108,13 @@ export async function processPostAndSendNotify(
 
       if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
         console.log('Add job to postQueue ' + post.id);
-        postQueue.push({ post, authorInfo, contentType: ContentType.Premium, isSubscribedAuthor, users: delayNotifyUsers });
+        postQueue.push({
+          post,
+          authorInfo,
+          contentType: ContentType.Premium,
+          isSubscribedAuthor,
+          users: delayNotifyUsers,
+        });
 
         const tgUsers = delayNotifyUsers.filter((x) => x.tgChatId);
         if (tgUsers.length > 0) {
