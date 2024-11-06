@@ -3,12 +3,10 @@ import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
-import { isValidStockPost } from '../utility/stockPostHelper';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
-import { processPostAndSendNotify } from './notifyQueueService';
-import geminiAIService from './geminiAIService';
+import { processPostAndSendNotify } from './notifyQueueService.v2';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
