@@ -62,7 +62,7 @@ export class NotifyContentGenerator {
       response && (this.stockInfo = response);
       notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
     }
-
+    //TODO: use Factory Method Pattern for Content Creation
     let result = {
       post: this.post,
       contentType: type,
