@@ -17,13 +17,13 @@ export enum ContentType {
   Standard = 'standard',
   Premium = 'premium',
   Telegram = 'telegram',
+  NormalPostTG = 'normalPostTG',
 }
 
 export interface PostContent {
   post: IPostInfo;
   content: string;
   contentType: ContentType;
-  isSubscribedAuthor: boolean;
   options: TelegramBot.SendMessageOptions | any | null;
 }
 
@@ -65,7 +65,6 @@ export class NotifyContentGenerator {
 
     let result = {
       post: this.post,
-      isSubscribedAuthor: this.isSubscribedAuthor,
       content: '',
     } as PostContent;
 
@@ -77,6 +76,13 @@ export class NotifyContentGenerator {
 
       case ContentType.Standard:
         result.content = this.generateStandardContent(this.post, this.authorInfo, notifyContent);
+        this.contentMap?.set(type, result);
+        return result;
+
+      case ContentType.NormalPostTG:
+        const { content, options } = this.generateNormalTGContent(this.post, this.authorInfo, notifyContent);
+        result.content = content;
+        result.options = options;
         this.contentMap?.set(type, result);
         return result;
     }
@@ -102,6 +108,42 @@ export class NotifyContentGenerator {
         this.contentMap?.set(type, result);
         return result;
     }
+  }
+  generateNormalTGContent(
+    post: IPostInfo,
+    authorInfo: IAuthor | null,
+    notifyContent: string[]
+  ): { content: any; options: any } {
+    let options;
+    if (this.isSubscribedAuthor && this.stockInfo) {
+      options = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '股價', callback_data: `get_stock_price:${this.stockInfo.stockNo}` },
+              { text: '作者', callback_data: `get_author_performance:${post?.author}` },
+              { text: '分析', callback_data: `get_target_analysis:${post?.id}` },
+            ],
+            [
+              { text: '打開PTT', url: `https://www.ptt.cc/${post.href}` },
+              { text: '打開網頁', url: `${config.CLIENT_URL}/ptt/author/${post.author}` },
+            ],
+          ],
+        },
+      } as TelegramBot.SendMessageOptions;
+    } else {
+      options = {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '打開PTT', url: `https://www.ptt.cc/${post.href}` },
+              { text: '打開網頁', url: `${config.CLIENT_URL}/ptt/author/${post.author}` },
+            ],
+          ],
+        },
+      } as TelegramBot.SendMessageOptions;
+    }
+    return { content: notifyContent.join('\n'), options: null };
   }
 
   async getContent(type: ContentType): Promise<PostContent> {

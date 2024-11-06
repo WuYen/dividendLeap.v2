@@ -24,6 +24,12 @@ export enum MessageChannel {
   Telegram = 'telegram',
 }
 
+interface PostQueueJob {
+  contentGenerator: NotifyContentGenerator;
+  type: ContentType;
+  users: NotifyEnvelop[];
+}
+
 // 創建隊列
 export const notifyQueue = new Queue<NotifyEnvelop>(
   async (job: NotifyEnvelop, done: Function) => {
@@ -47,29 +53,25 @@ export const notifyQueue = new Queue<NotifyEnvelop>(
   { afterProcessDelay: 10 }
 );
 
-export const postQueue = new Queue(async (job: any, done: Function) => {
+export const postQueue = new Queue<PostQueueJob>(async (job: PostQueueJob, done: Function) => {
   try {
-    const {
-      contentGenerator,
-      type,
-      users,
-    }: { contentGenerator: NotifyContentGenerator; type: ContentType; users: NotifyEnvelop[] } = job;
+    const { contentGenerator, type, users } = job;
     const result = await contentGenerator.getContent(type);
     done(null, { users, content: result });
   } catch (error) {
-    console.error(`Error postQueue job ${job.id}:`, error);
+    console.error(`Error postQueue job ${job.type}:`, error);
     done(error);
   }
 });
 
 // 監聽完成和失敗事件
-postQueue.on('task_finish', (taskId: number, result: any) => {
-  const { users, content }: { users: NotifyEnvelop[]; content: PostContent } = result;
+postQueue.on('task_finish', (taskId: number, result: { users: NotifyEnvelop[]; content: PostContent }) => {
+  const { users, content } = result;
   for (const notifyEnvelop of users) {
     notifyEnvelop.payload = content;
     notifyQueue.push(notifyEnvelop);
   }
-  console.log(`postQueue task_finish for ${content.post.id} ${content.post.title}, notifyCount:${users.length}`);
+  console.log(`postQueue task_finish for ${content.post.id} ${content.contentType}, notifyCount:${users.length}`);
 });
 
 postQueue.on('task_failed', (taskId: number, error: Error) => {
@@ -95,14 +97,19 @@ export async function processPostAndSendNotify(
           let type: ContentType;
           let channel: MessageChannel = MessageChannel.Line;
 
-          if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
-            type = ContentType.Premium;
-            if (tokenInfo.tgChatId != null) {
+          if (tokenInfo.tgChatId) {
+            channel = MessageChannel.Telegram;
+            if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
               type = ContentType.Telegram;
-              channel = MessageChannel.Telegram;
+            } else {
+              type = ContentType.NormalPostTG;
             }
           } else {
-            type = tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? ContentType.Standard : ContentType.Basic;
+            if (post.tag === '標的' && isSubscribedAuthor && !isRePosts(post)) {
+              type = ContentType.Premium;
+            } else {
+              type = tokenInfo.tokenLevel.includes(TokenLevel.Standard) ? ContentType.Standard : ContentType.Basic;
+            }
           }
 
           if (!notifyUsers.get(type)) {
