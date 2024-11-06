@@ -65,6 +65,7 @@ export class NotifyContentGenerator {
 
     let result = {
       post: this.post,
+      contentType: type,
       content: '',
     } as PostContent;
 
@@ -109,7 +110,7 @@ export class NotifyContentGenerator {
         return result;
     }
   }
-  generateNormalTGContent(
+  private generateNormalTGContent(
     post: IPostInfo,
     authorInfo: IAuthor | null,
     notifyContent: string[]
