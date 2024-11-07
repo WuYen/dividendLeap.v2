@@ -1,7 +1,7 @@
 import express, { Router, NextFunction, Request, Response } from 'express';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset, QueryType, StockHistoricalQuery } from '../utility/fugleTypes';
-import TelegramBotService from '../service/telegramBotService';
+import telegramBotService from '../service/telegramBotService';
 const router: Router = express.Router();
 
 router.get('/healthy', async (req: Request, res: Response, next: NextFunction) => {
@@ -65,7 +65,7 @@ router.get('/proxy/fugle/:endpoint', async (req: Request, res: Response, next: N
 router.get('/tg/send', async (req: Request, res: Response, next: NextFunction) => {
   const id = req.query.id as string;
   const msg: string = req.query.msg as string;
-  await TelegramBotService.getInstance().sendMessage(id, msg);
+  await telegramBotService.sendMessage(id, msg);
   return res.sendSuccess(200, { message: 'test' });
 });
 
