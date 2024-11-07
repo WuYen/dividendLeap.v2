@@ -6,7 +6,7 @@ import { AuthorStatsModel } from '../../model/AuthorStats';
 import { IPostInfo, PostInfoModel } from '../../model/PostInfo';
 import { getStockNoFromTitle } from '../../utility/stockPostHelper';
 import { analysisPostById } from '../postStatsService';
-import { NotifyContentGenerator } from './NotifyContentGenerator';
+import { ContentType, NotifyContentGenerator } from './NotifyContentGenerator';
 
 export class TelegramMessageHandler {
   private bot: TelegramBot;
@@ -64,7 +64,7 @@ export class TelegramMessageHandler {
         const postContent = await NotifyContentGenerator.getInstance().generateContent(
           post,
           undefined,
-          TokenLevel.Test,
+          ContentType.Telegram,
           true
         );
         const symbol = getStockNoFromTitle(post as IPostInfo);
@@ -193,9 +193,7 @@ export class TelegramMessageHandler {
       **推薦購買**: ${stats.recommandBuying ? '是' : '否'}
       **推薦計數**: ${stats.recommandCount}
 
-      📅 **分析期間**: ${new Date(stats.startDate).toLocaleDateString()} - ${new Date(
-        stats.endDate
-      ).toLocaleDateString()}
+      📅 **分析期間**: ${new Date(stats.startDate).toLocaleDateString()} - ${new Date(stats.endDate).toLocaleDateString()}
       `;
       return message;
     }

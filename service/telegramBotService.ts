@@ -3,12 +3,12 @@ import TelegramBot from 'node-telegram-bot-api';
 import config from '../utility/config';
 import { TelegramMessageHandler } from './business/TelegramMessageHandler';
 
-class TelegramBotService {
-  private static instance: TelegramBotService;
+export class TelegramBotService {
+  //private static instance: TelegramBotService;
   private bot: TelegramBot;
   private messageHandler: TelegramMessageHandler;
 
-  private constructor() {
+  constructor() {
     const token = config.TELEGRAM_BOT_TOKEN;
     const useWebhook = config.TELEGRAM_USE_WEBHOOK;
 
@@ -46,13 +46,13 @@ class TelegramBotService {
     console.log('Telegram bot construct successfully');
   }
 
-  public static getInstance(): TelegramBotService {
-    if (!TelegramBotService.instance) {
-      console.log('Initialize telegram bot');
-      TelegramBotService.instance = new TelegramBotService();
-    }
-    return TelegramBotService.instance;
-  }
+  // public static getInstance(): TelegramBotService {
+  //   if (!TelegramBotService.instance) {
+  //     console.log('Initialize telegram bot');
+  //     TelegramBotService.instance = new TelegramBotService();
+  //   }
+  //   return TelegramBotService.instance;
+  // }
 
   public async sendMessage(chatId: string, message: string): Promise<TelegramBot.Message> {
     return this.sendMessageWithOptions(chatId, message);
@@ -89,4 +89,5 @@ class TelegramBotService {
   }
 }
 
-export default TelegramBotService;
+const service = new TelegramBotService();
+export default service;
