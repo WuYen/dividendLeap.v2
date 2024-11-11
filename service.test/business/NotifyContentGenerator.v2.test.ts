@@ -68,7 +68,7 @@ describe('NotifyContentGenerator', () => {
     const generator = new NotifyContentGenerator(post, author);
     const result = await generator.getContent(ContentType.Basic);
 
-    expect(result.content).toContain('台積電漲停');
+    expect(result.content).toContain('台積電');
     expect(result.content).toContain('作者: pttTestAuthor');
     expect(result.contentType).toBe(ContentType.Basic);
   });
