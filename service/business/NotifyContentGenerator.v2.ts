@@ -59,8 +59,10 @@ export class NotifyContentGenerator {
     const stockNo = getStockNoFromTitle(this.post);
     if (stockNo && this.stockInfo == null) {
       const response = await this.getStockContent(stockNo);
-      response && (this.stockInfo = response);
-      notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
+      if (response) {
+        this.stockInfo = response;
+        notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
+      }
     }
     //TODO: use Factory Method Pattern for Content Creation
     let result = {
@@ -115,6 +117,7 @@ export class NotifyContentGenerator {
     authorInfo: IAuthor | null,
     notifyContent: string[]
   ): { content: any; options: any } {
+    notifyContent.push(`作者: ${post.author}`);
     let options;
     if (this.isSubscribedAuthor && this.stockInfo) {
       options = {
@@ -144,7 +147,7 @@ export class NotifyContentGenerator {
         },
       } as TelegramBot.SendMessageOptions;
     }
-    return { content: notifyContent.join('\n'), options: null };
+    return { content: notifyContent.join('\n'), options };
   }
 
   async getContent(type: ContentType): Promise<PostContent> {
