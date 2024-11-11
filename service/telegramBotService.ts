@@ -65,7 +65,7 @@ export class TelegramBotService {
   ): Promise<TelegramBot.Message> {
     try {
       const result = await this.bot.sendMessage(chatId, message, options);
-      console.log('Message sent successfully:', result);
+      console.log('Message sent successfully:', chatId);
       return result; // The result will be of type TelegramBot.Message
     } catch (error) {
       console.error('Failed to send message:', error);
