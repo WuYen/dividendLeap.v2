@@ -38,7 +38,7 @@ export const notifyQueue = new Queue<NotifyEnvelop>(
         await telegramBotService.sendMessageWithOptions(
           job.token,
           job.payload.content,
-          (job.payload as PostContent)?.options
+          (job.payload as PostContent)?.options ?? undefined
         );
       } else if (job.channel === MessageChannel.Line) {
         await lineService.sendMessage(job.token, job.payload.content);
