@@ -75,7 +75,7 @@ describe('processPostAndSendNotify', () => {
 
   const users: ILineToken[] = [
     {
-      channel: 'A', //預期收到三封通知,台積電(Telegram), 鴻海(Standard), 關鍵字(Standard)
+      channel: 'A', //預期收到三封通知,台積電(Telegram), 鴻海(NormalPostTG), 關鍵字(NormalPostTG)
       token: 'myToken1',
       updateDate: '2023-10-05 00:00:00',
       notifyEnabled: true,
@@ -129,10 +129,10 @@ describe('processPostAndSendNotify', () => {
     });
 
     //assert queue behavior
-    expect(postQueue.getStats().total).toEqual(5);
+    expect(postQueue.getStats().total).toEqual(6);
     expect(notifyQueue.getStats().total).toEqual(7);
 
-    expect(sendMessageWithOptions).toHaveBeenCalledTimes(1);
-    expect(sendMessage).toHaveBeenCalledTimes(6);
+    expect(sendMessageWithOptions).toHaveBeenCalledTimes(3);
+    expect(sendMessage).toHaveBeenCalledTimes(4);
   });
 });

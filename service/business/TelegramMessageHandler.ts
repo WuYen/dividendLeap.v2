@@ -32,9 +32,15 @@ export class TelegramMessageHandler {
       if (!user) {
         // 新增用戶資料
         user = new LineTokenModel({
+          channel: username || 'tg',
+          token: '',
+          notifyEnabled: true,
+          tokenLevel: [TokenLevel.Basic],
+          updateDate: today(),
+          favoritePosts: [],
+          keywords: [],
           tgChatId: chatId,
           tgUserName: username,
-          channel: username,
         });
         await user.save();
         console.log('新用戶已建立:', user);
@@ -177,7 +183,6 @@ export class TelegramMessageHandler {
       **標題**: ${stats.title}
       **作者**: ${stats.author}
       **日期**: ${stats.date}
-      **連結**: [點擊查看](https://www.ptt.cc${stats.href})
 
       **技術指標分析**:
       - **SMA 上漲**: ${stats.isSMAUp ? '✅' : '❌'}
@@ -193,7 +198,9 @@ export class TelegramMessageHandler {
       **推薦購買**: ${stats.recommandBuying ? '是' : '否'}
       **推薦計數**: ${stats.recommandCount}
 
-      📅 **分析期間**: ${new Date(stats.startDate).toLocaleDateString()} - ${new Date(stats.endDate).toLocaleDateString()}
+      📅 **分析期間**: ${new Date(stats.startDate).toLocaleDateString()} - ${new Date(
+        stats.endDate
+      ).toLocaleDateString()}
       `;
       return message;
     }
