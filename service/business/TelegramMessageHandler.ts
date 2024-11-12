@@ -32,9 +32,15 @@ export class TelegramMessageHandler {
       if (!user) {
         // 新增用戶資料
         user = new LineTokenModel({
+          channel: username || 'tg',
+          token: '',
+          notifyEnabled: true,
+          tokenLevel: [TokenLevel.Basic],
+          updateDate: today(),
+          favoritePosts: [],
+          keywords: [],
           tgChatId: chatId,
           tgUserName: username,
-          channel: username,
         });
         await user.save();
         console.log('新用戶已建立:', user);
