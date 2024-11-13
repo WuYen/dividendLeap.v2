@@ -57,10 +57,12 @@ export class NotifyContentGenerator {
     }
     notifyContent.push(`[${this.post.tag}] ${this.post.title}`);
     const stockNo = getStockNoFromTitle(this.post);
-    if (stockNo && this.stockInfo == null) {
-      const response = await this.getStockContent(stockNo);
-      if (response) {
+    if (stockNo) {
+      if (this.stockInfo == null) {
+        const response = await this.getStockContent(stockNo);
         this.stockInfo = response;
+      }
+      if (this.stockInfo) {
         notifyContent.push(`${this.stockInfo?.exchangeType}-${this.stockInfo?.industryName}`);
       }
     }
