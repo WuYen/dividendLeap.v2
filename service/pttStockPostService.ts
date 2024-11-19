@@ -7,6 +7,7 @@ import { AuthorModel, IAuthor } from '../model/Author';
 import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
 import { processPostAndSendNotify } from './notifyQueueService.v2';
+import axios from 'axios';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -170,6 +171,12 @@ export async function fetchPostDetail(url: string): Promise<string> {
     $(element).remove();
   });
   return mainContent.text().trim();
+}
+
+export async function fetchPostDetailProxy(id: string): Promise<string> {
+  const response = await axios.get(`https://monneey-fe846abf0722.herokuapp.com/ptt/post/${id}`);
+
+  return response.data.data;
 }
 
 export async function fetchPostComment(url: string): Promise<string[]> {
