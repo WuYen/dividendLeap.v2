@@ -8,6 +8,7 @@ import { getAuthorHistoryPosts } from './pttAuthorService';
 import { AuthorStatsModel } from '../model/AuthorStats';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
+import { IConversation, IMessage } from '../model/ConversationModel';
 
 const MODEL = 'gpt-4o-mini';
 const tools: ChatCompletionTool[] = [
@@ -174,3 +175,34 @@ export async function structuredOutput(articleContent: string) {
   const stock_analysis = completion.choices[0].message.parsed;
   console.log(stock_analysis);
 }
+
+export async function handleTGChat(messages: IMessage[]): Promise<string> {
+  try {
+    // Convert IMessage array to OpenAI Chat Completion format
+    const openAIMessages: ChatCompletionMessageParam[] = messages.map((message) => ({
+      role: message.sender === 'ai' ? 'assistant' : 'user',
+      content: message.message,
+    }));
+
+    // Call OpenAI's chat completion API
+    const response = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `你是一個有幫助的助手，負責分析telegram chat 的輸入訊息並產生回覆的內容`,
+        },
+        ...openAIMessages,
+      ],
+      temperature: 0.7,
+    });
+
+    // Extract and return the reply message from OpenAI's response
+    return response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
+  } catch (error) {
+    console.error('Error handling TG chat:', error);
+    return '抱歉，我無法處理這個請求。';
+  }
+}
+
+export default { handleTGChat, structuredOutput, conversationWithAI };
