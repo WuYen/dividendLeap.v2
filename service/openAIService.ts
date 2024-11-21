@@ -9,6 +9,8 @@ import { AuthorStatsModel } from '../model/AuthorStats';
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { IConversation, IMessage } from '../model/ConversationModel';
+import stockPriceService from './stockPriceService';
+import { toDateString, today, todayDate } from '../utility/dateTime';
 
 const MODEL = 'gpt-4o-mini';
 const tools: ChatCompletionTool[] = [
@@ -43,6 +45,26 @@ const tools: ChatCompletionTool[] = [
           },
         },
         required: ['postId'],
+      },
+    },
+  },
+];
+
+const miniTools: ChatCompletionTool[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'fetchStockPrice',
+      description: '用台灣(台北)股票代號來取得最新的股價',
+      parameters: {
+        type: 'object',
+        properties: {
+          stockNo: {
+            type: 'string',
+            description: '股票的代碼, 純數字, 例如 台積電 那預期就會是 2330',
+          },
+        },
+        required: ['stockNo'],
       },
     },
   },
@@ -184,18 +206,52 @@ export async function handleTGChat(messages: IMessage[]): Promise<string> {
       content: message.message,
     }));
 
+    const conversation = [
+      {
+        role: 'system',
+        content: `你是一個有幫助的助手，負責分析telegram chat 的輸入訊息並產生回覆的內容`,
+      },
+      ...openAIMessages,
+    ] as ChatCompletionMessageParam[];
+
     // Call OpenAI's chat completion API
     const response = await openai.chat.completions.create({
       model: MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `你是一個有幫助的助手，負責分析telegram chat 的輸入訊息並產生回覆的內容`,
-        },
-        ...openAIMessages,
-      ],
+      messages: conversation,
       temperature: 0.7,
+      tools: miniTools,
+      tool_choice: 'auto',
     });
+
+    if (!response.choices[0] || !response.choices[0].message.tool_calls) {
+      throw new Error('error in process conversation');
+    }
+
+    const toolCall = response.choices[0].message.tool_calls[0] as ChatCompletionMessageToolCall;
+
+    if (toolCall && toolCall.function.name === 'fetchStockPrice') {
+      const functionArguments = JSON.parse(toolCall.function.arguments);
+      const stockNo = functionArguments.stockNo;
+      const start = todayDate();
+      start.setDate(start.getDate() - 3); // Deduct 5 days
+      const historicalInfo = await stockPriceService.getStockPriceByDates(stockNo, toDateString(start), today());
+
+      const toolMessage: ChatCompletionMessageParam = {
+        role: 'tool',
+        content: JSON.stringify(historicalInfo),
+        tool_call_id: toolCall.id,
+      };
+
+      conversation.push(response.choices[0].message);
+      conversation.push(toolMessage);
+
+      const final_response = await openai.chat.completions.create({
+        model: MODEL, // 使用适当的模型
+        messages: conversation,
+        tools: tools, // 假设你有定义的工具
+      });
+      return final_response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
+    }
 
     // Extract and return the reply message from OpenAI's response
     return response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
