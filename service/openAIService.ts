@@ -223,36 +223,33 @@ export async function handleTGChat(messages: IMessage[]): Promise<string> {
       tool_choice: 'auto',
     });
 
-    if (!response.choices[0] || !response.choices[0].message.tool_calls) {
-      throw new Error('error in process conversation');
+    if (response.choices[0] && response.choices[0].message.tool_calls) {
+      const toolCall = response.choices[0].message.tool_calls[0] as ChatCompletionMessageToolCall;
+
+      if (toolCall && toolCall.function.name === 'fetchStockPrice') {
+        const functionArguments = JSON.parse(toolCall.function.arguments);
+        const stockNo = functionArguments.stockNo;
+        const start = todayDate();
+        start.setDate(start.getDate() - 3); // Deduct 5 days
+        const historicalInfo = await stockPriceService.getStockPriceByDates(stockNo, toDateString(start), today());
+
+        const toolMessage: ChatCompletionMessageParam = {
+          role: 'tool',
+          content: JSON.stringify(historicalInfo),
+          tool_call_id: toolCall.id,
+        };
+
+        conversation.push(response.choices[0].message);
+        conversation.push(toolMessage);
+
+        const final_response = await openai.chat.completions.create({
+          model: MODEL, // 使用适当的模型
+          messages: conversation,
+          tools: tools, // 假设你有定义的工具
+        });
+        return final_response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
+      }
     }
-
-    const toolCall = response.choices[0].message.tool_calls[0] as ChatCompletionMessageToolCall;
-
-    if (toolCall && toolCall.function.name === 'fetchStockPrice') {
-      const functionArguments = JSON.parse(toolCall.function.arguments);
-      const stockNo = functionArguments.stockNo;
-      const start = todayDate();
-      start.setDate(start.getDate() - 3); // Deduct 5 days
-      const historicalInfo = await stockPriceService.getStockPriceByDates(stockNo, toDateString(start), today());
-
-      const toolMessage: ChatCompletionMessageParam = {
-        role: 'tool',
-        content: JSON.stringify(historicalInfo),
-        tool_call_id: toolCall.id,
-      };
-
-      conversation.push(response.choices[0].message);
-      conversation.push(toolMessage);
-
-      const final_response = await openai.chat.completions.create({
-        model: MODEL, // 使用适当的模型
-        messages: conversation,
-        tools: tools, // 假设你有定义的工具
-      });
-      return final_response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
-    }
-
     // Extract and return the reply message from OpenAI's response
     return response.choices[0]?.message?.content ?? '對話發生了問題，請稍後再試。';
   } catch (error) {
