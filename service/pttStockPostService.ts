@@ -1,4 +1,4 @@
-import { getHTML, getHTMLWithPuppeteer } from '../utility/requestCore';
+import { getHTMLWithPuppeteer } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
@@ -160,7 +160,7 @@ export function getPreviousPageIndex($: cheerio.Root): string {
 }
 
 export async function fetchPostDetail(url: string): Promise<string> {
-  const $ = await getHTML(url);
+  const $ = await getHTMLWithPuppeteer(url);
 
   //擷取content
   const mainContent = $('#main-content');
@@ -180,7 +180,7 @@ export async function fetchPostDetailProxy(id: string): Promise<string> {
 }
 
 export async function fetchPostComment(url: string): Promise<string[]> {
-  const $ = await getHTML(url);
+  const $ = await getHTMLWithPuppeteer(url);
 
   //擷取留言
   // <div class='push'>
