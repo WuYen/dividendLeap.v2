@@ -1,4 +1,4 @@
-import { getHTML } from '../utility/requestCore';
+import { getHTML, getPTTHTML } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
@@ -88,7 +88,7 @@ export async function fetchNewPosts(
     currentCount++;
     let url = `${domain}/bbs/Stock/index${page}.html`;
     console.log(`process url ${url}`);
-    let $ = await getHTML(url);
+    let $ = await getPTTHTML(url);
     let onlinePosts = parsePosts($, batchNo);
 
     for (const post of onlinePosts.reverse()) {
