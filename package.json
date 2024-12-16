@@ -11,7 +11,7 @@
     "serve": "concurrently \"npx tsc -w\"  \"nodemon dist/index.js\"",
     "dev": "nodemon index.ts",
     "job": "ts-node ./job/jobRunner.ts",
-    "heroku-postbuild": "mkdir ./.cache && mv /app/.cache/puppeteer ./.cache"
+    "heroku-postbuild": "npm run build && mkdir -p ./.cache && mv /app/.cache/puppeteer ./.cache"
   },
   "author": "",
   "license": "ISC",
