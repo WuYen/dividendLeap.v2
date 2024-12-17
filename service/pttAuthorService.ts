@@ -1,4 +1,4 @@
-import { getHTML } from '../utility/requestCore';
+import { getHTMLWithPuppeteer } from '../utility/requestCore';
 import * as PostInfo from '../model/PostInfo';
 import { parsePosts } from './pttStockPostService';
 import { AuthorHistoricalCache, IHistoricalCache } from '../model/AuthorHistoricalCache';
@@ -12,7 +12,7 @@ const domain = 'https://www.ptt.cc';
 
 export async function getHtmlSource(author: string): Promise<cheerio.Root> {
   const url = `${domain}/bbs/Stock/search?q=author%3A${author}`;
-  const $ = await getHTML(url);
+  const $ = await getHTMLWithPuppeteer(url);
   return $;
 }
 
