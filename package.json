@@ -10,7 +10,8 @@
     "preserve": "npm run build",
     "serve": "concurrently \"npx tsc -w\"  \"nodemon dist/index.js\"",
     "dev": "nodemon index.ts",
-    "job": "ts-node ./job/jobRunner.ts"
+    "job": "ts-node ./job/jobRunner.ts",
+    "heroku-postbuild": "npm run build && mkdir -p ./.cache && mv /app/.cache/puppeteer ./.cache"
   },
   "author": "",
   "license": "ISC",
@@ -26,12 +27,15 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
+    "node-telegram-bot-api": "^0.66.0",
     "openai": "^4.55.0",
+    "puppeteer": "^23.10.4",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "qs": "^6.11.2",
     "technicalindicators": "^3.1.0",
     "yahoo-finance2": "^2.11.2",
-    "zod": "^3.23.8",
-    "node-telegram-bot-api": "^0.66.0"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/better-queue": "^3.8.6",
