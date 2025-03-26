@@ -12,30 +12,31 @@ export enum Level {
 // LINE 推播設定
 export interface LineNotifySetting {
   enabled: boolean;
-  isGroup: boolean; // 是否為群組
-  userId: string; // LINE ID
-  displayName?: string; // LINE 顯示名稱（可選）
+  isGroup: boolean;
+  pushKey: string; // LINE Notify: token，LINE Bot: userId
+  name?: string;
   messageLevel: Level;
+  channelType: 'notify' | 'bot';
 }
 
 // Telegram 推播設定
 export interface TelegramNotifySetting {
   enabled: boolean;
-  chatId: string;
-  userName?: string;
+  pushKey: string; // chatId
+  name?: string;
   messageLevel: Level;
 }
 
 // Web Push 推播設定
 export interface WebPushNotifySetting {
   enabled: boolean;
-  endpoint: string;
+  pushKey: string; // endpoint
   messageLevel: Level;
 }
 
 // 使用者設定介面
 export interface IUserSetting {
-  account: string; // 使用者帳號或識別 ID
+  account: string;
 
   // 驗證資訊
   verifyCode?: string | null;
@@ -61,27 +62,33 @@ const FavoritePostSchema = new Schema<IFavoritePost>({
   dateAdded: { type: Date, default: Date.now },
 });
 
-// 通道子 schema
+// LINE 通道 schema
 const LineSchema = new Schema(
   {
     enabled: { type: Boolean, default: false },
     isGroup: { type: Boolean, default: false },
-    userId: { type: String, required: true },
-    displayName: { type: String, default: null },
+    pushKey: { type: String, required: true },
+    name: { type: String, default: null },
     messageLevel: {
       type: String,
       enum: Object.values(Level),
       default: Level.Basic,
     },
+    channelType: {
+      type: String,
+      enum: ['notify', 'bot'],
+      required: true,
+    },
   },
   { _id: false }
 );
 
+// Telegram 通道 schema
 const TelegramSchema = new Schema(
   {
     enabled: { type: Boolean, default: false },
-    chatId: { type: String, required: true },
-    userName: { type: String, default: null },
+    pushKey: { type: String, required: true },
+    name: { type: String, default: null },
     messageLevel: {
       type: String,
       enum: Object.values(Level),
@@ -91,10 +98,11 @@ const TelegramSchema = new Schema(
   { _id: false }
 );
 
+// WebPush 通道 schema
 const WebPushSchema = new Schema(
   {
     enabled: { type: Boolean, default: false },
-    endpoint: { type: String, required: true },
+    pushKey: { type: String, required: true },
     messageLevel: {
       type: String,
       enum: Object.values(Level),
