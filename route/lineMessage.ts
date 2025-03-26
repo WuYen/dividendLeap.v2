@@ -45,6 +45,30 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
   });
 };
 
+function isFollowOrUnfollowEvent(event: webhook.Event): event is webhook.FollowEvent | webhook.UnfollowEvent {
+  return event.type === 'follow' || event.type === 'unfollow';
+}
+
+async function handleFollowUnfollowEvent(event: webhook.FollowEvent | webhook.UnfollowEvent) {
+  let userId: string | null = null;
+
+  if ('source' in event && event?.source?.type === 'user') {
+    userId = (event.source.userId as string) || null;
+  }
+
+  if (userId) {
+    if (event.type === 'follow') {
+      console.log(`[Follow Event] User ${userId} added as a friend.`);
+      // 這裡可以將 userId 存入資料庫，例如：
+      // await saveUserToDatabase(userId);
+    } else if (event.type === 'unfollow') {
+      console.log(`[Unfollow Event] User ${userId} blocked the bot.`);
+      // 這裡可以從資料庫移除或標記 user，例如：
+      // await markUserAsUnfollowed(userId);
+    }
+  }
+}
+
 router.get('/', async (req: Request, res: Response) => {
   return res.sendSuccess(200, { message: 'Connected successfully!' });
 });
@@ -96,6 +120,11 @@ router.post('/callback', verifyLineSignature, async (req: Request, res: Response
   const results = await Promise.all(
     events.map(async (event: webhook.Event) => {
       try {
+        if (isFollowOrUnfollowEvent(event)) {
+          await handleFollowUnfollowEvent(event);
+        } else if (isJoinOrLeaveEvent(event)) {
+          await handleJoinLeaveEvent(event);
+        }
         await textEventHandler(event);
       } catch (err: unknown) {
         if (err instanceof HTTPFetchError) {
@@ -115,3 +144,19 @@ router.post('/callback', verifyLineSignature, async (req: Request, res: Response
 });
 
 export default router;
+
+function isJoinOrLeaveEvent(event: webhook.Event): event is webhook.JoinEvent | webhook.LeaveEvent {
+  return event.type === 'join' || event.type === 'leave';
+}
+
+async function handleJoinLeaveEvent(event: webhook.JoinEvent | webhook.LeaveEvent) {
+  if (event.type === 'join') {
+    console.log(`[Join Event] Bot joined a ${event.source.type}.`);
+    // You can store group/room ID in the database if needed
+    // Example: await saveGroupToDatabase(event.source);
+  } else if (event.type === 'leave') {
+    console.log(`[Leave Event] Bot left a group/room.`);
+    // You can remove group/room ID from the database
+    // Example: await removeGroupFromDatabase(event.source);
+  }
+}
