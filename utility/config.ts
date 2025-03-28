@@ -35,6 +35,7 @@ const OPEN_AI_KEY: string = process.env.OPEN_AI_KEY || '';
 const TELEGRAM_BOT_TOKEN: string = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CALLBACK_URL: string = process.env.TELEGRAM_CALLBACK_URL || '';
 const TELEGRAM_USE_WEBHOOK: boolean = process.env.TELEGRAM_USE_WEBHOOK === 'true';
+const TELEGRAM_BOT_ENABLE: boolean = process.env.TELEGRAM_USE_WEBHOOK === 'true';
 
 export default {
   NODE_ENV,
@@ -63,4 +64,5 @@ export default {
   TELEGRAM_BOT_TOKEN,
   TELEGRAM_CALLBACK_URL,
   TELEGRAM_USE_WEBHOOK,
+  TELEGRAM_BOT_ENABLE,
 };
