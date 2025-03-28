@@ -10,7 +10,10 @@ export const lineEventService = {
     let isGroup = false;
     let name: string | undefined = '';
 
-    if (!source) return;
+    if (!source) {
+      console.warn('[LINE][Follow] 無 source，跳過');
+      return;
+    }
 
     if (source.type === 'user') {
       pushKey = source.userId as string;
@@ -20,31 +23,52 @@ export const lineEventService = {
     } else if (source.type === 'group') {
       pushKey = source.groupId as string;
       isGroup = true;
-      name = 'LINE 群組'; // 無法取得群組名稱，除非使用 group summary API
+      name = 'LINE 群組' + pushKey;
     } else if (source.type === 'room') {
       pushKey = source.roomId as string;
       isGroup = true;
-      name = 'LINE 聊天室';
+      name = 'LINE 聊天室' + pushKey;
     }
 
-    if (!pushKey) return;
+    if (!pushKey) {
+      console.warn('[LINE][Follow] 無 pushKey，跳過');
+      return;
+    }
 
-    await UserSettingModel.findOneAndUpdate(
-      { 'line.pushKey': pushKey },
-      {
-        $set: {
-          line: {
-            enabled: true,
-            isGroup,
-            pushKey,
-            name,
-            channelType: 'bot',
-            messageLevel: Level.Basic,
-          },
+    console.log(`[LINE][Follow] 來源：${source.type}，pushKey: ${pushKey}，name: ${name}`);
+
+    const existing = await UserSettingModel.findOne({ 'line.pushKey': pushKey });
+
+    const updateData = {
+      $set: {
+        line: {
+          enabled: true,
+          isGroup,
+          pushKey,
+          name,
+          channelType: 'bot',
+          messageLevel: Level.Basic,
         },
       },
-      { upsert: true, new: true }
-    );
+    };
+
+    if (!existing) {
+      console.log(`[LINE][Follow] 新註冊用戶，自動建立帳號 line-${pushKey}`);
+      Object.assign(updateData, {
+        $setOnInsert: {
+          account: name,
+        },
+      });
+    } else {
+      console.log(`[LINE][Follow] 已註冊用戶，更新資料`);
+    }
+
+    const updated = await UserSettingModel.findOneAndUpdate({ 'line.pushKey': pushKey }, updateData, {
+      upsert: true,
+      new: true,
+    });
+
+    console.log('[LINE][Follow] 資料已寫入 / 更新成功:', JSON.stringify(updated, null, 2));
   },
 
   handleUnfollow: async (event: webhook.UnfollowEvent | webhook.LeaveEvent) => {
@@ -52,13 +76,21 @@ export const lineEventService = {
 
     let pushKey: string | undefined;
 
-    if (!source) return;
+    if (!source) {
+      console.warn('[LINE][Unfollow] 無 source，跳過');
+      return;
+    }
 
     if (source.type === 'user') pushKey = source.userId as string;
     else if (source.type === 'group') pushKey = source.groupId as string;
     else if (source.type === 'room') pushKey = source.roomId as string;
 
-    if (!pushKey) return;
+    if (!pushKey) {
+      console.warn('[LINE][Unfollow] 無 pushKey，跳過');
+      return;
+    }
+
+    console.log(`[LINE][Unfollow] 來源：${source.type}，pushKey: ${pushKey}`);
 
     await UserSettingModel.updateOne(
       { 'line.pushKey': pushKey },
@@ -68,6 +100,8 @@ export const lineEventService = {
         },
       }
     );
+
+    console.log(`[LINE][Unfollow] 已將 pushKey ${pushKey} 的 line.enabled 設為 false`);
   },
 
   handleTextMessage: async (event: webhook.MessageEvent & { message: webhook.TextMessageContent }) => {
@@ -75,5 +109,7 @@ export const lineEventService = {
     const userText = event.message.text as string;
 
     await lineBotHelper.replyText(replyToken, `你說的是：${userText}`);
+
+    console.log(`[LINE][TextMessage] 收到訊息：${userText}, 回覆：${userText}`);
   },
 };

@@ -1,0 +1,37 @@
+@host = http://localhost:8000
+
+### 模擬 follow 事件
+POST {{host}}/line/message/callback
+Content-Type: application/json
+X-Line-Signature: 123
+
+{
+  "events": [
+    {
+      "type": "follow",
+      "source": {
+        "type": "user",
+        "userId": "U1234567890"
+      },
+      "timestamp": 1700000000000
+    }
+  ]
+}
+
+### 模擬 unfollow 事件
+POST {{host}}/line/message/callback
+Content-Type: application/json
+X-Line-Signature: 123
+
+{
+  "events": [
+    {
+      "type": "unfollow",
+      "source": {
+        "type": "user",
+        "userId": "U1234567890"
+      },
+      "timestamp": 1700000001234
+    }
+  ]
+}

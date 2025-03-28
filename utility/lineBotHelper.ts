@@ -10,6 +10,9 @@ const client = new messagingApi.MessagingApiClient({
 
 export const lineBotHelper = {
   verifySignature: (req: Request, res: Response, next: NextFunction) => {
+    if (process.env.NODE_ENV === 'development') {
+      return next(); // 跳過 signature 驗證
+    }
     const bodyString = JSON.stringify(req.body);
     const channelSecret = config.LINE_CHANNEL_SECRET;
     const signature = req.get('X-Line-Signature');
