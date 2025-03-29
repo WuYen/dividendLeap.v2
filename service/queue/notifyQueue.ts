@@ -1,7 +1,7 @@
 import Queue from 'better-queue';
 import telegramBotService from '../telegramBotService';
-import lineService from '../lineService';
 import { NotifyEnvelope, MessageChannel } from '../../type/notify';
+import { lineBotHelper } from '../../utility/lineBotHelper';
 
 export const notifyQueue = new Queue<NotifyEnvelope>(
   async (job: NotifyEnvelope, done: Function) => {
@@ -12,7 +12,16 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
       if (job.channel === MessageChannel.Telegram) {
         await telegramBotService.sendMessageWithOptions(job.token, content, options);
       } else if (job.channel === MessageChannel.Line) {
-        await lineService.sendMessage(job.token, content);
+        try {
+          await lineBotHelper.pushText(job.token, content);
+        } catch (err: any) {
+          if (err.statusCode === 403) {
+            console.warn(`[notifyQueue] LINE user ${job.token} has blocked the bot.`);
+            // TODO: 可在這邊觸發自動取消訂閱或寫入封鎖狀態
+          } else {
+            console.error(`[notifyQueue] Failed to push LINE message to ${job.token}`, err);
+          }
+        }
       }
 
       done(null, job);
