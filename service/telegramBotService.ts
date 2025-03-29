@@ -5,10 +5,14 @@ import { TelegramMessageHandler } from './business/TelegramMessageHandler';
 
 export class TelegramBotService {
   //private static instance: TelegramBotService;
-  private bot: TelegramBot;
-  private messageHandler: TelegramMessageHandler;
+  private bot!: TelegramBot;
+  private messageHandler!: TelegramMessageHandler;
 
   constructor() {
+    if (!config.TELEGRAM_BOT_ENABLE) {
+      console.log('Telegram bot is disabled via config. Skipping initialization.');
+      return;
+    }
     const token = config.TELEGRAM_BOT_TOKEN;
     const useWebhook = config.TELEGRAM_USE_WEBHOOK;
 

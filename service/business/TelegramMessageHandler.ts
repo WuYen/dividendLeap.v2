@@ -1,12 +1,9 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { ILineToken, LineTokenModel, TokenLevel } from '../../model/lineToken';
+import { LineTokenModel, TokenLevel } from '../../model/lineToken';
 import stockPriceService from '../stockPriceService';
 import { formatTimestampToString, toDateString, today, todayDate } from '../../utility/dateTime';
 import { AuthorStatsModel } from '../../model/AuthorStats';
-import { IPostInfo, PostInfoModel } from '../../model/PostInfo';
-import { getStockNoFromTitle } from '../../utility/stockPostHelper';
 import { analysisPostById } from '../postStatsService';
-import { ContentType, NotifyContentGenerator } from './NotifyContentGenerator';
 import { conversationHandler } from './ConversationHandler';
 import openAIService from '../openAIService';
 import { IMessage } from '../../model/ConversationModel';
@@ -61,53 +58,23 @@ export class TelegramMessageHandler {
   private async handleMessage(msg: TelegramBot.Message): Promise<void> {
     const chatId = msg.chat.id.toString();
     const text = msg.text || '';
-    console.log(`收到來自 chat ID: ${chatId} 的消息: ${text}`);
+    const quoteText = msg.reply_to_message?.text || ''; // The original message text
+    console.log(`收到來自 chat ID: ${chatId} 的消息: ${text}${quoteText ? ` to ${quoteText}` : ''}`);
 
     if (/^\/start\b/.test(text)) {
       return this.handleStartCommand(msg);
     }
 
-    if (/post/i.test(text.trim())) {
-      const post = await PostInfoModel.findOne({ id: '1727053349' }).lean<IPostInfo>();
-      if (post != null) {
-        const postContent = await NotifyContentGenerator.getInstance().generateContent(
-          post,
-          undefined,
-          ContentType.Telegram,
-          true
-        );
-        const symbol = getStockNoFromTitle(post as IPostInfo);
-        const options = {
-          reply_markup: {
-            inline_keyboard: [
-              [
-                { text: '取得股價', callback_data: `get_stock_price:${symbol}` },
-                { text: '作者資訊', callback_data: `get_author_performance:${post?.author}` },
-              ],
-              [{ text: '取得標的分析資訊', callback_data: `get_target_analysis:${post?.id}` }],
-            ],
-          },
-        } as TelegramBot.SendMessageOptions;
-        this.bot.sendMessage(chatId, postContent.content, options);
-      }
-    }
-
     const userInfo = await LineTokenModel.findOne({ tgChatId: chatId });
 
     if (userInfo?.tokenLevel.includes(TokenLevel.Premium)) {
-      // Step 1: 檢索相關對話訊息以供 AI 使用
+      //process chat with AI
       const contextMessages = await conversationHandler.retrieveRelevantMessages(chatId);
-
-      // Step 2: 準備當前用戶的訊息
       const userMessage: IMessage = { sender: 'user', message: text, timestamp: new Date() };
-
-      // Step 3: 調用 AI 服務來生成回覆
       const aiReplyText = await openAIService.handleTGChat([...contextMessages, userMessage]);
 
-      // Step 4: 立即向用戶發送 AI 回覆
       this.bot.sendMessage(chatId, aiReplyText);
 
-      // Step 5: 更新對話到資料庫
       const botReply: IMessage = { sender: 'ai', message: aiReplyText, timestamp: new Date() };
       await conversationHandler.updateConversation(chatId, userMessage, botReply);
     }

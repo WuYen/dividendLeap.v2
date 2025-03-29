@@ -200,7 +200,6 @@ export async function structuredOutput(articleContent: string) {
 
 export async function handleTGChat(messages: IMessage[]): Promise<string> {
   try {
-    // Convert IMessage array to OpenAI Chat Completion format
     const openAIMessages: ChatCompletionMessageParam[] = messages.map((message) => ({
       role: message.sender === 'ai' ? 'assistant' : 'user',
       content: message.message,
@@ -209,12 +208,11 @@ export async function handleTGChat(messages: IMessage[]): Promise<string> {
     const conversation = [
       {
         role: 'system',
-        content: `你是一個有幫助的助手，負責分析telegram chat 的輸入訊息並產生回覆的內容`,
+        content: `你是一個股票分析小幫手，負責分析telegram chat 的輸入訊息並產生回覆的內容`,
       },
       ...openAIMessages,
     ] as ChatCompletionMessageParam[];
 
-    // Call OpenAI's chat completion API
     const response = await openai.chat.completions.create({
       model: MODEL,
       messages: conversation,
