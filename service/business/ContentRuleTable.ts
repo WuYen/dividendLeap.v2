@@ -67,13 +67,27 @@ export function matchContentType(
   isRepost: boolean,
   userLevel: Level
 ): ContentType | null {
-  const rule = contentRuleTable.find(
-    (r) =>
+  console.log('[matchContentType] Checking content type with:');
+  console.log({ channel, tag, isSubscribedAuthor, isRepost, userLevel });
+
+  const rule = contentRuleTable.find((r, index) => {
+    const matched =
       (r.channel === channel || r.channel === '*') &&
       (r.tag === tag || r.tag === '*') &&
       (r.isSubscribedAuthor === isSubscribedAuthor || r.isSubscribedAuthor === '*') &&
       (r.isRepost === isRepost || r.isRepost === '*') &&
-      (r.level === userLevel || r.level === '*')
-  );
+      (r.level === userLevel || r.level === '*');
+
+    if (matched) {
+      console.log(`[matchContentType] Rule matched at index ${index}:`, r);
+    }
+
+    return matched;
+  });
+
+  if (!rule) {
+    console.warn('[matchContentType] No matching rule found!');
+  }
+
   return rule?.contentType ?? null;
 }

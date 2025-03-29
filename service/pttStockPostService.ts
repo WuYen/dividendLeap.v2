@@ -8,6 +8,8 @@ import { ILineToken } from '../model/lineToken';
 import lineService from './lineService';
 import { processPostAndSendNotify } from './notifyQueueService.v2';
 import axios from 'axios';
+import { processPostAndSendNotifyFromUserSetting } from './notifyService';
+import { IUserSetting, UserSettingModel } from '../model/UserSetting';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -238,18 +240,38 @@ export async function searchPostsByAuthor(keyword: string): Promise<IPostInfo[]>
 }
 
 export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
-  let newPosts = await getNewPosts();
-  if (newPosts && newPosts.length) {
-    const subscribeAuthors: IAuthor[] = await AuthorModel.find({}).lean();
-    const tokenInfos: ILineToken[] | null = await lineService.retrieveUserLineToken(channel, channels);
-    if (tokenInfos != null && tokenInfos.length > 0) {
-      await processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors);
-    }
-    // Invalidate cache for authors with new posts
-    const authorsWithNewPosts = [...new Set(newPosts.map((post) => post.author))];
-    await invalidateAuthorCache(authorsWithNewPosts);
+  const newPosts = await getNewPosts();
+  if (!newPosts?.length) return { postCount: 0 };
+
+  // 同時撈資料
+  const [subscribeAuthors, tokenInfos, users] = await Promise.all([
+    AuthorModel.find({}).lean(),
+    lineService.retrieveUserLineToken(channel, channels),
+    UserSettingModel.find({}).lean(),
+  ]);
+
+  const notifyTasks: Promise<any>[] = [];
+
+  if (tokenInfos?.length) {
+    notifyTasks.push(processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors));
   }
-  return { postCount: newPosts?.length };
+
+  if (users?.length) {
+    try {
+      notifyTasks.push(processPostAndSendNotifyFromUserSetting(newPosts, users, subscribeAuthors));
+    } catch (error) {
+      console.error('Error processing user settings for notifications:', error);
+    }
+  }
+
+  // 等待通知任務完成
+  await Promise.all(notifyTasks);
+
+  // 清掉這些作者的 cache
+  const authorsWithNewPosts = [...new Set(newPosts.map((post) => post.author))];
+  await invalidateAuthorCache(authorsWithNewPosts);
+
+  return { postCount: newPosts.length };
 }
 
 async function invalidateAuthorCache(authors: (string | null)[]): Promise<void> {
