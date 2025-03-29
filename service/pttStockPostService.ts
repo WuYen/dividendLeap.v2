@@ -260,7 +260,7 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
     try {
       notifyTasks.push(processPostAndSendNotifyFromUserSetting(newPosts, users, subscribeAuthors));
     } catch (error) {
-      console.error('Error processing user settings for notifications:', error);
+      console.error('Error processing user settings for notifications: ', error);
     }
   }
 
