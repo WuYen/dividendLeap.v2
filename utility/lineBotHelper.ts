@@ -20,7 +20,7 @@ export const lineBotHelper = {
     const hash = crypto.createHmac('SHA256', channelSecret).update(bodyString).digest('base64');
 
     if (hash !== signature) {
-      return res.sendError(500, { message: 'signature validation failed' });
+      return res.status(500).json({ message: 'signature validation failed' });
     }
 
     next();

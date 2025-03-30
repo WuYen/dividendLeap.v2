@@ -40,6 +40,15 @@ const contentRuleTable: Rule[] = [
     level: Level.Premium,
     contentType: ContentType.Premium,
   },
+  // Line Premium：關鍵字
+  {
+    channel: MessageChannel.Line,
+    tag: '*',
+    isSubscribedAuthor: '*',
+    isRepost: false,
+    level: Level.Premium,
+    contentType: ContentType.Standard,
+  },
   // Line Standard 使用者
   {
     channel: MessageChannel.Line,

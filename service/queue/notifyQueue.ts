@@ -8,7 +8,7 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
     try {
       const content = job.payload.content;
       const options = (job.payload as any)?.options;
-
+      console.log(`[notifyQueue] Processing job for channel: ${job.channel}, token: ${job.token}`);
       if (job.channel === MessageChannel.Telegram) {
         await telegramBotService.sendMessageWithOptions(job.token, content, options);
       } else if (job.channel === MessageChannel.Line) {
