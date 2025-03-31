@@ -54,8 +54,14 @@ export async function processPostAndSendNotifyFromUserSetting(
           if (!config?.enabled) continue;
 
           // 查表決定該用哪種 ContentType（根據 post 屬性 + 訂閱狀態 + 等級）
-          const type = matchContentType(channel, post.tag as string, isSubscribedAuthor, isRepost, config.messageLevel);
-          if (!type) continue;
+          const contentType = matchContentType(
+            channel,
+            post.tag as string,
+            isSubscribedAuthor,
+            isRepost,
+            config.messageLevel
+          );
+          if (!contentType) continue;
 
           // 包裝通知信封（不帶 content，之後 postQueue 會補上）
           const envelop = {
@@ -64,14 +70,14 @@ export async function processPostAndSendNotifyFromUserSetting(
           } as NotifyEnvelope;
 
           // 塞進對應 ContentType 的 bucket
-          if (!notifyUsers.has(type)) notifyUsers.set(type, []);
-          notifyUsers.get(type)!.push(envelop);
+          if (!notifyUsers.has(contentType)) notifyUsers.set(contentType, []);
+          notifyUsers.get(contentType)!.push(envelop);
         }
       }
 
       // 把每種 ContentType 的通知推進 postQueue，統一生成內容並觸發通知
-      for (const [type, users] of notifyUsers.entries()) {
-        postQueue.push({ contentGenerator, type, users });
+      for (const [contentType, users] of notifyUsers.entries()) {
+        postQueue.push({ contentGenerator, type: contentType, users });
       }
     } catch (err) {
       console.error(`Error processing post ${post.id}`, err);

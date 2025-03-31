@@ -17,7 +17,6 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
         } catch (err: any) {
           if (err.statusCode === 403) {
             console.warn(`[notifyQueue] LINE user ${job.token} has blocked the bot.`);
-            // TODO: 可在這邊觸發自動取消訂閱或寫入封鎖狀態
           } else {
             console.error(`[notifyQueue] Failed to push LINE message to ${job.token}`, err);
           }

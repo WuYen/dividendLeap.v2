@@ -30,7 +30,6 @@ const contentRuleTable: Rule[] = [
     level: '*',
     contentType: ContentType.NormalPostTG,
   },
-
   // Line Premium：標的 + 訂閱作者 + 非轉貼
   {
     channel: MessageChannel.Line,
@@ -39,6 +38,15 @@ const contentRuleTable: Rule[] = [
     isRepost: false,
     level: Level.Premium,
     contentType: ContentType.Premium,
+  },
+  // Line Premium：標的 + 訂閱作者 + 轉貼
+  {
+    channel: MessageChannel.Line,
+    tag: '標的',
+    isSubscribedAuthor: true,
+    isRepost: true,
+    level: Level.Premium,
+    contentType: ContentType.Standard,
   },
   // Line Premium：關鍵字
   {
