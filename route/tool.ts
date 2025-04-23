@@ -2,6 +2,9 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset, QueryType, StockHistoricalQuery } from '../utility/fugleTypes';
 import telegramBotService from '../service/telegramBotService';
+import { sendPushNotification } from '../service/appNotifyService';
+import { IPostInfo, PostInfoModel } from '../model/PostInfo';
+
 const router: Router = express.Router();
 
 router.get('/healthy', async (req: Request, res: Response, next: NextFunction) => {
@@ -67,6 +70,27 @@ router.get('/tg/send', async (req: Request, res: Response, next: NextFunction) =
   const msg: string = req.query.msg as string;
   await telegramBotService.sendMessage(id, msg);
   return res.sendSuccess(200, { message: 'test' });
+});
+
+router.get('/push', async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.query.token as string;
+  const postId = req.query.post as string;
+
+  if (!postId || !token) {
+    return res.status(400).json({ error: 'post 和 tokens 為必填' });
+  }
+
+  try {
+    const post = await PostInfoModel.findOne<IPostInfo>({ id: postId });
+    if (post) {
+      const results = await sendPushNotification(post, [token]);
+      return res.sendSuccess(200, { message: 'test', data: results });
+    } else {
+      return res.sendError(400, { message: '文章不存在', data: postId });
+    }
+  } catch (err) {
+    return res.sendError(500, { message: '推播失敗', data: err });
+  }
 });
 
 export default router;
