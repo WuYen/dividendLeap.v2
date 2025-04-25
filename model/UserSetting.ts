@@ -34,6 +34,12 @@ export interface WebPushNotifySetting {
   messageLevel: Level;
 }
 
+export interface ExpoNotifySetting {
+  enabled: boolean;
+  pushKey: string; // ExponentPushToken[...]
+  messageLevel: Level;
+}
+
 // 使用者設定介面
 export interface IUserSetting {
   account: string;
@@ -51,6 +57,7 @@ export interface IUserSetting {
   line?: LineNotifySetting;
   telegram?: TelegramNotifySetting;
   webPush?: WebPushNotifySetting;
+  expoPush?: ExpoNotifySetting;
 }
 
 // 收藏貼文 schema
@@ -112,6 +119,12 @@ const WebPushSchema = new Schema(
   { _id: false }
 );
 
+const ExpoSchema = new mongoose.Schema({
+  enabled: { type: Boolean, default: true },
+  pushKey: { type: String, required: true },
+  messageLevel: { type: String, enum: ['basic', 'premium'], default: 'basic' },
+});
+
 // 主 schema
 const UserSettingSchema = new Schema<IUserSetting>(
   {
@@ -125,6 +138,7 @@ const UserSettingSchema = new Schema<IUserSetting>(
     line: { type: LineSchema, default: undefined },
     telegram: { type: TelegramSchema, default: undefined },
     webPush: { type: WebPushSchema, default: undefined },
+    expoPush: { type: ExpoSchema, default: undefined },
   },
   { timestamps: true }
 );

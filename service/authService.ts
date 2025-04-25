@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { LineTokenModel, TokenLevel } from '../model/lineToken';
 import { sign } from '../utility/auth';
 import lineService from '../service/lineService';
+import { UserSettingModel } from '../model/UserSetting';
 
 export const generateVerifyCode = (): string => {
   const buffer = randomBytes(3); // 生成 3 个随机字节
@@ -50,6 +51,42 @@ export const verifyCodeAndGenerateToken = async (account: string, verifyCode: st
   const payload = { id: user.channel };
   const jwtToken = sign(payload);
 
+  return jwtToken;
+};
+
+export const registerExpoUser = async (account: string, pushToken: string): Promise<string> => {
+  // if (!verifyExpoPushTokenFormat(pushToken)) {
+  //   throw new Error('推播 Token 格式錯誤');
+  // }
+
+  // 確保 pushToken 唯一
+  const duplicated = await UserSettingModel.findOne({ 'expo.pushKey': pushToken, account: { $ne: account } });
+  if (duplicated) {
+    throw new Error('此推播 Token 已被其他帳號綁定');
+  }
+
+  const update = {
+    expo: {
+      enabled: true,
+      pushKey: pushToken,
+      messageLevel: 'basic',
+    },
+  };
+
+  await UserSettingModel.findOneAndUpdate({ account }, { $set: update }, { new: true, upsert: true });
+
+  const jwtToken = sign({ id: account });
+  return jwtToken;
+};
+
+export const loginExpoUser = async (account: string, pushToken: string): Promise<string> => {
+  const user = await UserSettingModel.findOne({ account, 'expo.pushKey': pushToken });
+
+  if (!user) {
+    throw new Error('帳號與推播資訊不符，請重新綁定或註冊');
+  }
+
+  const jwtToken = sign({ id: account });
   return jwtToken;
 };
 
