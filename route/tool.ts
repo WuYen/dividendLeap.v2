@@ -84,7 +84,7 @@ router.get('/push', async (req: Request, res: Response, next: NextFunction) => {
     const post = await PostInfoModel.findOne<IPostInfo>({ id: postId });
     if (post) {
       const results = await sendPushNotification(post, [token]);
-      return res.sendSuccess(200, { message: 'test', data: results });
+      return res.sendSuccess(200, { message: 'test', data: results.data });
     } else {
       return res.sendError(400, { message: '文章不存在', data: postId });
     }
