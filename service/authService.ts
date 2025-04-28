@@ -66,7 +66,7 @@ export const registerExpoUser = async (account: string, pushToken: string): Prom
   }
 
   const update = {
-    expo: {
+    expoPush: {
       enabled: true,
       pushKey: pushToken,
       messageLevel: 'basic',
@@ -80,7 +80,7 @@ export const registerExpoUser = async (account: string, pushToken: string): Prom
 };
 
 export const loginExpoUser = async (account: string, pushToken: string): Promise<string> => {
-  const user = await UserSettingModel.findOne({ account, 'expo.pushKey': pushToken });
+  const user = await UserSettingModel.findOne({ account, 'expoPush.pushKey': pushToken });
 
   if (!user) {
     throw new Error('帳號與推播資訊不符，請重新綁定或註冊');

@@ -41,7 +41,7 @@ router.post('/expo/register', async (req, res) => {
   }
 });
 
-router.post('/expo/login', async (req, res) => {
+router.post('/expo', async (req, res) => {
   const { account, pushToken } = req.body;
   try {
     const token = await loginExpoUser(account, pushToken);
