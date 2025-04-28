@@ -94,4 +94,6 @@ export default {
   generateVerifyCode,
   sendVerificationCode,
   verifyCodeAndGenerateToken,
+  registerExpoUser,
+  loginExpoUser,
 };
