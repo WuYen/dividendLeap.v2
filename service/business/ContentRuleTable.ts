@@ -75,6 +75,33 @@ const contentRuleTable: Rule[] = [
     level: Level.Basic,
     contentType: ContentType.Basic,
   },
+  // Expo Premium：標的 + 訂閱作者 + 非轉貼 ➔ Standard
+  {
+    channel: MessageChannel.Expo,
+    tag: '標的',
+    isSubscribedAuthor: true,
+    isRepost: false,
+    level: Level.Premium,
+    contentType: ContentType.Standard,
+  },
+  // Expo Premium：標的 + 非訂閱作者 + 非轉貼 ➔ Basic
+  {
+    channel: MessageChannel.Expo,
+    tag: '標的',
+    isSubscribedAuthor: false,
+    isRepost: false,
+    level: Level.Premium,
+    contentType: ContentType.Basic,
+  },
+  // Expo Premium：關鍵字通知 ➔ Basic
+  {
+    channel: MessageChannel.Expo,
+    tag: '*',
+    isSubscribedAuthor: '*',
+    isRepost: false,
+    level: Level.Premium,
+    contentType: ContentType.Basic,
+  },
 ];
 
 export function matchContentType(

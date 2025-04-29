@@ -4,6 +4,7 @@ import TelegramBot from 'node-telegram-bot-api';
 export enum MessageChannel {
   Line = 'line',
   Telegram = 'telegram',
+  Expo = 'expo',
 }
 
 export interface MessageContent {

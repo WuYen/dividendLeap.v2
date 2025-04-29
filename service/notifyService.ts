@@ -47,6 +47,7 @@ export async function processPostAndSendNotifyFromUserSetting(
         const channels = [
           { channel: MessageChannel.Line, config: user.line },
           { channel: MessageChannel.Telegram, config: user.telegram },
+          { channel: MessageChannel.Expo, config: user.expoPush },
         ];
 
         for (const { channel, config } of channels) {

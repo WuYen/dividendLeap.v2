@@ -22,6 +22,7 @@ export interface NotifyEnvelop {
 export enum MessageChannel {
   Line = 'line',
   Telegram = 'telegram',
+  Expo = 'expo',
 }
 
 interface PostQueueJob {

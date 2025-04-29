@@ -2,7 +2,7 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 import { FugleAPIBuilder } from '../utility/fugleCaller';
 import { FugleDataset, QueryType, StockHistoricalQuery } from '../utility/fugleTypes';
 import telegramBotService from '../service/telegramBotService';
-import { sendPushNotification } from '../service/appNotifyService';
+import { sendPushNotification } from '../service/expoPushService';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
 
 const router: Router = express.Router();

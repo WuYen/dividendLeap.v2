@@ -1,7 +1,8 @@
 import Queue from 'better-queue';
 import telegramBotService from '../telegramBotService';
-import { NotifyEnvelope, MessageChannel } from '../../type/notify';
+import { NotifyEnvelope, MessageChannel, PostContent } from '../../type/notify';
 import { lineBotHelper } from '../../utility/lineBotHelper';
+import expoPushService from '../../service/expoPushService';
 
 export const notifyQueue = new Queue<NotifyEnvelope>(
   async (job: NotifyEnvelope, done: Function) => {
@@ -21,6 +22,11 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
             console.error(`[notifyQueue] Failed to push LINE message to ${job.token}`, err);
           }
         }
+      } else if (job.channel === MessageChannel.Expo) {
+        const postContent = job.payload as PostContent;
+        const data = postContent.post;
+        // Expo push notification logic here
+        await expoPushService.send(job.token, 'title', 'body', data);
       }
 
       done(null, job);
