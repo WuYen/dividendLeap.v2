@@ -1,4 +1,4 @@
-import { NotifyContentGenerator, ContentType } from '../../service/business/NotifyContentGenerator.v2';
+import { NotifyContentGenerator, ContentType } from '../../service/business/notifyContentGenerator.v2';
 import { IAuthor } from '../../model/Author';
 import { IPostInfo } from '../../model/PostInfo';
 import geminiAIService from '../../service/geminiAIService';

@@ -1,4 +1,4 @@
-import { AuthorStatsProcessor, processRankingAndSaveToDB } from '../../service/business/AuthorStatsProcessor';
+import { AuthorStatsProcessor, processRankingAndSaveToDB } from '../../service/business/authorStatsProcessor';
 import { getPostsWithInDays } from '../../service/pttStockPostService';
 import { isValidStockPost } from '../../utility/stockPostHelper';
 import { DiffType, PostHistoricalResponse, processHistoricalInfo } from '../../service/historicalService';

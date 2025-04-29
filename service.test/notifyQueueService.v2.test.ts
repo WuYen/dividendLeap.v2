@@ -11,8 +11,8 @@ jest.mock('../service/telegramBotService', () => ({
   sendMessageWithOptions: jest.fn(),
 }));
 
-jest.mock('../service/business/NotifyContentGenerator.v2', () => {
-  const originalModule = jest.requireActual('../service/business/NotifyContentGenerator.v2');
+jest.mock('../service/business/notifyContentGenerator.v2', () => {
+  const originalModule = jest.requireActual('../service/business/notifyContentGenerator.v2');
   return {
     ...originalModule,
     NotifyContentGenerator: jest.fn().mockImplementation((post, authorInfo) => {
