@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import TelegramBot from 'node-telegram-bot-api';
 import config from '../utility/config';
-import { TelegramMessageHandler } from './business/TelegramMessageHandler';
+import { TelegramMessageHandler } from './business/telegramMessageHandler';
 
 export class TelegramBotService {
   //private static instance: TelegramBotService;

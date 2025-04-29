@@ -1,6 +1,5 @@
 import express, { Router } from 'express';
 import jobRouter from './job';
-import lineRouter from './lineNotify';
 import lineMessageRouter from './lineMessage';
 import yahooRouter from './yahoo';
 import pttStockRouter from './pttStock';
@@ -19,7 +18,6 @@ interface IRoute {
 const defaultIRoute: IRoute[] = [
   { path: '/ptt', route: pttStockRouter },
   { path: '/my', route: myRouter },
-  { path: ['/line/notify', '/line'], route: lineRouter },
   { path: '/line/message', route: lineMessageRouter },
   { path: '/yahoo', route: yahooRouter },
   { path: '/login', route: loginRouter },

@@ -3,13 +3,12 @@ import * as PostInfo from '../model/PostInfo';
 import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
-import { AuthorModel, IAuthor } from '../model/Author';
-import { ILineToken } from '../model/lineToken';
+import { AuthorModel } from '../model/Author';
 import lineService from './lineService';
 import { processPostAndSendNotify } from './notifyQueueService.v2';
 import axios from 'axios';
 import { processPostAndSendNotifyFromUserSetting } from './notifyService';
-import { IUserSetting, UserSettingModel } from '../model/UserSetting';
+import { UserSettingModel } from '../model/UserSetting';
 
 export const PTT_DOMAIN = 'https://www.ptt.cc';
 
@@ -253,6 +252,7 @@ export async function getNewPostAndSendLineNotify(channel: string, channels: str
   const notifyTasks: Promise<any>[] = [];
 
   if (tokenInfos?.length) {
+    //TODO: 舊路 之後等 notifyService 重構完再拔掉
     notifyTasks.push(processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors));
   }
 

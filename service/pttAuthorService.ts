@@ -6,7 +6,7 @@ import { isRePosts } from '../utility/stockPostHelper';
 import { PostHistoricalResponse, processHistoricalInfo } from './historicalService';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { AuthorStatsModel, IStatsPost } from '../model/AuthorStats';
-import { authorStatsProcessorInstance } from './business/AuthorStatsProcessor';
+import { authorStatsProcessorInstance } from './business/authorStatsProcessor';
 
 const domain = 'https://www.ptt.cc';
 

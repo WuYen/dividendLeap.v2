@@ -1,5 +1,5 @@
 import Queue from 'better-queue';
-import { PostContent, NotifyContentGenerator, ContentType } from '../business/NotifyContentGenerator.v2';
+import { PostContent, NotifyContentGenerator, ContentType } from '../business/notifyContentGenerator.v2';
 import { NotifyEnvelope } from '../../type/notify';
 import { notifyQueue } from './notifyQueue';
 

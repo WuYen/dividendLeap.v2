@@ -1,8 +1,8 @@
 import { IUserSetting } from '../model/UserSetting';
 import { MessageChannel, NotifyEnvelope } from '../type/notify';
-import { ContentType, NotifyContentGenerator } from './business/NotifyContentGenerator.v2';
+import { ContentType, NotifyContentGenerator } from './business/notifyContentGenerator.v2';
 import { postQueue } from './queue/postQueue';
-import { matchContentType } from './business/ContentRuleTable';
+import { matchContentType } from './business/contentRuleTable';
 import { isValidStockPostForNotify, isRePosts } from '../utility/stockPostHelper';
 import { IAuthor } from '../model/Author';
 import { IPostInfo } from '../model/PostInfo';

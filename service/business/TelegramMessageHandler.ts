@@ -4,7 +4,7 @@ import stockPriceService from '../stockPriceService';
 import { formatTimestampToString, toDateString, today, todayDate } from '../../utility/dateTime';
 import { AuthorStatsModel } from '../../model/AuthorStats';
 import { analysisPostById } from '../postStatsService';
-import { conversationHandler } from './ConversationHandler';
+import { conversationHandler } from './conversationHandler';
 import openAIService from '../openAIService';
 import { IMessage } from '../../model/ConversationModel';
 

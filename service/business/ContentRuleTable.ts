@@ -1,5 +1,5 @@
 import { Level } from '../../model/UserSetting';
-import { ContentType } from './NotifyContentGenerator.v2';
+import { ContentType } from './notifyContentGenerator.v2';
 import { MessageChannel } from '../notifyQueueService.v2';
 
 export interface Rule {

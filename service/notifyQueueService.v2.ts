@@ -5,7 +5,7 @@ import { ILineToken, TokenLevel } from '../model/lineToken';
 import { IPostInfo } from '../model/PostInfo';
 import { isRePosts, isValidStockPostForNotify } from '../utility/stockPostHelper';
 import lineService from './lineService';
-import { ContentType, NotifyContentGenerator, PostContent } from './business/NotifyContentGenerator.v2';
+import { ContentType, NotifyContentGenerator, PostContent } from './business/notifyContentGenerator.v2';
 
 import telegramBotService from './telegramBotService';
 
