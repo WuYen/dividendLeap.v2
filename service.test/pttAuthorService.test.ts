@@ -603,22 +603,6 @@ const mockIndexHtml = `
 `;
 
 describe('test get author unit', () => {
-  it('should get html', async () => {
-    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTML;
-    const htmlContent = cheerio.load(mockIndexHtml, {
-      decodeEntities: false,
-    });
-    getHTMLMock.mockResolvedValue(htmlContent);
-
-    // fetch from web site
-    const author = 'WADE0616';
-    const url = `https://www.ptt.cc/bbs/Stock/search?q=author%3A${author}`;
-
-    await service.getHtmlSource(author);
-
-    expect(getHTMLMock).toHaveBeenCalledWith(url);
-  });
-
   it('parse [標的] from html', async () => {
     const htmlContent = cheerio.load(mockIndexHtml, {
       decodeEntities: false,

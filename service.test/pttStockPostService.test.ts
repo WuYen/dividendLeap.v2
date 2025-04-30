@@ -1436,17 +1436,17 @@ const mockIndex6564Html = `<!DOCTYPE html>
 
 // Mock the utility function
 jest.mock('../utility/requestCore', () => ({
-  getHTML: jest.fn(),
+  getHTMLWithPuppeteer: jest.fn(),
 }));
 
 describe('test fetchNewPosts', () => {
   beforeEach(() => {
     // Clear the mock before each test
-    jest.requireMock('../utility/requestCore').getHTML.mockClear();
+    jest.requireMock('../utility/requestCore').getHTMLWithPuppeteer.mockClear();
   });
 
   it('should stop at index page', async () => {
-    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTML;
+    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTMLWithPuppeteer;
     const htmlContent = cheerio.load(mockIndexHtml, {
       decodeEntities: false,
     });
@@ -1464,8 +1464,8 @@ describe('test fetchNewPosts', () => {
   });
 
   it('should stop when reach stop count', async () => {
-    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTML;
-    getHTMLMock.mockImplementation(async (url: string) => {
+    const getHTMLWithPuppeteer = jest.requireMock('../utility/requestCore').getHTMLWithPuppeteer;
+    getHTMLWithPuppeteer.mockImplementation(async (url: string) => {
       if (url === 'https://www.ptt.cc/bbs/Stock/index.html') {
         return cheerio.load(mockIndexHtml, { decodeEntities: false });
       } else if (url === 'https://www.ptt.cc/bbs/Stock/index6965.html') {
@@ -1480,15 +1480,15 @@ describe('test fetchNewPosts', () => {
     const mockIdSet = new Set<number>();
     const result = await fetchNewPosts('https://www.ptt.cc', 123, mockIdSet);
 
-    console.log(getHTMLMock.mock.calls);
-    expect(getHTMLMock).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index.html`);
-    expect(getHTMLMock).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index6965.html`);
-    expect(getHTMLMock).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index6964.html`);
-    expect(getHTMLMock).toHaveBeenCalledTimes(3);
+    console.log(getHTMLWithPuppeteer.mock.calls);
+    expect(getHTMLWithPuppeteer).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index.html`);
+    expect(getHTMLWithPuppeteer).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index6965.html`);
+    expect(getHTMLWithPuppeteer).toHaveBeenCalledWith(`https://www.ptt.cc/bbs/Stock/index6964.html`);
+    expect(getHTMLWithPuppeteer).toHaveBeenCalledTimes(3);
   });
 
   it('should go to previouse page and stop', async () => {
-    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTML;
+    const getHTMLMock = jest.requireMock('../utility/requestCore').getHTMLWithPuppeteer;
 
     getHTMLMock.mockImplementation(async (url: string) => {
       if (url === 'https://www.ptt.cc/bbs/Stock/index.html') {

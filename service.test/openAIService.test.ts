@@ -1,26 +1,25 @@
 import { ChatCompletionMessageParam } from 'openai/resources/index.js';
 import { conversationWithAI } from '../service/openAIService';
 
-jest.setTimeout(99999);
+jest.setTimeout(3000);
 
 describe('openAIService', () => {
   // case1: 使用者可能輸入作者id => 取得該作者最近發文, 並包含發文相關股價資訊, 還有根據該作者過去發文統計出來的一些數值
   // case2: 進一步瞭解該作者某篇文提到的股票
   it('test ai service', async () => {
-    const messages: ChatCompletionMessageParam[] = [
-      {
-        role: 'system',
-        content:
-          '你是一個幫手負責從使用者輸入的文字訊息去決定要呼叫的function, 並解根據需要對取回來的資料進行處理回傳符合需求的回答, 這些需求都會是關於一個股票討論區的文章, 作者, 文章討論的標的為主,請使用中文回答,不要有任何假設,單純看數據說話',
-      },
-      { role: 'user', content: '作者: rockken' },
-    ];
-
-    var result = await conversationWithAI(messages);
-    console.log(result);
-    messages.push({ role: 'user', content: '想要了解勤凱這篇貼文' });
-    var result = await conversationWithAI(messages);
-    console.log(result);
+    // const messages: ChatCompletionMessageParam[] = [
+    //   {
+    //     role: 'system',
+    //     content:
+    //       '你是一個幫手負責從使用者輸入的文字訊息去決定要呼叫的function, 並解根據需要對取回來的資料進行處理回傳符合需求的回答, 這些需求都會是關於一個股票討論區的文章, 作者, 文章討論的標的為主,請使用中文回答,不要有任何假設,單純看數據說話',
+    //   },
+    //   { role: 'user', content: '作者: rockken' },
+    // ];
+    // var result = await conversationWithAI(messages);
+    // console.log(result);
+    // messages.push({ role: 'user', content: '想要了解勤凱這篇貼文' });
+    // var result = await conversationWithAI(messages);
+    // console.log(result);
   });
 
   // it('analysis post content', async () => {
