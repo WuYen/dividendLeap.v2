@@ -37,19 +37,26 @@ export const lineEventService = {
 
     console.log(`[LINE][Follow] 來源：${source.type}，pushKey: ${pushKey}，name: ${name}`);
 
-    const existing = await UserSettingModel.findOne({ 'line.pushKey': pushKey });
+    const existing = await UserSettingModel.findOne({ 'channels.token': pushKey });
 
     const updateData = {
       $set: {
-        line: {
+        'channels.$[elem]': {
+          type: 'line',
           enabled: true,
           isGroup,
-          pushKey,
+          token: pushKey,
           name,
           channelType: 'bot',
           messageLevel: Level.Basic,
         },
       },
+    };
+
+    const options = {
+      arrayFilters: [{ 'elem.type': 'line' }],
+      upsert: true,
+      new: true,
     };
 
     if (!existing) {
@@ -63,10 +70,7 @@ export const lineEventService = {
       console.log(`[LINE][Follow] 已註冊用戶，更新資料`);
     }
 
-    const updated = await UserSettingModel.findOneAndUpdate({ 'line.pushKey': pushKey }, updateData, {
-      upsert: true,
-      new: true,
-    });
+    const updated = await UserSettingModel.findOneAndUpdate({ 'channels.token': pushKey }, updateData, options);
 
     console.log('[LINE][Follow] 資料已寫入 / 更新成功:', JSON.stringify(updated, null, 2));
   },
@@ -93,11 +97,19 @@ export const lineEventService = {
     console.log(`[LINE][Unfollow] 來源：${source.type}，pushKey: ${pushKey}`);
 
     await UserSettingModel.updateOne(
-      { 'line.pushKey': pushKey },
+      { 'channels.token': pushKey },
       {
         $set: {
-          'line.enabled': false,
+          'channels.$[elem].enabled': false,
         },
+      },
+      {
+        arrayFilters: [
+          {
+            'elem.token': pushKey,
+            'elem.type': 'line',
+          },
+        ],
       }
     );
 

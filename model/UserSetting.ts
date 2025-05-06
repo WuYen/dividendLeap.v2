@@ -1,5 +1,6 @@
 import mongoose, { Model, Schema } from 'mongoose';
 import { IFavoritePost } from './lineToken';
+import { MessageChannel } from '../type/notify';
 
 // 推播內容等級
 export enum Level {
@@ -10,7 +11,7 @@ export enum Level {
 }
 
 export interface ChannelSetting {
-  type: 'line' | 'telegram' | 'webPush' | 'expo'; // 通道類型
+  type: MessageChannel; // 通道類型
   enabled: boolean; // 是否啟用
   token: string; // 通道的唯一標識（如 pushKey、chatId、endpoint 等）
   name?: string; // 通道名稱（可選）
@@ -46,7 +47,11 @@ const FavoritePostSchema = new Schema<IFavoritePost>({
 
 const ChannelSchema = new Schema<ChannelSetting>(
   {
-    type: { type: String, enum: ['line', 'telegram', 'webPush', 'expo'], required: true },
+    type: {
+      type: String,
+      enum: Object.values(MessageChannel), // 自動抓 enum 值
+      required: true,
+    },
     enabled: { type: Boolean, default: true },
     token: { type: String, required: true },
     name: { type: String, default: null },

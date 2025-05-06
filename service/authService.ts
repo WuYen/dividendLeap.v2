@@ -60,20 +60,29 @@ export const registerExpoUser = async (account: string, pushToken: string): Prom
   // }
 
   // 確保 pushToken 唯一
-  const duplicated = await UserSettingModel.findOne({ 'expo.pushKey': pushToken, account: { $ne: account } });
+  const duplicated = await UserSettingModel.findOne({ 'channels.token': pushToken, account: { $ne: account } });
   if (duplicated) {
     throw new Error('此推播 Token 已被其他帳號綁定');
   }
 
   const update = {
-    expoPush: {
-      enabled: true,
-      pushKey: pushToken,
-      messageLevel: 'basic',
+    $set: {
+      'channels.$[elem]': {
+        type: 'expo',
+        enabled: true,
+        token: pushToken,
+        messageLevel: 'basic',
+      },
     },
   };
 
-  await UserSettingModel.findOneAndUpdate({ account }, { $set: update }, { new: true, upsert: true });
+  const options = {
+    arrayFilters: [{ 'elem.type': 'expo' }],
+    new: true,
+    upsert: true,
+  };
+
+  await UserSettingModel.findOneAndUpdate({ account }, update, options);
 
   const jwtToken = sign({ id: account });
   return jwtToken;

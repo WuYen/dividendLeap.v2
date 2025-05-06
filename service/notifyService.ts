@@ -43,30 +43,17 @@ export async function processPostAndSendNotifyFromUserSetting(
 
         if (!shouldNotify) continue;
 
-        // 支援多種 channel（目前是 line、telegram）
-        const channels = [
-          { channel: MessageChannel.Line, config: user.line },
-          { channel: MessageChannel.Telegram, config: user.telegram },
-          { channel: MessageChannel.Expo, config: user.expoPush },
-        ];
-
-        for (const { channel, config } of channels) {
+        for (const { type: channel, enabled, token, messageLevel } of user.channels) {
           // 該 channel 沒開啟就跳過
-          if (!config?.enabled) continue;
+          if (!enabled) continue;
 
           // 查表決定該用哪種 ContentType（根據 post 屬性 + 訂閱狀態 + 等級）
-          const contentType = matchContentType(
-            channel,
-            post.tag as string,
-            isSubscribedAuthor,
-            isRepost,
-            config.messageLevel
-          );
+          const contentType = matchContentType(channel, post.tag as string, isSubscribedAuthor, isRepost, messageLevel);
           if (!contentType) continue;
 
           // 包裝通知信封（不帶 content，之後 postQueue 會補上）
           const envelop = {
-            token: config.pushKey,
+            token,
             channel,
           } as NotifyEnvelope;
 

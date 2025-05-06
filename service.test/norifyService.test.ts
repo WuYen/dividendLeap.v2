@@ -3,6 +3,7 @@ import { IPostInfo } from '../model/PostInfo';
 import { postQueue } from '../service/queue/postQueue';
 import { IUserSetting, Level } from '../model/UserSetting';
 import { IAuthor } from '../model/Author';
+import { MessageChannel } from '../type/notify';
 
 jest.mock('../service/queue/postQueue', () => ({
   postQueue: {
@@ -43,23 +44,27 @@ describe('processPostAndSendNotifyFromUserSetting', () => {
       fugleApiKey: '', // optional 可不給也行
 
       // 各通道
-      line: {
-        enabled: true,
-        pushKey: 'linePushKey',
-        messageLevel: Level.Premium,
-        isGroup: false,
-        channelType: 'notify',
-      },
-      telegram: {
-        enabled: true,
-        pushKey: 'telegramPushKey',
-        messageLevel: Level.Premium,
-      },
-      expoPush: {
-        enabled: true,
-        pushKey: 'ExponentPushToken[abc123]',
-        messageLevel: Level.Premium,
-      },
+      channels: [
+        {
+          type: MessageChannel.Line,
+          enabled: true,
+          token: 'linePushKey',
+          messageLevel: Level.Premium,
+          isGroup: false,
+        },
+        {
+          type: MessageChannel.Telegram,
+          enabled: true,
+          token: 'telegramPushKey',
+          messageLevel: Level.Premium,
+        },
+        {
+          type: MessageChannel.Expo,
+          enabled: true,
+          token: 'ExponentPushToken[abc123]',
+          messageLevel: Level.Premium,
+        },
+      ],
     };
 
     const mockAuthor = {
@@ -77,14 +82,6 @@ describe('processPostAndSendNotifyFromUserSetting', () => {
     expect(callArgs).toHaveProperty('contentGenerator');
     expect(callArgs).toHaveProperty('type');
     expect(callArgs).toHaveProperty('users');
-
-    // expect(callArgs.users).toEqual(
-    //   expect.arrayContaining([
-    //     expect.objectContaining({ channel: 'line', token: 'linePushKey' }),
-    //     expect.objectContaining({ channel: 'telegram', token: 'telegramPushKey' }),
-    //     expect.objectContaining({ channel: 'expo', token: 'ExponentPushToken[abc123]' }),
-    //   ])
-    // );
 
     const allCalls = (postQueue.push as jest.Mock).mock.calls.map((args) => args[0]);
 
