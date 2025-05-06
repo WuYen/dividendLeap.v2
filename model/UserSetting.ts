@@ -9,35 +9,13 @@ export enum Level {
   Test = 'test',
 }
 
-// LINE 推播設定
-export interface LineNotifySetting {
-  enabled: boolean;
-  isGroup: boolean;
-  pushKey: string; // LINE Notify: token，LINE Bot: userId
-  name?: string;
-  messageLevel: Level;
-  channelType: 'notify' | 'bot';
-}
-
-// Telegram 推播設定
-export interface TelegramNotifySetting {
-  enabled: boolean;
-  pushKey: string; // chatId
-  name?: string;
-  messageLevel: Level;
-}
-
-// Web Push 推播設定
-export interface WebPushNotifySetting {
-  enabled: boolean;
-  pushKey: string; // endpoint
-  messageLevel: Level;
-}
-
-export interface ExpoNotifySetting {
-  enabled: boolean;
-  pushKey: string; // ExponentPushToken[...]
-  messageLevel: Level;
+export interface ChannelSetting {
+  type: 'line' | 'telegram' | 'webPush' | 'expo'; // 通道類型
+  enabled: boolean; // 是否啟用
+  token: string; // 通道的唯一標識（如 pushKey、chatId、endpoint 等）
+  name?: string; // 通道名稱（可選）
+  messageLevel: Level; // 推播內容等級
+  isGroup?: boolean; // 是否為群組（目前僅適用於 LINE）
 }
 
 // 使用者設定介面
@@ -53,11 +31,8 @@ export interface IUserSetting {
   keywords: string[];
   fugleApiKey?: string;
 
-  // 通道設定
-  line?: LineNotifySetting;
-  telegram?: TelegramNotifySetting;
-  webPush?: WebPushNotifySetting;
-  expoPush?: ExpoNotifySetting;
+  // 通道設定（統一為陣列結構）
+  channels: ChannelSetting[];
 }
 
 // 收藏貼文 schema
@@ -69,32 +44,11 @@ const FavoritePostSchema = new Schema<IFavoritePost>({
   dateAdded: { type: Date, default: Date.now },
 });
 
-// LINE 通道 schema
-const LineSchema = new Schema(
+const ChannelSchema = new Schema<ChannelSetting>(
   {
-    enabled: { type: Boolean, default: false },
-    isGroup: { type: Boolean, default: false },
-    pushKey: { type: String, required: true },
-    name: { type: String, default: null },
-    messageLevel: {
-      type: String,
-      enum: Object.values(Level),
-      default: Level.Basic,
-    },
-    channelType: {
-      type: String,
-      enum: ['notify', 'bot'],
-      required: true,
-    },
-  },
-  { _id: false }
-);
-
-// Telegram 通道 schema
-const TelegramSchema = new Schema(
-  {
-    enabled: { type: Boolean, default: false },
-    pushKey: { type: String, required: true },
+    type: { type: String, enum: ['line', 'telegram', 'webPush', 'expo'], required: true },
+    enabled: { type: Boolean, default: true },
+    token: { type: String, required: true },
     name: { type: String, default: null },
     messageLevel: {
       type: String,
@@ -104,26 +58,6 @@ const TelegramSchema = new Schema(
   },
   { _id: false }
 );
-
-// WebPush 通道 schema
-const WebPushSchema = new Schema(
-  {
-    enabled: { type: Boolean, default: false },
-    pushKey: { type: String, required: true },
-    messageLevel: {
-      type: String,
-      enum: Object.values(Level),
-      default: Level.Basic,
-    },
-  },
-  { _id: false }
-);
-
-const ExpoSchema = new mongoose.Schema({
-  enabled: { type: Boolean, default: true },
-  pushKey: { type: String, required: true },
-  messageLevel: { type: String, enum: ['basic', 'premium'], default: 'basic' },
-});
 
 // 主 schema
 const UserSettingSchema = new Schema<IUserSetting>(
@@ -134,11 +68,7 @@ const UserSettingSchema = new Schema<IUserSetting>(
     favoritePosts: { type: [FavoritePostSchema], default: [] },
     keywords: { type: [String], default: [] },
     fugleApiKey: { type: String, default: null },
-
-    line: { type: LineSchema, default: undefined },
-    telegram: { type: TelegramSchema, default: undefined },
-    webPush: { type: WebPushSchema, default: undefined },
-    expoPush: { type: ExpoSchema, default: undefined },
+    channels: { type: [ChannelSchema], default: [] },
   },
   { timestamps: true }
 );
