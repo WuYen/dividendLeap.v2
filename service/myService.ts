@@ -1,7 +1,6 @@
 import mongoose, { FlattenMaps } from 'mongoose';
 import { AuthorModel, IAuthor } from '../model/Author';
 import { IPostInfo, PostInfoModel } from '../model/PostInfo';
-import { IFavoritePost, LineTokenModel } from '../model/lineToken';
 import {
   DiffType,
   getDateRangeBaseOnPostedDate,
@@ -12,6 +11,7 @@ import {
 import { getStockNoFromTitle } from '../utility/stockPostHelper';
 import { todayDate } from '../utility/dateTime';
 import { getCachedStockPriceByDatesBatch, StockRequest } from './stockPriceService';
+import { IFavoritePost, UserSettingModel } from '../model/UserSetting';
 
 export interface MyPostHistoricalResponse extends PostHistoricalResponse {
   cost?: number;
@@ -38,7 +38,7 @@ export async function addLikeToAuthor(authorId: string): Promise<IAuthor | null>
 }
 
 export async function toggleFavoritePost(userId: string, postId: string): Promise<IFavoritePost | null> {
-  const user = await LineTokenModel.findOne({ channel: userId });
+  const user = await UserSettingModel.findOne({ account: userId });
 
   if (!userId || !user) {
     throw new Error('使用者不存在');
@@ -72,8 +72,8 @@ export async function fetchAndProcessFavoritePost(
   userId: string,
   favoritePost: IFavoritePost
 ): Promise<MyPostHistoricalResponse | null> {
-  const updatedFavoritePost = await LineTokenModel.findOne(
-    { channel: userId, 'favoritePosts.postId': favoritePost.postId },
+  const updatedFavoritePost = await UserSettingModel.findOne(
+    { account: userId, 'favoritePosts.postId': favoritePost.postId },
     { 'favoritePosts.$': 1 }
   )
     .populate('favoritePosts.postId', '-__v')
@@ -89,7 +89,7 @@ export async function fetchAndProcessFavoritePost(
 }
 
 export async function getFavoritePosts(userId: string): Promise<MyPostHistoricalResponse[]> {
-  const rawData = await LineTokenModel.findOne({ channel: userId }).populate('favoritePosts.postId', '-__v').lean();
+  const rawData = await UserSettingModel.findOne({ account: userId }).populate('favoritePosts.postId', '-__v').lean();
   let favoritePosts: MyPostHistoricalResponse[] = [];
 
   if (rawData?.favoritePosts && rawData?.favoritePosts.length > 0) {
@@ -113,9 +113,9 @@ export async function updateFavoritePostInfo(
     throw new Error('文章不存在');
   }
 
-  const result = await LineTokenModel.findOneAndUpdate(
+  const result = await UserSettingModel.findOneAndUpdate(
     {
-      channel: userId,
+      account: userId,
       'favoritePosts.postId': post._id,
     },
     {

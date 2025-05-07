@@ -49,6 +49,10 @@ export const lineBotHelper = {
     return client.getProfile(userId);
   },
 
+  getGroupProfile: (groupId: string): Promise<messagingApi.GroupSummaryResponse> => {
+    return client.getGroupSummary(groupId);
+  },
+
   // ========= Type Guards =========
   isFollowOrJoinEvent: (event: webhook.Event): event is webhook.FollowEvent | webhook.JoinEvent =>
     event.type === 'follow' || event.type === 'join',

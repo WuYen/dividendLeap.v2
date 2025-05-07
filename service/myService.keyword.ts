@@ -1,7 +1,7 @@
-import { LineTokenModel } from '../model/lineToken';
+import { UserSettingModel } from '../model/UserSetting';
 
 export async function getKeywords(userId: string): Promise<string[]> {
-  const user = await LineTokenModel.findOne({ channel: userId });
+  const user = await UserSettingModel.findOne({ account: userId });
 
   if (!user) {
     throw new Error('使用者不存在');
@@ -15,7 +15,7 @@ export async function updateKeywords(userId: string, keywords: string[]): Promis
     throw new Error('關鍵字錯誤');
   }
 
-  const user = await LineTokenModel.findOne({ channel: userId });
+  const user = await UserSettingModel.findOne({ account: userId });
 
   if (!user) {
     throw new Error('使用者不存在');
@@ -33,7 +33,7 @@ export async function deleteKeywords(userId: string, keywords: string[]): Promis
     throw new Error('關鍵字錯誤');
   }
 
-  const user = await LineTokenModel.findOne({ channel: userId });
+  const user = await UserSettingModel.findOne({ account: userId });
 
   if (!user) {
     throw new Error('使用者不存在');

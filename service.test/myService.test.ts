@@ -1,9 +1,9 @@
 import { toggleFavoritePost } from '../service/myService';
-import { IFavoritePost, LineTokenModel } from '../model/lineToken';
 import { PostInfoModel } from '../model/PostInfo';
 import { Types } from 'mongoose';
+import { IFavoritePost, UserSettingModel } from '../model/UserSetting';
 
-jest.mock('../model/lineToken');
+jest.mock('../model/UserSetting');
 jest.mock('../model/PostInfo');
 
 describe('toggleFavoritePost', () => {
@@ -33,20 +33,20 @@ describe('toggleFavoritePost', () => {
   });
 
   it('should throw an error if user does not exist', async () => {
-    (LineTokenModel.findOne as jest.Mock).mockResolvedValue(null);
+    (UserSettingModel.findOne as jest.Mock).mockResolvedValue(null);
 
     await expect(toggleFavoritePost(mockUserId, mockPostId)).rejects.toThrow('使用者不存在');
   });
 
   it('should throw an error if post does not exist', async () => {
-    (LineTokenModel.findOne as jest.Mock).mockResolvedValue(mockUser);
+    (UserSettingModel.findOne as jest.Mock).mockResolvedValue(mockUser);
     (PostInfoModel.findOne as jest.Mock).mockResolvedValue(null);
 
     await expect(toggleFavoritePost(mockUserId, '789')).rejects.toThrow('文章不存在');
   });
 
   it('should add post to favoritePosts if it is not already in the list', async () => {
-    (LineTokenModel.findOne as jest.Mock).mockResolvedValue(mockUser);
+    (UserSettingModel.findOne as jest.Mock).mockResolvedValue(mockUser);
     (PostInfoModel.findOne as jest.Mock).mockResolvedValue(mockPost);
 
     const result = await toggleFavoritePost(mockUserId, '456');
@@ -65,7 +65,7 @@ describe('toggleFavoritePost', () => {
       dateAdded: new Date(),
     };
     mockUser.favoritePosts.push(mockPost);
-    (LineTokenModel.findOne as jest.Mock).mockResolvedValue(mockUser);
+    (UserSettingModel.findOne as jest.Mock).mockResolvedValue(mockUser);
     (PostInfoModel.findOne as jest.Mock).mockResolvedValue(mockPost);
 
     const result = await toggleFavoritePost(mockUserId, '456');

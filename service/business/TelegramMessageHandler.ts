@@ -1,5 +1,4 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { LineTokenModel, TokenLevel } from '../../model/lineToken';
 import stockPriceService from '../stockPriceService';
 import { formatTimestampToString, toDateString, today, todayDate } from '../../utility/dateTime';
 import { AuthorStatsModel } from '../../model/AuthorStats';
@@ -7,6 +6,9 @@ import { analysisPostById } from '../postStatsService';
 import { conversationHandler } from './conversationHandler';
 import openAIService from '../openAIService';
 import { IMessage } from '../../model/ConversationModel';
+import { upsertChannel } from './upsertUserSetting';
+import { MessageChannel } from '../../type/notify';
+import { Level, UserSettingModel } from '../../model/UserSetting';
 
 export class TelegramMessageHandler {
   private bot: TelegramBot;
@@ -26,29 +28,17 @@ export class TelegramMessageHandler {
     const username = msg.chat.username || '';
 
     try {
-      let user = await LineTokenModel.findOne({ tgChatId: chatId });
-      //reference: [Deep Linking](https://core.telegram.org/bots/features#deep-linking)
-
-      if (!user) {
-        // 新增用戶資料
-        user = new LineTokenModel({
-          channel: username || 'tg',
-          token: '',
-          notifyEnabled: true,
-          tokenLevel: [TokenLevel.Basic],
-          updateDate: today(),
-          favoritePosts: [],
-          keywords: [],
-          tgChatId: chatId,
-          tgUserName: username,
-        });
-        await user.save();
-        console.log('新用戶已建立:', user);
-        this.bot.sendMessage(chatId, `歡迎, ${username}! 您的個人資料已建立。`);
-      } else {
-        console.log('已存在的用戶:', user);
-        this.bot.sendMessage(chatId, `歡迎回來, ${username}!`);
-      }
+      // 使用 upsertChannel 進行註冊或更新
+      const updatedChannel = await upsertChannel({
+        account: username || `tg_${chatId}`, // 如果沒有 username，使用 chatId 作為帳號
+        token: `${chatId}`, // Telegram 的 chatId 作為 token
+        type: MessageChannel.Telegram, // 指定通道類型為 Telegram
+        updateData: {
+          name: username,
+          messageLevel: Level.Basic, // 預設為 Basic 等級
+        },
+      });
+      this.bot.sendMessage(chatId, `歡迎, ${username}!`);
     } catch (error) {
       console.error('處理 /start 指令時出錯:', error);
       this.bot.sendMessage(chatId, '出現了一些問題，請稍後再試。');
@@ -64,10 +54,12 @@ export class TelegramMessageHandler {
     if (/^\/start\b/.test(text)) {
       return this.handleStartCommand(msg);
     }
+    const userInfo = await UserSettingModel.findOne(
+      { 'channels.token': chatId, 'channels.enabled': true, 'channels.type': 'telegram' }, // 查詢條件
+      { 'channels.$': 1 } // Projection，只返回符合條件的 channels
+    );
 
-    const userInfo = await LineTokenModel.findOne({ tgChatId: chatId });
-
-    if (userInfo?.tokenLevel.includes(TokenLevel.Premium)) {
+    if (userInfo && userInfo.channels && userInfo.channels[0]?.messageLevel?.includes(Level.Premium)) {
       //process chat with AI
       const contextMessages = await conversationHandler.retrieveRelevantMessages(chatId);
       const userMessage: IMessage = { sender: 'user', message: text, timestamp: new Date() };

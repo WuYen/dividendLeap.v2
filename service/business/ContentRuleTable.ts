@@ -1,6 +1,6 @@
 import { Level } from '../../model/UserSetting';
 import { ContentType } from './notifyContentGenerator.v2';
-import { MessageChannel } from '../notifyQueueService.v2';
+import { MessageChannel } from '../../type/notify';
 
 export interface Rule {
   channel: MessageChannel | '*';

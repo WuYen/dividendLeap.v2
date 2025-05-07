@@ -2,7 +2,7 @@ import express, { Router, NextFunction, Request, Response } from 'express';
 
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 import { PostHistoricalResponse } from '../service/historicalService';
-import { fetchPostDetail, getLast50Posts, getNewPostAndSendLineNotify } from '../service/pttStockPostService';
+import { fetchPostDetail, getLast50Posts, getNewPostAndNotifyUsers } from '../service/pttStockPostService';
 import { getAuthorHistoryPosts, getAuthors } from '../service/pttAuthorService';
 import { commentSentimentAnalysis } from '../service/postStatsService';
 
@@ -33,7 +33,7 @@ router.get('/author/:id', async (req: Request, res: Response, next: NextFunction
 
 router.get('/new', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    var { postCount } = await getNewPostAndSendLineNotify(req.query.channel as string, req.query.channels as string);
+    var { postCount } = await getNewPostAndNotifyUsers(req.query.channel as string, req.query.channels as string);
     return res.sendSuccess(200, {
       message: `send notify success, postCount: ${postCount}`,
     });

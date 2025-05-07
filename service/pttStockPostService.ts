@@ -4,8 +4,6 @@ import { IPostInfo, PostInfoModel, LastRecordModel } from '../model/PostInfo';
 import { parseId } from '../utility/stockPostHelper';
 import { AuthorHistoricalCache } from '../model/AuthorHistoricalCache';
 import { AuthorModel } from '../model/Author';
-import lineService from './lineService';
-import { processPostAndSendNotify } from './notifyQueueService.v2';
 import axios from 'axios';
 import { processPostAndSendNotifyFromUserSetting } from './notifyService';
 import { UserSettingModel } from '../model/UserSetting';
@@ -238,23 +236,14 @@ export async function searchPostsByAuthor(keyword: string): Promise<IPostInfo[]>
   return posts;
 }
 
-export async function getNewPostAndSendLineNotify(channel: string, channels: string): Promise<any> {
+export async function getNewPostAndNotifyUsers(channel: string, channels: string): Promise<any> {
   const newPosts = await getNewPosts();
   if (!newPosts?.length) return { postCount: 0 };
 
   // 同時撈資料
-  const [subscribeAuthors, tokenInfos, users] = await Promise.all([
-    AuthorModel.find({}).lean(),
-    lineService.retrieveUserLineToken(channel, channels),
-    UserSettingModel.find({}).lean(),
-  ]);
+  const [subscribeAuthors, users] = await Promise.all([AuthorModel.find({}).lean(), UserSettingModel.find({}).lean()]);
 
   const notifyTasks: Promise<any>[] = [];
-
-  if (tokenInfos?.length) {
-    //TODO: 舊路 之後等 notifyService 重構完再拔掉
-    notifyTasks.push(processPostAndSendNotify(newPosts, tokenInfos, subscribeAuthors));
-  }
 
   if (users?.length) {
     try {

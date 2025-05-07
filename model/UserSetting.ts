@@ -1,6 +1,14 @@
-import mongoose, { Model, Schema } from 'mongoose';
-import { IFavoritePost } from './lineToken';
+import mongoose, { Model, PopulatedDoc, Schema } from 'mongoose';
+import { IPostInfo } from './PostInfo';
 import { MessageChannel } from '../type/notify';
+
+export interface IFavoritePost {
+  postId: mongoose.Types.ObjectId | PopulatedDoc<IPostInfo>;
+  cost?: number;
+  shares?: number;
+  notes?: string;
+  dateAdded?: Date;
+}
 
 // 推播內容等級
 export enum Level {

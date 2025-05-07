@@ -1,6 +1,8 @@
 import { webhook } from '@line/bot-sdk';
 import { UserSettingModel, Level } from '../model/UserSetting';
 import { lineBotHelper } from '../utility/lineBotHelper';
+import { MessageChannel } from '../type/notify';
+import { upsertChannel } from './business/upsertUserSetting';
 
 export const lineEventService = {
   handleFollow: async (event: webhook.FollowEvent | webhook.JoinEvent) => {
@@ -23,7 +25,8 @@ export const lineEventService = {
     } else if (source.type === 'group') {
       pushKey = source.groupId as string;
       isGroup = true;
-      name = 'LINE 群組' + pushKey;
+      const profile = await lineBotHelper.getGroupProfile(source.groupId as string);
+      name = profile.groupName;
     } else if (source.type === 'room') {
       pushKey = source.roomId as string;
       isGroup = true;
@@ -37,42 +40,24 @@ export const lineEventService = {
 
     console.log(`[LINE][Follow] 來源：${source.type}，pushKey: ${pushKey}，name: ${name}`);
 
-    const existing = await UserSettingModel.findOne({ 'channels.token': pushKey });
-
-    const updateData = {
-      $set: {
-        'channels.$[elem]': {
-          type: 'line',
-          enabled: true,
-          isGroup,
-          token: pushKey,
-          name,
-          channelType: 'bot',
-          messageLevel: Level.Basic,
-        },
-      },
-    };
-
-    const options = {
-      arrayFilters: [{ 'elem.type': 'line' }],
-      upsert: true,
-      new: true,
-    };
-
-    if (!existing) {
-      console.log(`[LINE][Follow] 新註冊用戶，自動建立帳號 line-${pushKey}`);
-      Object.assign(updateData, {
-        $setOnInsert: {
-          account: name,
-        },
-      });
-    } else {
-      console.log(`[LINE][Follow] 已註冊用戶，更新資料`);
+    const duplicated = await UserSettingModel.findOne({ 'channels.token': pushKey, 'channels.enabled': true });
+    if (duplicated) {
+      console.log(`[LINE][Follow] pushKey ${pushKey} 已存在且啟用，跳過更新`);
+      return;
     }
 
-    const updated = await UserSettingModel.findOneAndUpdate({ 'channels.token': pushKey }, updateData, options);
+    const updatedChannel = await upsertChannel({
+      account: name,
+      token: pushKey,
+      type: MessageChannel.Line,
+      updateData: {
+        name,
+        isGroup,
+        messageLevel: Level.Basic,
+      },
+    });
 
-    console.log('[LINE][Follow] 資料已寫入 / 更新成功:', JSON.stringify(updated, null, 2));
+    console.log('[LINE][Follow] 資料已寫入 / 更新成功:', JSON.stringify(updatedChannel, null, 2));
   },
 
   handleUnfollow: async (event: webhook.UnfollowEvent | webhook.LeaveEvent) => {

@@ -12,17 +12,6 @@ const FINMIND_TOKEN: string | undefined = process.env.FINMIND_TOKEN;
 const FUGLE_API_KEY: string = process.env.FUGLE_API_KEY || '';
 const FUGLE_API_USE_PROXY: boolean = process.env.FUGLE_API_USE_PROXY === 'true';
 
-const LINE_NOTIFY_AUTH_URL: string | undefined =
-  process.env.LINE_NOTIFY_AUTH_URL || 'https://notify-bot.line.me/oauth/authorize';
-const LINE_NOTIFY_TOKEN_URL: string | undefined =
-  process.env.LINE_NOTIFY_TOKEN_URL || 'https://notify-bot.line.me/oauth/token';
-const LINE_NOTIFY_CLIENT_ID: string | undefined = process.env.LINE_NOTIFY_CLIENT_ID || '';
-const LINE_NOTIFY_CLIENT_SECRET: string | undefined = process.env.LINE_NOTIFY_CLIENT_SECRET || '';
-const LINE_NOTIFY_CALL_BACK_URL: string | undefined =
-  process.env.LINE_NOTIFY_CALL_BACK_URL || 'http://localhost:8000/line/callback';
-const LINE_NOTIFY_URL: string | undefined = process.env.LINE_NOTIFY_URL || 'https://notify-api.line.me/api/notify';
-const LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL: string | undefined =
-  process.env.LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL || 'http://localhost:3000/line/registration/callback';
 const ADMIN_LINE_TOKEN: string = process.env.ADMIN_LINE_TOKEN || '';
 const LINE_CHANNEL_ID: string = process.env.LINE_CHANNEL_ID || '';
 const LINE_CHANNEL_SECRET: string = process.env.LINE_CHANNEL_SECRET || '';
@@ -47,13 +36,6 @@ export default {
   FINMIND_TOKEN,
   FUGLE_API_KEY,
   FUGLE_API_USE_PROXY,
-  LINE_NOTIFY_AUTH_URL,
-  LINE_NOTIFY_TOKEN_URL,
-  LINE_NOTIFY_CLIENT_ID,
-  LINE_NOTIFY_CLIENT_SECRET,
-  LINE_NOTIFY_CALL_BACK_URL,
-  LINE_NOTIFY_URL,
-  LINE_NOTIFY_CLIENT_SIDE_CALL_BACK_URL,
   ADMIN_LINE_TOKEN,
   LINE_CHANNEL_ID,
   LINE_CHANNEL_SECRET,
