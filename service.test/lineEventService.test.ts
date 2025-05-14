@@ -1,80 +1,98 @@
 import { lineEventService } from '../service/lineEventService';
-import { lineBotHelper } from '../utility/lineBotHelper';
 import { UserSettingModel } from '../model/UserSetting';
+import { lineBotHelper } from '../utility/lineBotHelper';
+import { upsertChannel } from '../service/business/upsertUserSetting';
+import { webhook } from '@line/bot-sdk';
 
-jest.mock('../utility/lineBotHelper');
 jest.mock('../model/UserSetting');
+jest.mock('../utility/lineBotHelper');
+jest.mock('../service/business/upsertUserSetting');
 
-describe('lineEventService - handleFollow with logging and account from name', () => {
-  const mockFindOneAndUpdate = jest.fn();
-  const mockFindOne = jest.fn();
+const mockFindOne = jest.fn();
+const mockUpdateOne = jest.fn();
+const mockReplyText = jest.fn();
+const mockUpsertChannel = jest.fn();
 
+UserSettingModel.findOne = mockFindOne;
+UserSettingModel.updateOne = mockUpdateOne;
+lineBotHelper.replyText = mockReplyText;
+(upsertChannel as jest.Mock).mockImplementation(mockUpsertChannel);
+
+describe('Line Event Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (UserSettingModel.findOneAndUpdate as any) = mockFindOneAndUpdate;
-    (UserSettingModel.findOne as any) = mockFindOne;
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
-  it('should set account to name if new user', async () => {
-    const fakeEvent = {
-      source: { type: 'user', userId: 'U777' },
-    };
+  describe('handleFollow', () => {
+    it('should add a new user on follow event', async () => {
+      const fakeEvent = {
+        source: { type: 'user', userId: 'U123' },
+      };
 
-    (lineBotHelper.getUserProfile as jest.Mock).mockResolvedValue({ displayName: '中二少年' });
-    mockFindOne.mockResolvedValue(null); // New user
+      lineBotHelper.getUserProfile = jest.fn().mockResolvedValue({ displayName: '新朋友' });
+      mockFindOne.mockResolvedValue(null);
+      mockUpsertChannel.mockResolvedValue({ account: '新朋友', token: 'U123' });
 
-    await lineEventService.handleFollow(fakeEvent as any);
+      await lineEventService.handleFollow(fakeEvent as webhook.FollowEvent);
 
-    expect(mockFindOne).toHaveBeenCalledWith({ 'line.pushKey': 'U777' });
-
-    expect(mockFindOneAndUpdate).toHaveBeenCalledWith(
-      { 'line.pushKey': 'U777' },
-      {
-        $set: {
-          line: {
-            enabled: true,
-            isGroup: false,
-            pushKey: 'U777',
-            name: '中二少年',
-            channelType: 'bot',
-            messageLevel: 'basic',
-          },
+      expect(mockFindOne).toHaveBeenCalledWith({ 'channels.token': 'U123', 'channels.enabled': true });
+      expect(mockUpsertChannel).toHaveBeenCalledWith({
+        account: '新朋友',
+        token: 'U123',
+        type: 'line',
+        updateData: {
+          name: '新朋友',
+          isGroup: false,
+          messageLevel: 'basic',
         },
-        $setOnInsert: {
-          account: '中二少年',
-        },
-      },
-      { upsert: true, new: true }
-    );
+      });
+    });
+
+    it('should skip if user already exists', async () => {
+      const fakeEvent = {
+        source: { type: 'user', userId: 'U123' },
+      };
+
+      mockFindOne.mockResolvedValue({ account: '已存在' });
+
+      await lineEventService.handleFollow(fakeEvent as webhook.FollowEvent);
+
+      expect(mockFindOne).toHaveBeenCalledWith({ 'channels.token': 'U123', 'channels.enabled': true });
+    });
   });
 
-  it('should NOT set account if user already exists', async () => {
-    const fakeEvent = {
-      source: { type: 'user', userId: 'U888' },
-    };
+  describe('handleUnfollow', () => {
+    it('should disable pushKey when user unfollows', async () => {
+      const fakeEvent = {
+        source: { type: 'user', userId: 'U888' },
+      };
 
-    (lineBotHelper.getUserProfile as jest.Mock).mockResolvedValue({ displayName: '老用戶' });
-    mockFindOne.mockResolvedValue({ account: '老用戶' }); // Existing user
+      mockUpdateOne.mockResolvedValue({ acknowledged: true, modifiedCount: 1 });
 
-    await lineEventService.handleFollow(fakeEvent as any);
+      await lineEventService.handleUnfollow(fakeEvent as webhook.UnfollowEvent);
 
-    expect(mockFindOneAndUpdate).toHaveBeenCalledWith(
-      { 'line.pushKey': 'U888' },
-      {
-        $set: {
-          line: {
-            enabled: true,
-            isGroup: false,
-            pushKey: 'U888',
-            name: '老用戶',
-            channelType: 'bot',
-            messageLevel: 'basic',
+      expect(mockUpdateOne).toHaveBeenCalledWith(
+        { 'channels.token': 'U888' },
+        {
+          $set: {
+            'channels.$[elem].enabled': false,
           },
         },
-      },
-      { upsert: true, new: true }
-    );
+        {
+          arrayFilters: [
+            {
+              'elem.token': 'U888',
+              'elem.type': 'line',
+            },
+          ],
+        }
+      );
+    });
+
+    it('should skip if source is missing', async () => {
+      const fakeEvent = { source: null };
+
+      await lineEventService.handleUnfollow(fakeEvent as unknown as webhook.UnfollowEvent);
+    });
   });
 });
