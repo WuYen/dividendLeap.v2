@@ -1,8 +1,8 @@
 import Queue from 'better-queue';
-import telegramBotService from '../telegramBotService';
 import { NotifyEnvelope, MessageChannel, PostContent } from '../../type/notify';
+import telegramBotService from '../telegramBotService';
 import { lineBotHelper } from '../../utility/lineBotHelper';
-import expoPushService from '../../service/expoPushService';
+import expoPushService from '../expoPushService';
 
 export const notifyQueue = new Queue<NotifyEnvelope>(
   async (job: NotifyEnvelope, done: Function) => {
