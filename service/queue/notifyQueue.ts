@@ -24,9 +24,9 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
         }
       } else if (job.channel === MessageChannel.Expo) {
         const postContent = job.payload as PostContent;
-        const data = postContent.post;
+        const post = postContent.post;
         // Expo push notification logic here
-        await expoPushService.send(job.token, 'title', 'body', data);
+        await expoPushService.send(job.token, post.title, content, post);
       }
 
       done(null, job);
