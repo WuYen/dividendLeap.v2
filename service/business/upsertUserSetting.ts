@@ -15,35 +15,42 @@ export const upsertChannel = async ({
   updateData,
   arrayFilterType,
 }: UpsertChannelParams): Promise<ChannelSetting | null> => {
-  // 構建更新資料
-  const update = {
-    $set: {
-      'channels.$[elem]': {
-        type,
-        token,
-        enabled: true,
-        ...updateData,
-      },
-    },
-  };
-
-  // 構建更新選項
-  const options = {
-    arrayFilters: [{ 'elem.type': arrayFilterType || type }],
-    upsert: true,
-    new: true,
-  };
-
-  // 執行 upsert 操作並返回結果
-  const updatedUserSetting = await UserSettingModel.findOneAndUpdate({ account }, update, options);
-
-  if (!updatedUserSetting) {
-    throw new Error('更新失敗，找不到對應的使用者設定');
+  // 1️⃣ 取得或建立使用者設定
+  let userSetting = await UserSettingModel.findOne({ account });
+  if (!userSetting) {
+    userSetting = new UserSettingModel({
+      account,
+      channels: [],
+    });
   }
 
-  // 返回更新後的通道設定
-  const updatedChannel = updatedUserSetting.channels.find(
-    (channel) => channel.type === type && channel.token === token
-  );
-  return updatedChannel || null;
+  // 2️⃣ 確保 channels 陣列存在
+  if (!Array.isArray(userSetting.channels)) {
+    userSetting.channels = [];
+  }
+
+  // 3️⃣ 檢查是否已存在同類型的 channel
+  const targetType = arrayFilterType || type;
+  const existingChannel = userSetting.channels.find((channel) => channel.type === targetType);
+
+  if (existingChannel) {
+    // ✅ 已存在 ➜ 更新內容
+    existingChannel.token = token;
+    existingChannel.enabled = true;
+    Object.assign(existingChannel, updateData);
+  } else {
+    // ❌ 不存在 ➜ 新增 channel
+    userSetting.channels.push({
+      type,
+      token,
+      enabled: true,
+      ...updateData,
+    } as ChannelSetting);
+  }
+
+  // 4️⃣ 儲存資料
+  await userSetting.save();
+
+  // 5️⃣ 回傳更新後的那筆 channel
+  return userSetting.channels.find((channel) => channel.type === type && channel.token === token) || null;
 };

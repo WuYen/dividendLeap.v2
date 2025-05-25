@@ -3,6 +3,9 @@ import { sign } from '../utility/auth';
 import { Level, UserSettingModel } from '../model/UserSetting';
 import { MessageChannel } from '../type/notify';
 import { upsertChannel } from './business/upsertUserSetting';
+import expoPushService from './expoPushService';
+import telegramBotService from './telegramBotService';
+import { lineBotHelper } from '../utility/lineBotHelper';
 
 export const generateVerifyCode = (): string => {
   const buffer = randomBytes(3); // 生成 3 个随机字节
@@ -10,49 +13,67 @@ export const generateVerifyCode = (): string => {
   return code.toString().padStart(5, '0'); // 确保是 5 位数字，不足的用 0 补全
 };
 
-// export const sendVerificationCode = async (account: string): Promise<string> => {
-//TODO: use new UserSettingModel
+export const sendVerificationCode = async (account: string): Promise<string> => {
+  // 1️⃣ 查找 user
+  const user = await UserSettingModel.findOne({ account });
+  if (!user) {
+    throw new Error('使用者不存在');
+  }
 
-//   if (!user) {
-//     throw new Error('使用者不存在');
-//   }
+  // 2️⃣ 權限檢查（可依需求調整）
+  // if (!user.level.includes(Level.Premium)) {
+  //   throw new Error('權限未開啟');
+  // }
 
-//   if (!user.level.includes(Level.Premium)) {
-//     throw new Error('權限未開啟');
-//   }
+  const verifyCode = generateVerifyCode();
+  const verifyCodeExpires = new Date(Date.now() + 5 * 60 * 1000); // 设置验证码 5 分钟后过期
+  user.verifyCode = verifyCode;
+  user.verifyCodeExpires = verifyCodeExpires;
+  await user.save();
 
-//   const verifyCode = generateVerifyCode();
-//   const verifyCodeExpires = new Date(Date.now() + 5 * 60 * 1000); // 设置验证码 5 分钟后过期
-//   user.verifyCode = verifyCode;
-//   user.verifyCodeExpires = verifyCodeExpires;
-//   await user.save();
+  // 4️⃣ 找可用 channel（expo > telegram > line）
+  const availableChannel =
+    user.channels.find((c) => c.enabled && c.type === MessageChannel.Expo) ||
+    user.channels.find((c) => c.enabled && c.type === MessageChannel.Telegram) ||
+    user.channels.find((c) => c.enabled && c.type === MessageChannel.Line);
 
-//   const message = `您的驗證碼是: ${verifyCode}\n五分鐘內有效`;
-//TODO: send message use lineBot
+  if (!availableChannel) {
+    throw new Error('找不到可用的推播通道');
+  }
 
-//   return '驗證碼已發送到 Line';
-// };
+  const message = `您的驗證碼是: ${verifyCode}\n五分鐘內有效`;
 
-// export const verifyCodeAndGenerateToken = async (account: string, verifyCode: string): Promise<string> => {
-//   //TODO: use new UserSettingModel
+  // 根據 availableChannel.type 實作發送訊息（expo/telegram/line）
+  if (availableChannel.type === MessageChannel.Expo) {
+    await expoPushService.send(availableChannel.token, '驗證碼', message, undefined);
+  } else if (availableChannel.type === MessageChannel.Telegram) {
+    await telegramBotService.sendMessageWithOptions(availableChannel.token, message, undefined);
+  } else if (availableChannel.type === MessageChannel.Line) {
+    await lineBotHelper.pushText(availableChannel.token, message);
+  }
 
-//   if (!user) {
-//     throw new Error('查無資料');
-//   }
+  return '驗證碼已發送到 ' + availableChannel.type;
+};
 
-//   if (user.verifyCode !== verifyCode) {
-//     throw new Error('驗證碼錯誤');
-//   }
+export const verifyCodeAndGenerateToken = async (account: string, verifyCode: string): Promise<string> => {
+  const user = await UserSettingModel.findOne({ account });
+  if (!user) {
+    throw new Error('使用者不存在');
+  }
 
-//   if (!user.verifyCodeExpires || new Date() > user.verifyCodeExpires) {
-//     throw new Error('驗證碼過期');
-//   }
+  if (user.verifyCode !== verifyCode) {
+    throw new Error('驗證碼錯誤');
+  }
 
-//   const payload = { id: user.channel };
-//   const jwtToken = sign(payload);
+  if (!user.verifyCodeExpires || new Date() > user.verifyCodeExpires) {
+    throw new Error('驗證碼過期');
+  }
 
-//   return jwtToken;
-// };
+  const payload = { id: user.account };
+  const jwtToken = sign(payload);
+
+  return jwtToken;
+};
 
 export const registerExpoUser = async (account: string, pushToken: string): Promise<string> => {
   const duplicated = await UserSettingModel.findOne({
