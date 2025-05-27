@@ -81,7 +81,7 @@ describe('notifyQueue', () => {
       try {
         expect(error).toBeNull();
         expect(result).toEqual(job);
-        expect(expoPushService.send).toHaveBeenCalledWith('expo_token', 'title', 'body', {
+        expect(expoPushService.send).toHaveBeenCalledWith('expo_token', 'Sample Post', 'Test Expo Message', {
           id: 1,
           title: 'Sample Post',
           tag: '',

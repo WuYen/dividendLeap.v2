@@ -1,14 +1,18 @@
 import express, { Router, Request, Response } from 'express';
-import { loginExpoUser, registerExpoUser } from '../service/authService';
+import {
+  loginExpoUser,
+  registerExpoUser,
+  sendVerificationCode,
+  verifyCodeAndGenerateToken,
+} from '../service/authService';
 
 const router: Router = express.Router();
 
 router.post('/account', async (req: Request, res: Response) => {
   try {
     const { account } = req.body;
-    //const message = await sendVerificationCode(account);
-    //return res.sendSuccess(200, { message: '' });
-    throw new Error('this is not implemented');
+    const message = await sendVerificationCode(account);
+    return res.sendSuccess(200, { message: '' });
   } catch (error) {
     console.error(error);
     return res.sendError(500, { message: (error as Error).message });
@@ -18,9 +22,8 @@ router.post('/account', async (req: Request, res: Response) => {
 router.post('/verify', async (req: Request, res: Response) => {
   try {
     const { account, verifyCode } = req.body;
-    //const token = await verifyCodeAndGenerateToken(account, verifyCode);
-    //return res.sendSuccess(200, { message: '登入成功', data: token });
-    throw new Error('this is not implemented');
+    const token = await verifyCodeAndGenerateToken(account, verifyCode);
+    return res.sendSuccess(200, { message: '登入成功', data: token });
   } catch (error) {
     console.error(error);
     return res.sendError(500, { message: (error as Error).message });
