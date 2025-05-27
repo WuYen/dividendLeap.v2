@@ -101,16 +101,21 @@ export const registerExpoUser = async (account: string, pushToken: string): Prom
 };
 
 export const loginExpoUser = async (account: string, pushToken: string): Promise<string> => {
-  const user = await UserSettingModel.findOne({ 'channels.token': pushToken });
+  const query = {
+    ...(pushToken && { 'channels.token': pushToken }),
+    ...(account && { account }),
+    'channels.enabled': true,
+  };
+
+  const user = await UserSettingModel.findOne(query);
 
   if (!user) {
-    throw new Error('帳號與推播資訊不符，請重新綁定或註冊');
+    throw new Error('請重新綁定或註冊');
   }
 
   const jwtToken = sign({ id: account });
   return jwtToken;
 };
-
 export default {
   generateVerifyCode,
   registerExpoUser,
