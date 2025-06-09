@@ -90,7 +90,7 @@ export const registerExpoUser = async (account: string, pushToken: string): Prom
     token: pushToken,
     type: MessageChannel.Expo,
     updateData: {
-      messageLevel: Level.Basic,
+      messageLevel: Level.Premium,
     },
   });
 
