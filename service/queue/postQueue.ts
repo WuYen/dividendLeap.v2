@@ -9,7 +9,7 @@ interface PostQueueJob {
   users: NotifyEnvelope[];
 }
 
-export const postQueue = new Queue<PostQueueJob>(async (job, done) => {
+export const postQueue = new Queue<PostQueueJob>(async (job: PostQueueJob, done) => {
   try {
     const { contentGenerator, type, users } = job;
     const result = await contentGenerator.getContent(type);
