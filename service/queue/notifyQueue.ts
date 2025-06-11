@@ -26,7 +26,7 @@ export const notifyQueue = new Queue<NotifyEnvelope>(
         const postContent = job.payload as PostContent;
         const post = postContent.post;
         // Expo push notification logic here
-        await expoPushService.send(job.token, post.title, content, post);
+        await expoPushService.send(job.token, post.title, content, { post });
       }
 
       done(null, job);
