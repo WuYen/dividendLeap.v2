@@ -37,12 +37,10 @@ router.post('/callback', lineBotHelper.verifySignature, async (req: Request, res
         } else if (lineBotHelper.isUnfollowOrLeaveEvent(event)) {
           await lineEventService.handleUnfollow(event);
         } else if (lineBotHelper.isTextMessageEvent(event)) {
-          const userText = event.message.text as string;
-          console.log(`[LINE][TextMessage] 收到訊息：${userText}`);
-          // await lineEventService.handleTextMessage(event);
+          await lineEventService.handleTextMessage(event);
         }
       } catch (error) {
-        console.error('LINE Event Error:', error);
+        console.error('LINE Event Error:', error instanceof Error ? error.name : 'UnknownError');
       }
     })
   );

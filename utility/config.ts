@@ -20,6 +20,7 @@ const LINE_USER_ID: string = process.env.LINE_USER_ID || '';
 
 const GEMINI_KEY: string = process.env.GEMINI_KEY || '';
 const OPEN_AI_KEY: string = process.env.OPEN_AI_KEY || '';
+const LINE_AI_MODEL: string = process.env.LINE_AI_MODEL || 'gpt-4o-mini';
 
 const TELEGRAM_BOT_TOKEN: string = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CALLBACK_URL: string = process.env.TELEGRAM_CALLBACK_URL || '';
@@ -43,6 +44,7 @@ export default {
   LINE_USER_ID,
   GEMINI_KEY,
   OPEN_AI_KEY,
+  LINE_AI_MODEL,
   TELEGRAM_BOT_TOKEN,
   TELEGRAM_CALLBACK_URL,
   TELEGRAM_USE_WEBHOOK,

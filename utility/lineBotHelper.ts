@@ -10,17 +10,18 @@ const client = new messagingApi.MessagingApiClient({
 
 export const lineBotHelper = {
   verifySignature: (req: Request, res: Response, next: NextFunction) => {
-    if (process.env.NODE_ENV === 'development') {
-      return next(); // 跳過 signature 驗證
-    }
-    const bodyString = JSON.stringify(req.body);
+    const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
     const channelSecret = config.LINE_CHANNEL_SECRET;
     const signature = req.get('X-Line-Signature');
 
-    const hash = crypto.createHmac('SHA256', channelSecret).update(bodyString).digest('base64');
-
-    if (hash !== signature) {
-      return res.status(500).json({ message: 'signature validation failed' });
+    if (!rawBody || !channelSecret || !signature) {
+      return res.status(401).json({ message: 'signature validation failed' });
+    }
+    const hash = crypto.createHmac('SHA256', channelSecret).update(rawBody).digest('base64');
+    const expected = Buffer.from(hash);
+    const received = Buffer.from(signature);
+    if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+      return res.status(401).json({ message: 'signature validation failed' });
     }
 
     next();

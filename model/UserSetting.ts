@@ -30,6 +30,7 @@ export interface ChannelSetting {
 // 使用者設定介面
 export interface IUserSetting {
   account: string;
+  enableOpenAi: boolean;
 
   // 驗證資訊
   verifyCode?: string | null;
@@ -76,6 +77,7 @@ const ChannelSchema = new Schema<ChannelSetting>(
 const UserSettingSchema = new Schema<IUserSetting>(
   {
     account: { type: String, required: true, unique: true },
+    enableOpenAi: { type: Boolean, default: false },
     verifyCode: { type: String, default: null },
     verifyCodeExpires: { type: Date, default: null },
     favoritePosts: { type: [FavoritePostSchema], default: [] },

@@ -3,6 +3,7 @@ import { UserSettingModel, Level } from '../model/UserSetting';
 import { lineBotHelper } from '../utility/lineBotHelper';
 import { MessageChannel } from '../type/notify';
 import { upsertChannel } from './business/upsertUserSetting';
+import { handleLineAIChat } from './lineAIChatService';
 
 export const lineEventService = {
   handleFollow: async (event: webhook.FollowEvent | webhook.JoinEvent) => {
@@ -40,14 +41,20 @@ export const lineEventService = {
 
     console.log(`[LINE][Follow] 來源：${source.type}，pushKey: ${pushKey}，name: ${name}`);
 
-    const duplicated = await UserSettingModel.findOne({ 'channels.token': pushKey, 'channels.enabled': true });
+    const duplicated = await UserSettingModel.findOne({
+      channels: { $elemMatch: { type: MessageChannel.Line, token: pushKey } },
+    });
     if (duplicated) {
-      console.log(`[LINE][Follow] pushKey ${pushKey} 已存在且啟用，跳過更新`);
+      await UserSettingModel.updateOne(
+        { _id: duplicated._id },
+        { $set: { 'channels.$[channel].enabled': true, 'channels.$[channel].name': name } },
+        { arrayFilters: [{ 'channel.type': MessageChannel.Line, 'channel.token': pushKey }] }
+      );
       return;
     }
 
     const updatedChannel = await upsertChannel({
-      account: name,
+      account: `line:${pushKey}`,
       token: pushKey,
       type: MessageChannel.Line,
       updateData: {
@@ -102,11 +109,6 @@ export const lineEventService = {
   },
 
   handleTextMessage: async (event: webhook.MessageEvent & { message: webhook.TextMessageContent }) => {
-    const replyToken = event.replyToken as string;
-    const userText = event.message.text as string;
-
-    await lineBotHelper.replyText(replyToken, `你說的是：${userText}`);
-
-    console.log(`[LINE][TextMessage] 收到訊息：${userText}, 回覆：${userText}`);
+    await handleLineAIChat(event);
   },
 };
